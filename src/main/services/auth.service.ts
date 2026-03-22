@@ -8,7 +8,11 @@ import store from '../store/electron-store'
 import type { AuthPayload, AuthResult, SessionValidationResult, LoginRequest } from '@shared/types/auth.types'
 import type { PublicRole, PublicUser } from '@shared/types/auth.types'
 
-const JWT_SECRET = process.env.JWT_SECRET!
+const _jwtSecret = process.env.JWT_SECRET
+if (!_jwtSecret || _jwtSecret.length < 32) {
+  throw new Error('JWT_SECRET env variable is missing or too short (minimum 32 chars). Set it in .env.')
+}
+const JWT_SECRET: string = _jwtSecret
 const JWT_EXPIRES_IN = '8h'
 const SESSION_DURATION_MS = 8 * 60 * 60 * 1000 // 8 hours
 
@@ -30,7 +34,10 @@ export async function login(req: LoginRequest): Promise<AuthResult> {
     return { success: false, error: 'User role not found. Contact administrator.' }
   }
 
-  const terminalId = store.get('terminalId') ?? 'unknown'
+  const terminalId = store.get('terminalId')
+  if (!terminalId) {
+    return { success: false, error: 'Terminal is not provisioned. Contact administrator.' }
+  }
   const jwtId = randomUUID()
   const issuedAt = new Date()
   const expiresAt = new Date(Date.now() + SESSION_DURATION_MS)
@@ -100,10 +107,11 @@ export async function validateSession(token: string): Promise<SessionValidationR
       return { valid: false, reason: 'expired' }
     }
 
-    const user = await User.findById(decoded.sub)
+    const [user, role] = await Promise.all([
+      User.findById(decoded.sub),
+      Role.findById(decoded.roleId)
+    ])
     if (!user || !user.isActive) return { valid: false, reason: 'not_found' }
-
-    const role = await Role.findById(decoded.roleId)
     if (!role) return { valid: false, reason: 'not_found' }
 
     const publicUser: PublicUser = {

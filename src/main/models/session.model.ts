@@ -21,7 +21,7 @@ const sessionSchema = new Schema<ISession>({
 })
 
 // jwtId unique index is created by the unique: true field option above
-// TTL index to auto-delete expired sessions after 24h
-sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 86400 })
+// TTL index: delete session documents once current time passes expiresAt
+sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 })
 
 export const Session = model<ISession>('Session', sessionSchema)

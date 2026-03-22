@@ -15,6 +15,7 @@ export interface PublicUser {
   roleId: string
   branchId: string
   isActive: boolean
+  lastLogin: number | null // Unix timestamp ms
 }
 
 export interface AuthPayload {
@@ -35,4 +36,4 @@ export type AuthResult =
 
 export type SessionValidationResult =
   | { valid: true; data: AuthPayload }
-  | { valid: false }
+  | { valid: false; reason: 'expired' | 'revoked' | 'not_found' }

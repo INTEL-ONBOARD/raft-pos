@@ -7,7 +7,7 @@ export function ConnectivityOverlay() {
   if (status === 'online') return null
 
   return (
-    <div className="fixed inset-0 z-9999 bg-black/70 flex items-center justify-center">
+    <div className="fixed inset-0 z-[9999] bg-black/70 flex items-center justify-center">
       <div className="bg-white rounded-2xl shadow-2xl p-10 flex flex-col items-center gap-4 max-w-sm w-full mx-4">
         <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
           <WifiOff className="w-8 h-8 text-red-500" />

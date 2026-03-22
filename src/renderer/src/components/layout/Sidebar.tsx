@@ -14,8 +14,12 @@ export function Sidebar() {
   const { user, clearAuth, hasPermission } = useAuth()
 
   async function handleLogout() {
-    await ipc.invoke(IPC.AUTH_LOGOUT)
-    clearAuth()
+    try {
+      await ipc.invoke(IPC.AUTH_LOGOUT)
+    } finally {
+      // Always clear local auth state, even if the IPC call fails
+      clearAuth()
+    }
   }
 
   return (

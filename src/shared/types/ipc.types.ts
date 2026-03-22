@@ -2,6 +2,14 @@
 export const IPC = {
   // Connectivity
   APP_CONNECTIVITY: 'app:connectivity',
+
+  // Auth (request-response)
+  AUTH_LOGIN: 'auth:login',
+  AUTH_LOGOUT: 'auth:logout',
+  AUTH_VALIDATE_SESSION: 'auth:validate-session',
+  AUTH_ME: 'auth:me',
+
+  // Auth (push — main → renderer)
   AUTH_SESSION_REVOKED: 'auth:session-revoked',
   AUTH_SESSION_EXPIRED: 'auth:session-expired',
   SCANNER_UNAVAILABLE: 'scanner:unavailable',

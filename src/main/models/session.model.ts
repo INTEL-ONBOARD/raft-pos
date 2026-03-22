@@ -20,8 +20,7 @@ const sessionSchema = new Schema<ISession>({
   revokedAt: { type: Date, default: null }
 })
 
-// Index for fast session lookup on every IPC auth check
-sessionSchema.index({ jwtId: 1 })
+// jwtId unique index is created by the unique: true field option above
 // TTL index to auto-delete expired sessions after 24h
 sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 86400 })
 

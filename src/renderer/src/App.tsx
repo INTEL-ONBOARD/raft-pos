@@ -9,6 +9,9 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { AppShell } from './components/layout/AppShell'
 import LoginPage from './pages/auth/LoginPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
+import CategoriesPage from './pages/categories/CategoriesPage'
+import ProductsPage from './pages/products/ProductsPage'
+import InventoryPage from './pages/inventory/InventoryPage'
 import type { ConnectivityEvent } from '@shared/types/connectivity.types'
 import type { SessionValidationResult } from '@shared/types/auth.types'
 
@@ -71,6 +74,9 @@ export default function App() {
         >
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="categories" element={<CategoriesPage />} />
+          <Route path="products" element={<ProductsPage />} />
+          <Route path="inventory" element={<InventoryPage />} />
           {/* All future pages added here in later phases */}
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

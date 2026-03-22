@@ -1,0 +1,21 @@
+// IPC channels — used in both main and renderer
+export const IPC = {
+  // Connectivity
+  APP_CONNECTIVITY: 'app:connectivity',
+  AUTH_SESSION_REVOKED: 'auth:session-revoked',
+  AUTH_SESSION_EXPIRED: 'auth:session-expired',
+  SCANNER_UNAVAILABLE: 'scanner:unavailable',
+
+  // Health
+  HEALTH_PING: 'health:ping',
+
+  // Change Stream push channels (main → renderer)
+  STREAM_TRANSACTIONS: 'stream:transactions',
+  STREAM_INVENTORY: 'stream:inventory',
+  STREAM_PRODUCTS: 'stream:products',
+  STREAM_PURCHASE_ORDERS: 'stream:purchase_orders',
+  STREAM_CASH_DRAWERS: 'stream:cash_drawers',
+  STREAM_STOCK_TRANSFERS: 'stream:stock_transfers',
+} as const
+
+export type IpcChannel = typeof IPC[keyof typeof IPC]

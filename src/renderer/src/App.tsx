@@ -37,12 +37,14 @@ export default function App() {
 
   // Restore session from electron-store on startup
   useEffect(() => {
-    ipc.invoke<SessionValidationResult>(IPC.AUTH_VALIDATE_SESSION).then((result) => {
-      if (result.valid) {
-        setAuth(result.data)
-      }
-      setSessionChecked(true)
-    })
+    ipc
+      .invoke<SessionValidationResult>(IPC.AUTH_VALIDATE_SESSION)
+      .then((result) => {
+        if (result.valid) {
+          setAuth(result.data)
+        }
+      })
+      .finally(() => setSessionChecked(true))
   }, [setAuth])
 
   // Don't render routes until session check completes (prevents flash to /login)

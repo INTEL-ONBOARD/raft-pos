@@ -27,7 +27,9 @@ function createWindow(): BrowserWindow {
   win.once('ready-to-show', () => win.show())
 
   win.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url)
+    if (url.startsWith('https://') || url.startsWith('http://')) {
+      shell.openExternal(url)
+    }
     return { action: 'deny' }
   })
 
@@ -75,8 +77,11 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
 })
 
-app.on('before-quit', async () => {
+app.on('before-quit', (event) => {
+  event.preventDefault()
   stopConnectivityMonitor()
   stopChangeStreams()
-  await disconnectDB()
+  disconnectDB().finally(() => {
+    app.exit(0)
+  })
 })

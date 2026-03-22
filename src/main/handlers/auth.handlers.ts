@@ -7,11 +7,14 @@ export function registerAuthHandlers(): void {
   // Login
   ipcMain.handle(IPC.AUTH_LOGIN, async (_event, req: unknown) => {
     // Runtime validation at the IPC boundary
+    const r = req as Record<string, unknown>
     if (
       typeof req !== 'object' ||
       req === null ||
-      typeof (req as Record<string, unknown>).email !== 'string' ||
-      typeof (req as Record<string, unknown>).password !== 'string'
+      typeof r.email !== 'string' ||
+      typeof r.password !== 'string' ||
+      r.email.trim().length === 0 ||
+      r.password.length === 0
     ) {
       return { success: false, error: 'Invalid request payload' }
     }

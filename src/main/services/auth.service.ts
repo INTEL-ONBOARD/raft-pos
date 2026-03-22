@@ -155,7 +155,7 @@ export async function logout(token: string): Promise<void> {
   } catch {
     // Token unverifiable — nothing to revoke
   }
-  store.set('jwt', null as unknown as string)
+  store.delete('jwt') // returns key to its default value (null) without a type cast
 }
 
 export async function requireAuth(token: string | null): Promise<AuthPayload> {

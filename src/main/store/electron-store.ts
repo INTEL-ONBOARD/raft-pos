@@ -1,6 +1,6 @@
 import Store from 'electron-store'
 
-interface StoreSchema {
+export interface StoreSchema {
   terminalId: string | null
   branchId: string | null
   jwt: string | null

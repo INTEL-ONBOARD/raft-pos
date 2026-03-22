@@ -12,6 +12,14 @@ export async function connectDB(uri: string): Promise<void> {
 
   isConnected = true
   console.log('[DB] Connected to MongoDB Atlas')
+
+  mongoose.connection.on('disconnected', () => {
+    isConnected = false
+    console.log('[DB] Disconnected from MongoDB Atlas')
+  })
+  mongoose.connection.on('error', () => {
+    isConnected = false
+  })
 }
 
 export async function disconnectDB(): Promise<void> {

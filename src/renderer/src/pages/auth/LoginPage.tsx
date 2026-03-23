@@ -1,20 +1,22 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { ipc } from '../../lib/ipc'
 import { IPC } from '@shared/types/ipc.types'
 import { useAuthStore } from '../../stores/auth.store'
 import type { AuthResult, LoginRequest } from '@shared/types/auth.types'
-import { Loader2 } from 'lucide-react'
+import { AuthLayout } from '../../components/auth/AuthLayout'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const setAuth = useAuthStore((s) => s.setAuth)
   const navigate = useNavigate()
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setError(null)
     setLoading(true)
@@ -35,20 +37,43 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="h-screen w-screen flex items-center justify-center" style={{ background: 'var(--bg-base)' }}>
-      <div className="modal-panel w-full max-w-sm p-8">
-        <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-4"
-            style={{ background: 'rgba(79,70,229,0.10)' }}>
-            <span className="text-xl font-bold" style={{ color: '#4F46E5' }}>R</span>
+    <AuthLayout>
+      <div style={{ width: '100%', maxWidth: '360px' }}>
+        {/* Logo mark */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '2rem' }}>
+          <div
+            style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '14px',
+              background: '#6366f1',
+              boxShadow: '0 0 0 6px rgba(99,102,241,0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '1rem',
+            }}
+          >
+            <span style={{ color: '#fff', fontSize: '24px', fontWeight: 700, lineHeight: 1 }}>R</span>
           </div>
-          <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Raft POS</h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Sign in to continue</p>
+          <h1 style={{ color: '#ffffff', fontSize: '1.5rem', fontWeight: 700, margin: 0, letterSpacing: '-0.02em' }}>
+            Raft POS
+          </h1>
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.875rem', marginTop: '0.375rem' }}>
+            Sign in to your account
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Form */}
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {/* Email */}
           <div>
-            <label htmlFor="login-email" className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>Email</label>
+            <label
+              htmlFor="login-email"
+              style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 500, marginBottom: '0.375rem' }}
+            >
+              Email
+            </label>
             <input
               id="login-email"
               type="email"
@@ -57,34 +82,141 @@ export default function LoginPage() {
               required
               autoFocus
               autoComplete="email"
-              className="dark-input"
               placeholder="you@example.com"
+              style={{
+                width: '100%',
+                height: '42px',
+                borderRadius: '8px',
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                color: '#ffffff',
+                fontSize: '0.875rem',
+                padding: '0 0.75rem',
+                outline: 'none',
+                boxSizing: 'border-box',
+                fontFamily: 'inherit',
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = 'rgba(99,102,241,0.6)'
+                e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.15)'
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'rgba(255,255,255,0.08)'
+                e.target.style.boxShadow = 'none'
+              }}
             />
           </div>
+
+          {/* Password */}
           <div>
-            <label htmlFor="login-password" className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>Password</label>
-            <input
-              id="login-password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-              className="dark-input"
-              placeholder="••••••••"
-            />
+            <label
+              htmlFor="login-password"
+              style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 500, marginBottom: '0.375rem' }}
+            >
+              Password
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                id="login-password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                placeholder="••••••••"
+                style={{
+                  width: '100%',
+                  height: '42px',
+                  borderRadius: '8px',
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  color: '#ffffff',
+                  fontSize: '0.875rem',
+                  padding: '0 2.5rem 0 0.75rem',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                  fontFamily: 'inherit',
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = 'rgba(99,102,241,0.6)'
+                  e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.15)'
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'rgba(255,255,255,0.08)'
+                  e.target.style.boxShadow = 'none'
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                style={{
+                  position: 'absolute',
+                  right: '0.625rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'rgba(255,255,255,0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '0.25rem',
+                }}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
+
+          {/* Error */}
           {error && (
-            <div className="rounded-lg px-4 py-3 text-sm" style={{ background: 'rgba(220,38,38,0.08)', color: '#dc2626', border: '1px solid rgba(220,38,38,0.15)' }}>
+            <div
+              role="alert"
+              style={{
+                background: 'rgba(239,68,68,0.08)',
+                border: '1px solid rgba(239,68,68,0.2)',
+                borderRadius: '8px',
+                color: '#f87171',
+                fontSize: '0.8125rem',
+                padding: '0.75rem 1rem',
+              }}
+            >
               {error}
             </div>
           )}
-          <button type="submit" disabled={loading} className="btn-primary w-full flex items-center justify-center gap-2 py-2.5">
-            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-            {loading ? 'Signing in...' : 'Sign In'}
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: '100%',
+              height: '44px',
+              borderRadius: '8px',
+              background: '#6366f1',
+              color: '#ffffff',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              border: 'none',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.6 : 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              fontFamily: 'inherit',
+              marginTop: '0.5rem',
+              transition: 'background 150ms ease-out',
+            }}
+            onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = '#4f46e5' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = '#6366f1' }}
+          >
+            {loading && <Loader2 size={16} className="animate-spin" />}
+            {loading ? 'Signing in…' : 'Sign In'}
           </button>
         </form>
       </div>
-    </div>
+    </AuthLayout>
   )
 }

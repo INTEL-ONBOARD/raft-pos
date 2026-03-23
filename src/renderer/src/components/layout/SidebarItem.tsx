@@ -1,6 +1,5 @@
 import { NavLink } from 'react-router-dom'
 import type { LucideIcon } from 'lucide-react'
-import { cn } from '../../lib/utils'
 
 interface SidebarItemProps {
   to: string
@@ -12,16 +11,10 @@ export function SidebarItem({ to, icon: Icon, label }: SidebarItemProps) {
   return (
     <NavLink
       to={to}
-      className={({ isActive }) =>
-        cn(
-          'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-          isActive
-            ? 'bg-blue-600 text-white'
-            : 'text-slate-400 hover:text-white hover:bg-slate-700'
-        )
-      }
+      aria-current={undefined}
+      className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
     >
-      <Icon className="w-5 h-5 flex-shrink-0" />
+      <Icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
       <span>{label}</span>
     </NavLink>
   )

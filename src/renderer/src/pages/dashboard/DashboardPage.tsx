@@ -385,7 +385,7 @@ function StockAlertsPanel({ items }: { items: LowStockItem[] }) {
         <>
           {/* Two-column grid layout */}
           <div className="flex-1 overflow-y-auto p-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {critical.map((item) => {
                 const pct = item.reorderPoint > 0
                   ? Math.min(100, Math.round((item.quantity / (item.reorderPoint * 2)) * 100))

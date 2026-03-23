@@ -214,14 +214,20 @@ export default function HomePage() {
     }),
   })).filter((g) => g.tiles.length > 0)
 
-  let tileIndex = 0
+  const [activeTab, setActiveTab] = useState(0)
+
+  // Clamp activeTab if groups change (permission filtering)
+  const safeTab = Math.min(activeTab, groups.length - 1)
+  const activeGroup = groups[safeTab]
 
   return (
     <div
-      className="home-dark-root flex flex-col min-h-full"
+      className="home-dark-root"
       style={{
         background: '#080810',
-        minHeight: '100%',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -243,11 +249,16 @@ export default function HomePage() {
         backgroundSize: '200px 200px',
       }} />
 
-      {/* ── Content ── */}
-      <div style={{ position: 'relative', zIndex: 1, padding: '52px 60px 72px', display: 'flex', flexDirection: 'column', gap: '0' }}>
+      {/* ── Content (fills height, no scroll) ── */}
+      <div style={{
+        position: 'relative', zIndex: 1,
+        flex: 1, display: 'flex', flexDirection: 'column',
+        padding: '44px 60px 48px',
+        overflow: 'hidden',
+      }}>
 
-        {/* ── Hero ── */}
-        <div className="home-hero" style={{ marginBottom: '56px' }}>
+        {/* ── Hero row ── */}
+        <div className="home-hero" style={{ marginBottom: '36px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
 
             {/* Left: greeting */}
@@ -259,7 +270,7 @@ export default function HomePage() {
                 border: '1px solid rgba(251,191,36,0.20)',
                 borderRadius: '999px',
                 padding: '4px 12px',
-                marginBottom: '20px',
+                marginBottom: '16px',
               }}>
                 <span style={{
                   width: '6px', height: '6px', borderRadius: '50%',
@@ -275,24 +286,17 @@ export default function HomePage() {
                 </span>
               </div>
 
-              {/* Name */}
               <h1 style={{
-                fontSize: '48px', fontWeight: 800, lineHeight: 1.05,
-                letterSpacing: '-0.035em',
-                color: '#ffffff',
-                marginBottom: '12px',
+                fontSize: '40px', fontWeight: 800, lineHeight: 1.05,
+                letterSpacing: '-0.035em', color: '#ffffff', marginBottom: '0',
               }}>
-                {greeting},<br />
+                {greeting},{' '}
                 <span style={{
-                  background: 'linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.70) 100%)',
+                  background: 'linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.65) 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                 }}>{firstName}.</span>
               </h1>
-
-              <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.38)', letterSpacing: '0.01em' }}>
-                Select a module to get started
-              </p>
             </div>
 
             {/* Right: clock */}
@@ -301,71 +305,90 @@ export default function HomePage() {
 
           {/* Separator */}
           <div style={{
-            marginTop: '40px',
+            marginTop: '28px',
             height: '1px',
             background: 'linear-gradient(to right, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 60%, transparent 100%)',
           }} />
         </div>
 
-        {/* ── Groups ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '48px' }}>
-          {groups.map((group) => (
-            <div key={group.label}>
-              {/* Section label */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-                <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.20)', fontWeight: 400 }}>
+        {/* ── Tab bar ── */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '6px',
+          marginBottom: '32px', flexShrink: 0,
+        }}>
+          {groups.map((group, i) => {
+            const isActive = i === safeTab
+            return (
+              <button
+                key={group.label}
+                onClick={() => setActiveTab(i)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '7px',
+                  height: '36px', padding: '0 16px',
+                  borderRadius: '999px',
+                  border: isActive ? '1px solid rgba(255,255,255,0.18)' : '1px solid rgba(255,255,255,0.07)',
+                  background: isActive ? 'rgba(255,255,255,0.10)' : 'transparent',
+                  cursor: 'pointer', outline: 'none',
+                  transition: 'background 180ms ease-out, border-color 180ms ease-out',
+                }}
+                onMouseEnter={e => {
+                  if (!isActive) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.05)'
+                }}
+                onMouseLeave={e => {
+                  if (!isActive) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
+                }}
+              >
+                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', lineHeight: 1 }}>
                   {group.icon}
                 </span>
                 <span style={{
-                  fontSize: '11px', fontWeight: 700, letterSpacing: '0.10em',
-                  textTransform: 'uppercase', color: 'rgba(255,255,255,0.30)',
+                  fontSize: '13px', fontWeight: isActive ? 600 : 500,
+                  letterSpacing: '-0.01em',
+                  color: isActive ? '#ffffff' : 'rgba(255,255,255,0.45)',
+                  transition: 'color 180ms ease-out',
                 }}>
                   {group.label}
                 </span>
-                <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.05)', marginLeft: '4px' }} />
-              </div>
-
-              {/* Grid */}
-              <div style={{
-                display: 'grid',
-                gap: '12px',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-              }}>
-                {group.tiles.map((tile) => {
-                  const delay = 80 + tileIndex++ * 45
-                  return (
-                    <TileCard
-                      key={tile.to}
-                      tile={tile}
-                      delay={delay}
-                      onNavigate={() => navigate(tile.to)}
-                    />
-                  )
-                })}
-              </div>
-            </div>
-          ))}
+                {isActive && (
+                  <span style={{
+                    fontSize: '11px', fontWeight: 600,
+                    background: 'rgba(255,255,255,0.12)',
+                    color: 'rgba(255,255,255,0.6)',
+                    borderRadius: '999px',
+                    padding: '1px 7px',
+                    lineHeight: 1.6,
+                  }}>
+                    {group.tiles.length}
+                  </span>
+                )}
+              </button>
+            )
+          })}
         </div>
 
-        {/* ── Bottom brand watermark ── */}
-        <div style={{
-          marginTop: '64px',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-          opacity: 0.15,
-        }}>
-          <div style={{
-            width: '20px', height: '20px', borderRadius: '50%',
-            background: 'rgba(255,255,255,0.6)',
-          }} />
-          <div style={{
-            width: '20px', height: '20px', borderRadius: '50%',
-            background: 'rgba(251,191,36,0.6)',
-            marginLeft: '-10px',
-          }} />
-          <span style={{ fontSize: '11px', fontWeight: 600, color: '#fff', letterSpacing: '0.12em', textTransform: 'uppercase', marginLeft: '6px' }}>
-            Raft POS
-          </span>
-        </div>
+        {/* ── Active group tile grid ── */}
+        {activeGroup && (
+          <div
+            key={activeGroup.label}
+            style={{
+              flex: 1,
+              display: 'grid',
+              gap: '14px',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
+              alignContent: 'start',
+              animation: 'fadeSlideUp 0.35s cubic-bezier(0.22,1,0.36,1) both',
+            }}
+          >
+            {activeGroup.tiles.map((tile, i) => (
+              <TileCard
+                key={tile.to}
+                tile={tile}
+                delay={i * 40}
+                onNavigate={() => navigate(tile.to)}
+              />
+            ))}
+          </div>
+        )}
 
       </div>
     </div>

@@ -1,6 +1,6 @@
 // src/renderer/src/pages/transactions/TransactionsPage.tsx
 import { useState } from 'react'
-import { Search } from 'lucide-react'
+import { Search, ArrowLeftRight } from 'lucide-react'
 import { useTransactions, usePOS } from '../../hooks/usePOS'
 import { useAuthStore } from '../../stores/auth.store'
 import { VoidModal } from './VoidModal'
@@ -15,11 +15,10 @@ function fmt(n: number) {
 }
 
 function statusBadge(s: string) {
-  const base = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium'
-  if (s === 'completed') return `${base} bg-green-100 text-green-700`
-  if (s === 'voided') return `${base} bg-red-100 text-red-700`
-  if (s === 'refunded') return `${base} bg-yellow-100 text-yellow-700`
-  return `${base} bg-gray-100 text-gray-600`
+  if (s === 'completed') return 'badge-green'
+  if (s === 'voided') return 'badge-red'
+  if (s === 'refunded') return 'badge-yellow'
+  return 'badge-gray'
 }
 
 const STATUS_TABS: { label: string; value: FilterStatus }[] = [
@@ -67,50 +66,59 @@ export default function TransactionsPage() {
   async function handleVoid(reason: string) {
     if (!voidTarget) return
     setActionError('')
-    const result = await voidMutation.mutateAsync({ transactionId: voidTarget._id, reason })
-    if (result.success) {
+    try {
+      await voidMutation.mutateAsync({ transactionId: voidTarget._id, reason })
       setVoidTarget(null)
-    } else {
-      setActionError(result.error ?? 'Failed to void transaction')
+    } catch (err: any) {
+      setActionError(err.message ?? 'Failed to void transaction')
     }
   }
 
   async function handleRefund(reason: string, refundedItems: Array<{ productId: string; quantity: number }>) {
     if (!refundTarget) return
     setActionError('')
-    const result = await refundMutation.mutateAsync({ transactionId: refundTarget._id, reason, refundedItems })
-    if (result.success) {
+    try {
+      await refundMutation.mutateAsync({ transactionId: refundTarget._id, reason, refundedItems })
       setRefundTarget(null)
-    } else {
-      setActionError(result.error ?? 'Failed to refund transaction')
+    } catch (err: any) {
+      setActionError(err.message ?? 'Failed to refund transaction')
     }
   }
 
   return (
-    <div className="p-8 space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
-        <p className="text-gray-500 text-sm mt-1">Sales history, void, and refund management</p>
+    <div className="flex flex-col min-h-full" style={{ background: 'var(--bg-base)' }}>
+      <div className="page-header">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: 'rgba(79,70,229,0.10)' }}>
+            <ArrowLeftRight className="w-4 h-4" style={{ color: 'var(--accent)' }} />
+          </div>
+          <div>
+            <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)' }}>Transactions</h1>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>Sales history, void, and refund management</p>
+          </div>
+        </div>
       </div>
+      <div className="p-6 flex-1 space-y-4">
 
       {actionError && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
+        <div className="p-3 text-sm flex items-center justify-between rounded-xl"
+          style={{ background: 'rgba(220,38,38,0.06)', border: '1px solid rgba(220,38,38,0.15)', color: '#dc2626' }}>
           {actionError}
-          <button className="ml-2 text-red-500 hover:text-red-700" onClick={() => setActionError('')}>×</button>
+          <button className="ml-2 hover:opacity-70" onClick={() => setActionError('')}>×</button>
         </div>
       )}
 
       {/* Status tabs */}
-      <div className="flex gap-1 border-b border-gray-200">
+      <div className="flex gap-1" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         {STATUS_TABS.map(tab => (
           <button
             key={tab.value}
             onClick={() => { setStatusFilter(tab.value); setPage(1) }}
-            className={`px-4 py-2 text-sm font-medium -mb-px border-b-2 transition-colors ${
-              statusFilter === tab.value
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
+            className="px-4 py-2 text-sm font-medium -mb-px transition-colors"
+            style={statusFilter === tab.value
+              ? { borderBottom: '2px solid #4F46E5', color: '#4F46E5' }
+              : { color: 'var(--text-muted)', borderBottom: '2px solid transparent' }}
           >
             {tab.label}
           </button>
@@ -120,37 +128,40 @@ export default function TransactionsPage() {
       {/* Search + Date filters */}
       <div className="flex flex-wrap gap-3 items-center">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
           <input
             type="text"
             placeholder="Search receipt number…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-52"
+            className="dark-input pl-9 pr-4 py-2 text-sm w-52"
           />
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <label className="text-gray-500">From:</label>
+          <label style={{ color: 'var(--text-secondary)' }}>From:</label>
           <input
             type="date"
             value={dateFrom}
             onChange={e => { setDateFrom(e.target.value); setPage(1) }}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="dark-input px-3 py-2 text-sm"
           />
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <label className="text-gray-500">To:</label>
+          <label style={{ color: 'var(--text-secondary)' }}>To:</label>
           <input
             type="date"
             value={dateTo}
             onChange={e => { setDateTo(e.target.value); setPage(1) }}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="dark-input px-3 py-2 text-sm"
           />
         </div>
         {(dateFrom || dateTo) && (
           <button
             onClick={() => { setDateFrom(''); setDateTo(''); setPage(1) }}
-            className="text-sm text-gray-400 hover:text-gray-600"
+            className="text-sm transition-colors"
+            style={{ color: 'var(--text-muted)' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
           >
             Clear dates
           </button>
@@ -158,61 +169,100 @@ export default function TransactionsPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="content-card overflow-hidden">
         {isLoading ? (
-          <div className="p-8 text-center text-gray-400 text-sm">Loading transactions…</div>
+          <table className="dark-table">
+            <thead>
+              <tr>
+                <th className="text-left">Receipt No</th>
+                <th className="text-left">Date</th>
+                <th className="text-right">Items</th>
+                <th className="text-right">Total</th>
+                <th className="text-left">Payment</th>
+                <th className="text-left">Status</th>
+                <th className="text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i}>
+                  {Array.from({ length: 7 }).map((__, j) => (
+                    <td key={j}>
+                      <div className="h-4 rounded animate-pulse" style={{ background: 'var(--border-subtle)', width: j === 0 ? '100px' : j === 1 ? '130px' : '70px' }} />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         ) : isError ? (
-          <div className="p-8 text-center text-red-500 text-sm">Failed to load transactions</div>
+          <div className="p-8 text-center text-sm" style={{ color: '#dc2626' }}>Failed to load transactions</div>
         ) : transactions.length === 0 ? (
-          <div className="p-8 text-center text-gray-400 text-sm">No transactions found</div>
+          <div className="flex flex-col items-center justify-center py-16 gap-3">
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
+              style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)' }}>
+              <ArrowLeftRight className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
+            </div>
+            <div className="text-center">
+              <p style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-secondary)' }}>No transactions found</p>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>Try adjusting your search or filters.</p>
+            </div>
+          </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-gray-500 text-xs">
+            <table className="dark-table">
+              <thead>
                 <tr>
-                  <th className="px-6 py-3 text-left font-medium">Receipt No</th>
-                  <th className="px-6 py-3 text-left font-medium">Date</th>
-                  <th className="px-6 py-3 text-right font-medium">Items</th>
-                  <th className="px-6 py-3 text-right font-medium">Total</th>
-                  <th className="px-6 py-3 text-left font-medium">Payment</th>
-                  <th className="px-6 py-3 text-left font-medium">Status</th>
-                  <th className="px-6 py-3 text-left font-medium">Actions</th>
+                  <th className="text-left">Receipt No</th>
+                  <th className="text-left">Date</th>
+                  <th className="text-right">Items</th>
+                  <th className="text-right">Total</th>
+                  <th className="text-left">Payment</th>
+                  <th className="text-left">Status</th>
+                  <th className="text-left">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody>
                 {transactions.map(t => (
-                  <tr key={t._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-3">
+                  <tr key={t._id}>
+                    <td>
                       <button
                         onClick={() => setDetailTarget(t)}
-                        className="font-medium text-blue-600 hover:text-blue-700"
+                        className="font-medium transition-colors"
+                        style={{ color: '#4F46E5' }}
+                        onMouseEnter={e => (e.currentTarget.style.color = '#4338CA')}
+                        onMouseLeave={e => (e.currentTarget.style.color = '#4F46E5')}
                       >
                         {t.receiptNo}
                       </button>
                     </td>
-                    <td className="px-6 py-3 text-gray-600">
+                    <td style={{ color: 'var(--text-secondary)' }}>
                       {new Date(t.createdAt).toLocaleString()}
                     </td>
-                    <td className="px-6 py-3 text-right text-gray-600">
+                    <td className="text-right" style={{ color: 'var(--text-secondary)' }}>
                       {t.items.reduce((s, i) => s + i.quantity, 0)}
                     </td>
-                    <td className="px-6 py-3 text-right font-medium text-gray-900">
+                    <td className="text-right font-medium" style={{ color: 'var(--text-primary)' }}>
                       ₱{fmt(t.totalAmount)}
                     </td>
-                    <td className="px-6 py-3 text-gray-600 capitalize">
+                    <td className="capitalize" style={{ color: 'var(--text-secondary)' }}>
                       {t.isSplit ? 'Split' : t.payments[0]?.method ?? '—'}
                     </td>
-                    <td className="px-6 py-3">
+                    <td>
                       <span className={statusBadge(t.status)}>
                         {t.status.charAt(0).toUpperCase() + t.status.slice(1)}
                       </span>
                     </td>
-                    <td className="px-6 py-3">
+                    <td className="row-actions">
                       <div className="flex items-center gap-2">
                         {canReprint && (
                           <button
                             onClick={() => setDetailTarget(t)}
-                            className="text-xs text-gray-500 hover:text-gray-700"
+                            className="text-xs transition-colors"
+                            aria-label={`Reprint receipt for ${t.receiptNo}`}
+                            style={{ color: 'var(--text-muted)' }}
+                            onMouseEnter={e => (e.currentTarget.style.color = '#4F46E5')}
+                            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
                           >
                             Reprint
                           </button>
@@ -220,7 +270,11 @@ export default function TransactionsPage() {
                         {canVoid && t.status === 'completed' && (
                           <button
                             onClick={() => { setActionError(''); setVoidTarget(t) }}
-                            className="text-xs text-red-500 hover:text-red-700"
+                            className="text-xs transition-colors"
+                            aria-label={`Void transaction ${t.receiptNo}`}
+                            style={{ color: '#dc2626' }}
+                            onMouseEnter={e => (e.currentTarget.style.color = '#b91c1c')}
+                            onMouseLeave={e => (e.currentTarget.style.color = '#dc2626')}
                           >
                             Void
                           </button>
@@ -228,7 +282,11 @@ export default function TransactionsPage() {
                         {canRefund && t.status === 'completed' && (
                           <button
                             onClick={() => { setActionError(''); setRefundTarget(t) }}
-                            className="text-xs text-blue-500 hover:text-blue-700"
+                            className="text-xs transition-colors"
+                            aria-label={`Refund transaction ${t.receiptNo}`}
+                            style={{ color: 'var(--text-secondary)' }}
+                            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
+                            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
                           >
                             Refund
                           </button>
@@ -245,20 +303,20 @@ export default function TransactionsPage() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between text-sm text-gray-600">
+        <div className="flex items-center justify-between text-sm" style={{ color: 'var(--text-secondary)' }}>
           <span>Page {page} of {totalPages} ({total} total)</span>
           <div className="flex gap-2">
             <button
               disabled={page <= 1}
               onClick={() => setPage(p => p - 1)}
-              className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-40"
+              className="btn-secondary px-3 py-1 rounded disabled:opacity-40"
             >
               Previous
             </button>
             <button
               disabled={page >= totalPages}
               onClick={() => setPage(p => p + 1)}
-              className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-40"
+              className="btn-secondary px-3 py-1 rounded disabled:opacity-40"
             >
               Next
             </button>
@@ -288,6 +346,7 @@ export default function TransactionsPage() {
           onClose={() => setDetailTarget(null)}
         />
       )}
+      </div>
     </div>
   )
 }

@@ -57,7 +57,7 @@ export default function InventoryPage() {
 
         {/* Summary stat chips */}
         <div className="grid grid-cols-3 gap-3 mb-5">
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: '#ffffff', border: '1px solid var(--border-default)', boxShadow: '0 1px 3px rgba(15,17,23,0.05)' }}>
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: '#ffffff', border: '1px solid var(--border-default)', boxShadow: 'var(--shadow-xs)' }}>
             <div className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0" style={{ background: 'rgba(20,184,166,0.10)' }}>
               <Package className="w-4 h-4" style={{ color: '#0d9488' }} />
             </div>
@@ -66,7 +66,7 @@ export default function InventoryPage() {
               <p className="text-lg font-bold leading-tight" style={{ color: 'var(--text-primary)' }}>{rows.length}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: '#ffffff', border: '1px solid var(--border-default)', boxShadow: '0 1px 3px rgba(15,17,23,0.05)' }}>
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: '#ffffff', border: '1px solid var(--border-default)', boxShadow: 'var(--shadow-xs)' }}>
             <div className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0" style={{ background: 'rgba(180,83,9,0.10)' }}>
               <TrendingDown className="w-4 h-4" style={{ color: '#b45309' }} />
             </div>
@@ -75,7 +75,7 @@ export default function InventoryPage() {
               <p className="text-lg font-bold leading-tight" style={{ color: lowCount > 0 ? '#b45309' : 'var(--text-primary)' }}>{lowCount}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: '#ffffff', border: '1px solid var(--border-default)', boxShadow: '0 1px 3px rgba(15,17,23,0.05)' }}>
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: '#ffffff', border: '1px solid var(--border-default)', boxShadow: 'var(--shadow-xs)' }}>
             <div className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0" style={{ background: 'rgba(220,38,38,0.10)' }}>
               <XCircle className="w-4 h-4" style={{ color: '#dc2626' }} />
             </div>

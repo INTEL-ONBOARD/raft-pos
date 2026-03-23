@@ -65,7 +65,7 @@ export function ProductSearchPanel() {
         {/* Search bar */}
         <div className="flex gap-2 mb-4">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'rgba(15,17,23,0.30)' }} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
             <input
               id="pos-search"
               value={search}

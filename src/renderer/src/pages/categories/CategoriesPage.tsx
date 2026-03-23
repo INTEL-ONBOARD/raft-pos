@@ -122,7 +122,7 @@ export default function CategoriesPage() {
       <div className="p-6 flex-1">
 
       {adding && (
-        <div className="p-5 mb-6 rounded-xl" style={{ background: '#ffffff', border: '1px solid var(--border-default)', boxShadow: '0 1px 4px rgba(15,17,23,0.06)' }}>
+        <div className="p-5 mb-6 rounded-xl" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)', boxShadow: 'var(--shadow-xs)' }}>
           <h2 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>{editing ? 'Edit Category' : 'New Category'}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>

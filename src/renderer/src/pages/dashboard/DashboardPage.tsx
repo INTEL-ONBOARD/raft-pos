@@ -65,7 +65,7 @@ function KPICard({ icon, iconBg, iconColor, label, value, delta, deltaUp, accent
         )}
       </div>
       <div className="relative">
-        <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'rgba(15,17,23,0.42)' }}>
+        <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
           {label}
         </p>
         <p
@@ -126,18 +126,18 @@ function RevenueTrendPanel({ revenue, transactions, avgOrder }: {
   return (
     <div className="content-card overflow-hidden flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid rgba(15,17,23,0.07)' }}>
+      <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'rgba(15,17,23,0.40)' }}>
+          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
             Revenue Trend
           </p>
-          <p className="text-xs mt-0.5" style={{ color: 'rgba(15,17,23,0.30)' }}>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
             Today — estimated hourly distribution
           </p>
         </div>
         <div className="text-right">
-          <p className="text-2xl font-bold tabular-nums" style={{ color: '#0f1117' }}>₱{fmtCompact(revenue)}</p>
-          <p className="text-xs mt-0.5" style={{ color: 'rgba(15,17,23,0.38)' }}>total today</p>
+          <p className="text-2xl font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>₱{fmtCompact(revenue)}</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>total today</p>
         </div>
       </div>
 
@@ -156,7 +156,7 @@ function RevenueTrendPanel({ revenue, transactions, avgOrder }: {
           <path
             d={linePath}
             fill="none"
-            stroke={isPositive ? '#4F46E5' : 'rgba(15,17,23,0.15)'}
+            stroke={isPositive ? '#4F46E5' : 'var(--border-default)'}
             strokeWidth="2"
             strokeLinejoin="round"
             strokeLinecap="round"
@@ -181,7 +181,7 @@ function RevenueTrendPanel({ revenue, transactions, avgOrder }: {
               y={H - 4}
               textAnchor="middle"
               fontSize="9"
-              fill="rgba(15,17,23,0.32)"
+              fill="var(--text-muted)"
               fontFamily="Inter, sans-serif"
             >
               {h}
@@ -193,16 +193,16 @@ function RevenueTrendPanel({ revenue, transactions, avgOrder }: {
       {/* Bottom stat row */}
       <div
         className="grid grid-cols-3 divide-x mt-auto"
-        style={{ borderTop: '1px solid rgba(15,17,23,0.07)', borderColor: 'rgba(15,17,23,0.07)' }}
+        style={{ borderTop: '1px solid var(--border-subtle)', borderColor: 'var(--border-subtle)' }}
       >
         {[
           { label: 'Transactions', value: String(transactions) },
           { label: 'Avg Order', value: `₱${fmtCompact(avgOrder)}` },
           { label: 'Revenue/Txn', value: transactions > 0 ? `₱${fmtCompact(revenue / transactions)}` : '—' },
         ].map(({ label, value }) => (
-          <div key={label} className="flex flex-col items-center py-3 gap-0.5" style={{ borderColor: 'rgba(15,17,23,0.07)' }}>
-            <span className="text-xs" style={{ color: 'rgba(15,17,23,0.38)' }}>{label}</span>
-            <span className="text-sm font-bold tabular-nums" style={{ color: '#0f1117' }}>{value}</span>
+          <div key={label} className="flex flex-col items-center py-3 gap-0.5" style={{ borderColor: 'var(--border-subtle)' }}>
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{label}</span>
+            <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>{value}</span>
           </div>
         ))}
       </div>
@@ -226,7 +226,7 @@ function BestSellersPanel({ items }: { items: TopSellerItem[] }) {
   return (
     <div className="content-card overflow-hidden flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid rgba(15,17,23,0.07)' }}>
+      <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         <div className="flex items-center gap-2.5">
           <div
             className="w-7 h-7 rounded-lg flex items-center justify-center"
@@ -234,7 +234,7 @@ function BestSellersPanel({ items }: { items: TopSellerItem[] }) {
           >
             <TrendingUp className="w-3.5 h-3.5" style={{ color: '#b45309' }} />
           </div>
-          <span className="text-sm font-bold" style={{ color: '#0f1117' }}>Best selling products</span>
+          <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Best selling products</span>
         </div>
         {items.length > 0 && (
           <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: 'rgba(217,119,6,0.10)', color: '#b45309' }}>
@@ -245,9 +245,9 @@ function BestSellersPanel({ items }: { items: TopSellerItem[] }) {
 
       {items.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 py-12 flex-1">
-          <TrendingUp className="w-8 h-8" style={{ color: 'rgba(15,17,23,0.12)' }} />
-          <p className="text-sm" style={{ color: 'rgba(15,17,23,0.38)' }}>No sales yet today</p>
-          <p className="text-xs" style={{ color: 'rgba(15,17,23,0.25)' }}>Process a transaction to see top products here</p>
+          <TrendingUp className="w-8 h-8" style={{ color: 'var(--text-disabled)' }} />
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No sales yet today</p>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Process a transaction to see top products here</p>
         </div>
       ) : (
         <>
@@ -256,9 +256,9 @@ function BestSellersPanel({ items }: { items: TopSellerItem[] }) {
             className="grid px-5 py-2 text-xs font-semibold uppercase tracking-wider"
             style={{
               gridTemplateColumns: '28px 1fr 90px 64px',
-              color: 'rgba(15,17,23,0.38)',
-              borderBottom: '1px solid rgba(15,17,23,0.05)',
-              background: 'rgba(15,17,23,0.02)'
+              color: 'var(--text-muted)',
+              borderBottom: '1px solid var(--border-subtle)',
+              background: 'var(--bg-subtle)'
             }}
           >
             <span>#</span>
@@ -275,7 +275,7 @@ function BestSellersPanel({ items }: { items: TopSellerItem[] }) {
                   className="grid items-start px-5 py-3"
                   style={{
                     gridTemplateColumns: '28px 1fr 90px 64px',
-                    borderBottom: '1px solid rgba(15,17,23,0.05)'
+                    borderBottom: '1px solid var(--border-subtle)'
                   }}
                 >
                   {/* Rank badge */}
@@ -288,7 +288,7 @@ function BestSellersPanel({ items }: { items: TopSellerItem[] }) {
 
                   {/* Name + progress bar */}
                   <div className="min-w-0 pr-4">
-                    <p className="text-sm font-semibold truncate" style={{ color: '#0f1117' }}>{item.name}</p>
+                    <p className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{item.name}</p>
                     {/* Revenue progress bar */}
                     <div className="mt-1.5 h-1 rounded-full overflow-hidden" style={{ background: 'var(--bg-subtle)' }}>
                       <div
@@ -300,18 +300,18 @@ function BestSellersPanel({ items }: { items: TopSellerItem[] }) {
                         }}
                       />
                     </div>
-                    <span className="text-xs font-mono mt-0.5 block" style={{ color: 'rgba(15,17,23,0.28)' }}>
+                    <span className="text-xs font-mono mt-0.5 block" style={{ color: 'var(--text-muted)' }}>
                       {item.sku}
                     </span>
                   </div>
 
                   {/* Revenue */}
-                  <span className="text-sm font-bold tabular-nums text-right" style={{ color: '#0f1117' }}>
+                  <span className="text-sm font-bold tabular-nums text-right" style={{ color: 'var(--text-primary)' }}>
                     ₱{fmtCompact(item.revenue)}
                   </span>
 
                   {/* Units */}
-                  <span className="text-sm tabular-nums text-right" style={{ color: 'rgba(15,17,23,0.50)' }}>
+                  <span className="text-sm tabular-nums text-right" style={{ color: 'var(--text-secondary)' }}>
                     {item.unitsSold}
                   </span>
                 </div>
@@ -322,12 +322,12 @@ function BestSellersPanel({ items }: { items: TopSellerItem[] }) {
           {/* Footer */}
           <div
             className="flex items-center justify-between px-5 py-3"
-            style={{ borderTop: '1px solid rgba(15,17,23,0.07)', background: 'rgba(15,17,23,0.02)' }}
+            style={{ borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-subtle)' }}
           >
-            <span className="text-xs" style={{ color: 'rgba(15,17,23,0.35)' }}>
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
               Top {items.length} products today
             </span>
-            <span className="text-sm font-bold tabular-nums" style={{ color: '#0f1117' }}>₱{fmt(totalRevenue)}</span>
+            <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>₱{fmt(totalRevenue)}</span>
           </div>
         </>
       )}
@@ -343,7 +343,7 @@ function StockAlertsPanel({ items }: { items: LowStockItem[] }) {
   return (
     <div className="content-card overflow-hidden flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid rgba(15,17,23,0.07)' }}>
+      <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         <div className="flex items-center gap-2.5">
           <div
             className="w-7 h-7 rounded-lg flex items-center justify-center"
@@ -351,7 +351,7 @@ function StockAlertsPanel({ items }: { items: LowStockItem[] }) {
           >
             <AlertTriangle className="w-3.5 h-3.5" style={{ color: critical.length > 0 ? '#dc2626' : '#b45309' }} />
           </div>
-          <span className="text-sm font-bold" style={{ color: '#0f1117' }}>Stock Alerts</span>
+          <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Stock Alerts</span>
         </div>
         <div className="flex items-center gap-1.5">
           {critical.length > 0 && (
@@ -378,8 +378,8 @@ function StockAlertsPanel({ items }: { items: LowStockItem[] }) {
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(22,163,74,0.07)', border: '1px solid rgba(22,163,74,0.12)' }}>
             <CheckCircle2 className="w-5 h-5" style={{ color: '#16a34a' }} />
           </div>
-          <p className="text-sm font-medium" style={{ color: 'rgba(15,17,23,0.55)' }}>Inventory looks healthy</p>
-          <p className="text-xs" style={{ color: 'rgba(15,17,23,0.30)' }}>All products above reorder thresholds</p>
+          <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Inventory looks healthy</p>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>All products above reorder thresholds</p>
         </div>
       ) : (
         <>
@@ -403,10 +403,10 @@ function StockAlertsPanel({ items }: { items: LowStockItem[] }) {
                     <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: '#dc2626' }} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <p className="text-sm font-semibold truncate mr-3" style={{ color: '#0f1117' }}>{item.name}</p>
+                        <p className="text-sm font-semibold truncate mr-3" style={{ color: 'var(--text-primary)' }}>{item.name}</p>
                         <div className="flex items-center gap-1.5 shrink-0">
                           <span className="text-sm font-bold tabular-nums" style={{ color: '#dc2626' }}>{item.quantity}</span>
-                          <span className="text-xs" style={{ color: 'rgba(15,17,23,0.35)' }}>/ {item.reorderPoint}</span>
+                          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>/ {item.reorderPoint}</span>
                           <span
                             className="text-xs font-semibold px-1.5 py-0.5 rounded"
                             style={{ background: 'rgba(220,38,38,0.10)', color: '#dc2626' }}
@@ -416,13 +416,13 @@ function StockAlertsPanel({ items }: { items: LowStockItem[] }) {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(15,17,23,0.08)' }}>
+                        <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'var(--border-subtle)' }}>
                           <div
                             className="h-full rounded-full"
                             style={{ width: `${pct}%`, background: 'linear-gradient(90deg,#dc2626,#b91c1c)' }}
                           />
                         </div>
-                        <span className="text-xs font-mono shrink-0" style={{ color: 'rgba(15,17,23,0.28)' }}>{item.sku}</span>
+                        <span className="text-xs font-mono shrink-0" style={{ color: 'var(--text-muted)' }}>{item.sku}</span>
                       </div>
                     </div>
                   </div>
@@ -446,10 +446,10 @@ function StockAlertsPanel({ items }: { items: LowStockItem[] }) {
                     <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: '#d97706' }} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <p className="text-sm font-semibold truncate mr-3" style={{ color: '#0f1117' }}>{item.name}</p>
+                        <p className="text-sm font-semibold truncate mr-3" style={{ color: 'var(--text-primary)' }}>{item.name}</p>
                         <div className="flex items-center gap-1.5 shrink-0">
                           <span className="text-sm font-bold tabular-nums" style={{ color: '#b45309' }}>{item.quantity}</span>
-                          <span className="text-xs" style={{ color: 'rgba(15,17,23,0.35)' }}>/ {item.reorderPoint}</span>
+                          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>/ {item.reorderPoint}</span>
                           <span
                             className="text-xs font-semibold px-1.5 py-0.5 rounded"
                             style={{ background: 'rgba(217,119,6,0.10)', color: '#b45309' }}
@@ -459,13 +459,13 @@ function StockAlertsPanel({ items }: { items: LowStockItem[] }) {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(15,17,23,0.08)' }}>
+                        <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'var(--border-subtle)' }}>
                           <div
                             className="h-full rounded-full"
                             style={{ width: `${pct}%`, background: 'linear-gradient(90deg,#d97706,#b45309)' }}
                           />
                         </div>
-                        <span className="text-xs font-mono shrink-0" style={{ color: 'rgba(15,17,23,0.28)' }}>{item.sku}</span>
+                        <span className="text-xs font-mono shrink-0" style={{ color: 'var(--text-muted)' }}>{item.sku}</span>
                       </div>
                     </div>
                   </div>
@@ -476,11 +476,11 @@ function StockAlertsPanel({ items }: { items: LowStockItem[] }) {
 
           <div
             className="flex items-center justify-between px-5 py-3"
-            style={{ borderTop: '1px solid rgba(15,17,23,0.07)', background: 'rgba(15,17,23,0.02)' }}
+            style={{ borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-subtle)' }}
           >
             <div className="flex items-center gap-3">
-              {critical.length > 0 && <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full" style={{ background: '#dc2626' }} /><span className="text-xs" style={{ color: 'rgba(15,17,23,0.45)' }}>{critical.length} out of stock</span></div>}
-              {low.length > 0 && <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full" style={{ background: '#d97706' }} /><span className="text-xs" style={{ color: 'rgba(15,17,23,0.45)' }}>{low.length} low stock</span></div>}
+              {critical.length > 0 && <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full" style={{ background: '#dc2626' }} /><span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{critical.length} out of stock</span></div>}
+              {low.length > 0 && <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full" style={{ background: '#d97706' }} /><span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{low.length} low stock</span></div>}
             </div>
             <div className="flex items-center gap-1 text-xs font-medium" style={{ color: '#4F46E5' }}>
               <Box className="w-3 h-3" /><span>View Inventory</span><ArrowRight className="w-3 h-3" />
@@ -512,7 +512,7 @@ export default function DashboardPage() {
   // ── Loading skeleton ──
   if (isLoading) {
     return (
-      <div className="flex flex-col min-h-full" style={{ background: '#f5f6f8' }}>
+      <div className="flex flex-col min-h-full" style={{ background: 'var(--bg-base)' }}>
         <div className="page-header">
           <div><div className="skeleton h-5 w-40 rounded mb-2" /><div className="skeleton h-3 w-52 rounded" /></div>
         </div>
@@ -538,12 +538,12 @@ export default function DashboardPage() {
   // ── Error state ──
   if (isError || !stats) {
     return (
-      <div className="flex flex-col min-h-full items-center justify-center gap-4" style={{ background: '#f5f6f8' }}>
+      <div className="flex flex-col min-h-full items-center justify-center gap-4" style={{ background: 'var(--bg-base)' }}>
         <div className="flex flex-col items-center gap-4 px-8 py-8 rounded-2xl text-center" style={{ background: 'rgba(220,38,38,0.05)', border: '1px solid rgba(220,38,38,0.12)' }}>
           <AlertTriangle className="w-10 h-10" style={{ color: '#dc2626' }} />
           <div>
-            <p className="text-base font-semibold" style={{ color: '#0f1117' }}>Failed to load dashboard</p>
-            <p className="text-sm mt-1" style={{ color: 'rgba(15,17,23,0.45)' }}>Check your connection and try again</p>
+            <p className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>Failed to load dashboard</p>
+            <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Check your connection and try again</p>
           </div>
           <button onClick={() => refetch()} className="btn-secondary flex items-center gap-2 px-4 py-2">
             <RefreshCw className="w-4 h-4" /> Retry
@@ -556,7 +556,7 @@ export default function DashboardPage() {
   const revenuePerItem = stats.todayItemsSold > 0 ? stats.todayRevenue / stats.todayItemsSold : 0
 
   return (
-    <div className="flex flex-col min-h-full" style={{ background: '#f5f6f8' }}>
+    <div className="flex flex-col min-h-full" style={{ background: 'var(--bg-base)' }}>
 
       {/* ── Page Header ── */}
       <div className="page-header">
@@ -587,7 +587,7 @@ export default function DashboardPage() {
           </div>
 
           {lastUpdated && (
-            <div className="flex items-center gap-1.5 text-xs" style={{ color: 'rgba(15,17,23,0.38)' }}>
+            <div className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
               <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#16a34a', boxShadow: '0 0 4px rgba(22,163,74,0.5)' }} />
               Updated {lastUpdated}
             </div>
@@ -597,13 +597,13 @@ export default function DashboardPage() {
             disabled={isFetching}
             aria-label="Refresh dashboard stats"
             className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors disabled:opacity-40"
-            style={{ color: 'rgba(15,17,23,0.40)', background: 'rgba(15,17,23,0.05)' }}
+            style={{ color: 'var(--text-muted)', background: 'var(--bg-subtle)' }}
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} />
           </button>
           {canViewAll && (
             <div className="flex items-center gap-2">
-              <label className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'rgba(15,17,23,0.45)' }}>Branch</label>
+              <label className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>Branch</label>
               <input
                 type="text"
                 placeholder={user?.branchId ?? 'All branches'}

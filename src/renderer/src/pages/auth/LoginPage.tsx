@@ -18,11 +18,9 @@ export default function LoginPage() {
     e.preventDefault()
     setError(null)
     setLoading(true)
-
     try {
       const req: LoginRequest = { email, password }
       const result = await ipc.invoke<AuthResult>(IPC.AUTH_LOGIN, req)
-
       if (result.success) {
         setAuth(result.data)
         navigate('/', { replace: true })
@@ -37,60 +35,51 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="h-screen w-screen bg-gray-50 flex items-center justify-center">
-      <div className="bg-white rounded-2xl shadow-lg p-10 w-full max-w-md">
-        {/* Logo / Brand */}
+    <div className="h-screen w-screen flex items-center justify-center" style={{ background: 'var(--bg-base)' }}>
+      <div className="modal-panel w-full max-w-sm p-8">
         <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-600 mb-4">
-            <span className="text-white text-2xl font-bold">R</span>
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-4"
+            style={{ background: 'rgba(79,70,229,0.10)' }}>
+            <span className="text-xl font-bold" style={{ color: '#4F46E5' }}>R</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Raft POS</h1>
-          <p className="text-gray-500 text-sm mt-1">Sign in to your account</p>
+          <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Raft POS</h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Sign in to continue</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
+            <label htmlFor="login-email" className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>Email</label>
             <input
-              id="email"
+              id="login-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               autoFocus
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              autoComplete="email"
+              className="dark-input"
               placeholder="you@example.com"
             />
           </div>
-
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
+            <label htmlFor="login-password" className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>Password</label>
             <input
-              id="password"
+              id="login-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              autoComplete="current-password"
+              className="dark-input"
               placeholder="••••••••"
             />
           </div>
-
           {error && (
-            <div role="alert" className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+            <div className="rounded-lg px-4 py-3 text-sm" style={{ background: 'rgba(220,38,38,0.08)', color: '#dc2626', border: '1px solid rgba(220,38,38,0.15)' }}>
               {error}
             </div>
           )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-medium py-2.5 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
-          >
+          <button type="submit" disabled={loading} className="btn-primary w-full flex items-center justify-center gap-2 py-2.5">
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             {loading ? 'Signing in...' : 'Sign In'}
           </button>

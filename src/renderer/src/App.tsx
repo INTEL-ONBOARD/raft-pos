@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { ipc } from './lib/ipc'
 import { IPC } from '@shared/types/ipc.types'
@@ -9,6 +9,7 @@ import { ConnectivityOverlay } from './components/ConnectivityOverlay'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { AppShell } from './components/layout/AppShell'
 import LoginPage from './pages/auth/LoginPage'
+import SetupPage from './pages/auth/SetupPage'
 import HomePage from './pages/home/HomePage'
 import DashboardPage from './pages/dashboard/DashboardPage'
 import CategoriesPage from './pages/categories/CategoriesPage'
@@ -25,12 +26,15 @@ import RolesPage from './pages/roles/RolesPage'
 import SettingsPage from './pages/settings/SettingsPage'
 import ReportingPage from './pages/reporting/ReportingPage'
 import type { ConnectivityEvent } from '@shared/types/connectivity.types'
-import type { SessionValidationResult } from '@shared/types/auth.types'
+import type { SessionValidationResult, SetupCheckResult } from '@shared/types/auth.types'
 
-export default function App() {
+// Inner component that can use React Router hooks (must be inside HashRouter)
+function AppRoutes() {
+  const navigate = useNavigate()
   const setConnectivityStatus = useConnectivityStore((s) => s.setStatus)
   const { setAuth, clearAuth } = useAuthStore()
   const queryClient = useQueryClient()
+  const [sessionChecked, setSessionChecked] = useState(false)
 
   // Subscribe to connectivity events
   useEffect(() => {
@@ -40,7 +44,7 @@ export default function App() {
     return unsub
   }, [setConnectivityStatus])
 
-  // Subscribe to session revocation / expiry push events from main process
+  // Subscribe to session revocation / expiry push events
   useEffect(() => {
     const unsubRevoked = ipc.on(IPC.AUTH_SESSION_REVOKED, () => clearAuth())
     const unsubExpired = ipc.on(IPC.AUTH_SESSION_EXPIRED, () => clearAuth())
@@ -50,7 +54,7 @@ export default function App() {
     }
   }, [clearAuth])
 
-  // Invalidate React Query caches when Change Stream push events arrive
+  // Invalidate React Query caches on Change Stream push events
   useEffect(() => {
     const unsubProducts = ipc.on(IPC.STREAM_PRODUCTS, () => {
       queryClient.invalidateQueries({ queryKey: ['products'] })
@@ -78,25 +82,64 @@ export default function App() {
     }
   }, [queryClient])
 
-  // Restore session from electron-store on startup
+  // Startup: validate session + check setup status in parallel
   useEffect(() => {
-    const timeout = new Promise<SessionValidationResult>((resolve) =>
-      setTimeout(() => resolve({ valid: false, reason: 'not_found' }), 5000)
+    const timeout = new Promise<[SessionValidationResult, SetupCheckResult]>((resolve) =>
+      setTimeout(
+        () => resolve([{ valid: false, reason: 'not_found' }, { setupComplete: true }]),
+        5000
+      )
     )
-    Promise.race([ipc.invoke<SessionValidationResult>(IPC.AUTH_VALIDATE_SESSION), timeout])
-      .then((result) => {
-        if (result.valid) {
-          setAuth(result.data)
+
+    const checks = Promise.all([
+      ipc.invoke<SessionValidationResult>(IPC.AUTH_VALIDATE_SESSION),
+      ipc.invoke<SetupCheckResult>(IPC.AUTH_CHECK_SETUP).catch(() => ({ setupComplete: true })),
+    ])
+
+    Promise.race([checks, timeout])
+      .then(([sessionResult, setupResult]) => {
+        if (!setupResult.setupComplete) {
+          navigate('/setup', { replace: true })
+          setSessionChecked(true)
+          return
         }
+        if (sessionResult.valid) {
+          setAuth(sessionResult.data)
+        }
+        setSessionChecked(true)
       })
-      .catch(() => {})
-  }, [setAuth])
+      .catch(() => {
+        setSessionChecked(true)
+      })
+  }, [setAuth, navigate])
+
+  // Show dark spinner while startup checks run
+  if (!sessionChecked) {
+    return (
+      <div
+        className="h-screen w-screen flex items-center justify-center"
+        style={{ background: '#111315' }}
+      >
+        <div
+          className="animate-spin"
+          style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '50%',
+            border: '3px solid rgba(99,102,241,0.2)',
+            borderTopColor: '#6366f1',
+          }}
+        />
+      </div>
+    )
+  }
 
   return (
-    <HashRouter>
+    <>
       <ConnectivityOverlay />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/setup" element={<SetupPage />} />
         <Route
           path="/"
           element={
@@ -125,6 +168,14 @@ export default function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+    </>
+  )
+}
+
+export default function App() {
+  return (
+    <HashRouter>
+      <AppRoutes />
     </HashRouter>
   )
 }

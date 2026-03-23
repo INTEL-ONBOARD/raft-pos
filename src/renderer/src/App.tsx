@@ -92,7 +92,9 @@ function AppRoutes() {
     )
 
     const checks = Promise.all([
-      ipc.invoke<SessionValidationResult>(IPC.AUTH_VALIDATE_SESSION),
+      ipc.invoke<SessionValidationResult>(IPC.AUTH_VALIDATE_SESSION).catch(
+        (): SessionValidationResult => ({ valid: false, reason: 'not_found' })
+      ),
       ipc.invoke<SetupCheckResult>(IPC.AUTH_CHECK_SETUP).catch(() => ({ setupComplete: true })),
     ])
 
@@ -105,13 +107,15 @@ function AppRoutes() {
         }
         if (sessionResult.valid) {
           setAuth(sessionResult.data)
+        } else {
+          clearAuth()
         }
         setSessionChecked(true)
       })
       .catch(() => {
         setSessionChecked(true)
       })
-  }, [setAuth, navigate])
+  }, [setAuth, clearAuth, navigate])
 
   // Show dark spinner while startup checks run
   if (!sessionChecked) {

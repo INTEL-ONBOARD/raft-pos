@@ -212,10 +212,12 @@ export default function SetupPage() {
       if (result.success) {
         navigate('/login', { replace: true })
       } else {
-        set({ error: result.error, loading: false })
+        set({ error: result.error })
       }
     } catch {
-      set({ error: 'An unexpected error occurred. Please try again.', loading: false })
+      set({ error: 'An unexpected error occurred. Please try again.' })
+    } finally {
+      set({ loading: false })
     }
   }
 

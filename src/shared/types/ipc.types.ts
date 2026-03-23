@@ -13,6 +13,7 @@ export const IPC = {
   AUTH_SESSION_REVOKED: 'auth:session-revoked',
   AUTH_SESSION_EXPIRED: 'auth:session-expired',
   SCANNER_UNAVAILABLE: 'scanner:unavailable',
+  SCANNER_BARCODE_SCANNED: 'scanner:barcode-scanned',
 
   // Health
   HEALTH_PING: 'health:ping',
@@ -44,6 +45,41 @@ export const IPC = {
   INVENTORY_GET_STOCK_LEVELS: 'inventory:getStockLevels',
   INVENTORY_ADJUST: 'inventory:adjust',
   INVENTORY_GET_ADJUSTMENTS: 'inventory:getAdjustments',
+
+  // POS / Transactions   — ADD ALL BELOW
+  POS_COMPLETE_SALE: 'pos:completeSale',
+  POS_VOID_TRANSACTION: 'pos:voidTransaction',
+  POS_REFUND_TRANSACTION: 'pos:refundTransaction',
+  POS_VALIDATE_SUPERVISOR_PIN: 'pos:validateSupervisorPin',
+  POS_GET_TRANSACTION: 'pos:getTransaction',
+  POS_GET_TRANSACTIONS: 'pos:getTransactions',
+  POS_REPRINT_RECEIPT: 'pos:reprintReceipt',
+
+  // Suppliers
+  SUPPLIERS_GET_ALL: 'suppliers:getAll',
+  SUPPLIERS_GET_BY_ID: 'suppliers:getById',
+  SUPPLIERS_CREATE: 'suppliers:create',
+  SUPPLIERS_UPDATE: 'suppliers:update',
+  SUPPLIERS_DEACTIVATE: 'suppliers:deactivate',
+
+  // Purchase Orders
+  PO_GET_ALL: 'po:getAll',
+  PO_GET_BY_ID: 'po:getById',
+  PO_CREATE: 'po:create',
+  PO_UPDATE: 'po:update',
+  PO_SEND: 'po:send',
+  PO_RECEIVE: 'po:receive',
+  PO_CANCEL: 'po:cancel',
+
+  // Cash Drawer
+  DRAWER_OPEN: 'drawer:open',
+  DRAWER_CLOSE: 'drawer:close',
+  DRAWER_GET_OPEN: 'drawer:getOpen',
+  DRAWER_GET_ALL: 'drawer:getAll',
+  DRAWER_PRINT_Z_REPORT: 'drawer:printZReport',   // reserved for Phase 7 ESC/POS thermal print; Phase 6 uses window.print() in renderer
+
+  // Dashboard
+  DASHBOARD_GET_STATS: 'dashboard:getStats',
 } as const
 
 export type IpcChannel = typeof IPC[keyof typeof IPC]

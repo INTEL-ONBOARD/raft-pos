@@ -9,6 +9,10 @@ export const IPC = {
   AUTH_VALIDATE_SESSION: 'auth:validate-session',
   AUTH_ME: 'auth:me',
 
+  // Auth — setup (first-time onboarding)
+  AUTH_CHECK_SETUP: 'auth:checkSetup',
+  AUTH_COMPLETE_SETUP: 'auth:completeSetup',
+
   // Auth (push — main → renderer)
   AUTH_SESSION_REVOKED: 'auth:session-revoked',
   AUTH_SESSION_EXPIRED: 'auth:session-expired',

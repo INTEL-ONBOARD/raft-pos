@@ -37,3 +37,19 @@ export type AuthResult =
 export type SessionValidationResult =
   | { valid: true; data: AuthPayload }
   | { valid: false; reason: 'expired' | 'revoked' | 'not_found' }
+
+export interface SetupRequest {
+  storeName: string
+  branchName: string
+  name: string
+  email: string
+  password: string
+}
+
+export type SetupResult =
+  | { success: true }
+  | { success: false; error: string }
+
+export interface SetupCheckResult {
+  setupComplete: boolean
+}

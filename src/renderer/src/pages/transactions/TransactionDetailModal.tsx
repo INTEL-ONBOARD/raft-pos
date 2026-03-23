@@ -1,4 +1,5 @@
 // src/renderer/src/pages/transactions/TransactionDetailModal.tsx
+import { X, Receipt } from 'lucide-react'
 import type { ITransaction } from '@shared/types/transaction.types'
 
 function escapeHtml(str: string): string {
@@ -9,11 +10,11 @@ function fmt(n: number) {
   return n.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-function statusColor(s: string) {
-  if (s === 'completed') return 'bg-green-100 text-green-700'
-  if (s === 'voided') return 'bg-red-100 text-red-700'
-  if (s === 'refunded') return 'bg-yellow-100 text-yellow-700'
-  return 'bg-gray-100 text-gray-600'
+function statusBadge(s: string) {
+  if (s === 'completed') return { background: 'rgba(22,163,74,0.10)', color: '#16a34a', border: '1px solid rgba(22,163,74,0.20)' }
+  if (s === 'voided') return { background: 'rgba(220,38,38,0.08)', color: '#dc2626', border: '1px solid rgba(220,38,38,0.18)' }
+  if (s === 'refunded') return { background: 'rgba(180,83,9,0.08)', color: '#b45309', border: '1px solid rgba(180,83,9,0.18)' }
+  return { background: 'var(--border-subtle)', color: 'var(--text-secondary)', border: '1px solid var(--border-default)' }
 }
 
 interface Props {
@@ -57,60 +58,82 @@ ${t.change > 0 ? `<div class="row"><span>Change</span><span>₱${fmt(t.change)}<
     win.print()
   }
 
+  const badge = statusBadge(t.status)
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">{t.receiptNo}</h2>
-            <p className="text-sm text-gray-500">{new Date(t.createdAt).toLocaleString()}</p>
+    <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="modal-panel w-full max-w-xl max-h-[90vh] overflow-y-auto overflow-hidden">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5"
+          style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: 'rgba(79,70,229,0.10)' }}>
+              <Receipt className="w-4 h-4" style={{ color: 'var(--accent)' }} />
+            </div>
+            <div>
+              <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>{t.receiptNo}</h2>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{new Date(t.createdAt).toLocaleString()}</p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
-            <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor(t.status)}`}>
+            <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium" style={badge}>
               {t.status.charAt(0).toUpperCase() + t.status.slice(1)}
             </span>
-            <button onClick={handlePrint} className="text-sm text-blue-600 hover:text-blue-700 font-medium">Print</button>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl">×</button>
+            <button onClick={handlePrint} className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>Print</button>
+            <button onClick={onClose} style={{ color: 'var(--text-muted)' }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
+              <X className="w-5 h-5" />
+            </button>
           </div>
         </div>
 
-        <div className="p-6 space-y-4">
+        {/* Body */}
+        <div className="px-6 py-5 space-y-4">
+
+          {/* Items */}
           <div>
-            <p className="text-xs font-medium text-gray-500 uppercase mb-2">Items</p>
+            <p className="text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Items</p>
             <div className="space-y-1">
               {t.items.map(it => (
                 <div key={it.productId} className="flex justify-between text-sm">
-                  <span className="text-gray-700">{it.name} <span className="text-gray-400">× {it.quantity}</span></span>
-                  <span className="text-gray-900 font-medium">₱{fmt(it.totalPrice)}</span>
+                  <span style={{ color: 'var(--text-primary)' }}>{it.name} <span style={{ color: 'var(--text-muted)' }}>× {it.quantity}</span></span>
+                  <span className="font-medium" style={{ color: 'var(--text-primary)' }}>₱{fmt(it.totalPrice)}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="border-t border-gray-100 pt-3 space-y-1 text-sm">
-            <div className="flex justify-between text-gray-600"><span>Subtotal</span><span>₱{fmt(t.subtotal)}</span></div>
+          {/* Totals */}
+          <div className="pt-3 space-y-1 text-sm" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+            <div className="flex justify-between" style={{ color: 'var(--text-secondary)' }}><span>Subtotal</span><span>₱{fmt(t.subtotal)}</span></div>
             {t.discountAmount > 0 && (
-              <div className="flex justify-between text-gray-600"><span>Discount</span><span>-₱{fmt(t.discountAmount)}</span></div>
+              <div className="flex justify-between" style={{ color: 'var(--text-secondary)' }}><span>Discount</span><span>-₱{fmt(t.discountAmount)}</span></div>
             )}
             {t.taxAmount > 0 && (
-              <div className="flex justify-between text-gray-600"><span>Tax ({t.taxRate}%)</span><span>₱{fmt(t.taxAmount)}</span></div>
+              <div className="flex justify-between" style={{ color: 'var(--text-secondary)' }}><span>Tax ({t.taxRate}%)</span><span>₱{fmt(t.taxAmount)}</span></div>
             )}
-            <div className="flex justify-between font-semibold text-gray-900 text-base pt-1 border-t border-gray-100">
+            <div className="flex justify-between font-semibold text-base pt-1" style={{ color: 'var(--text-primary)', borderTop: '1px solid var(--border-subtle)' }}>
               <span>Total</span><span>₱{fmt(t.totalAmount)}</span>
             </div>
           </div>
 
+          {/* Payments */}
           <div>
-            <p className="text-xs font-medium text-gray-500 uppercase mb-2">Payments</p>
+            <p className="text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Payments</p>
             <div className="space-y-1">
               {t.payments.map((p, i) => (
                 <div key={`${p.method}-${p.amount}-${i}`} className="flex justify-between text-sm">
-                  <span className="text-gray-600 uppercase">{p.method}{p.reference ? ` · ${p.reference}` : ''}</span>
-                  <span>₱{fmt(p.amount)}</span>
+                  <span className="uppercase" style={{ color: 'var(--text-secondary)' }}>{p.method}{p.reference ? ` · ${p.reference}` : ''}</span>
+                  <span style={{ color: 'var(--text-primary)' }}>₱{fmt(p.amount)}</span>
                 </div>
               ))}
               {t.change > 0 && (
-                <div className="flex justify-between text-sm text-gray-500">
+                <div className="flex justify-between text-sm" style={{ color: 'var(--text-muted)' }}>
                   <span>Change</span><span>₱{fmt(t.change)}</span>
                 </div>
               )}
@@ -118,17 +141,18 @@ ${t.change > 0 ? `<div class="row"><span>Change</span><span>₱${fmt(t.change)}<
           </div>
 
           {t.status === 'voided' && t.voidReason && (
-            <div className="bg-red-50 border border-red-100 rounded-lg p-3 text-sm text-red-700">
+            <div className="px-4 py-3 text-sm rounded-lg" style={{ background: 'rgba(220,38,38,0.06)', color: '#dc2626', border: '1px solid rgba(220,38,38,0.15)' }}>
               <span className="font-medium">Voided:</span> {t.voidReason}
-              {t.voidedAt && <span className="block text-xs mt-0.5">{new Date(t.voidedAt).toLocaleString()}</span>}
+              {t.voidedAt && <span className="block text-xs mt-0.5" style={{ color: 'rgba(220,38,38,0.65)' }}>{new Date(t.voidedAt).toLocaleString()}</span>}
             </div>
           )}
           {t.status === 'refunded' && t.refundReason && (
-            <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-3 text-sm text-yellow-700">
+            <div className="px-4 py-3 text-sm rounded-lg" style={{ background: 'rgba(180,83,9,0.06)', color: '#b45309', border: '1px solid rgba(180,83,9,0.18)' }}>
               <span className="font-medium">Refunded:</span> {t.refundReason}
-              {t.refundedAt && <span className="block text-xs mt-0.5">{new Date(t.refundedAt).toLocaleString()}</span>}
+              {t.refundedAt && <span className="block text-xs mt-0.5" style={{ color: 'rgba(180,83,9,0.65)' }}>{new Date(t.refundedAt).toLocaleString()}</span>}
             </div>
           )}
+
         </div>
       </div>
     </div>

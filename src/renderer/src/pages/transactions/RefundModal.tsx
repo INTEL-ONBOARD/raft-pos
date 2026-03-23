@@ -1,5 +1,6 @@
 // src/renderer/src/pages/transactions/RefundModal.tsx
 import { useState } from 'react'
+import { X, Undo2 } from 'lucide-react'
 import type { ITransaction } from '@shared/types/transaction.types'
 
 interface RefundItem {
@@ -16,12 +17,13 @@ interface Props {
 
 export function RefundModal({ transaction, onConfirm, onClose, isLoading }: Props) {
   const [reason, setReason] = useState('')
-  const [quantities, setQuantities] = useState<Record<string, number>>({})
+  // Keyed by item index to handle duplicate productIds in a single transaction
+  const [quantities, setQuantities] = useState<Record<number, number>>({})
   const [error, setError] = useState('')
 
-  function handleQtyChange(productId: string, val: string) {
+  function handleQtyChange(idx: number, val: string) {
     const n = parseInt(val, 10)
-    setQuantities(prev => ({ ...prev, [productId]: isNaN(n) ? 0 : Math.max(0, n) }))
+    setQuantities(prev => ({ ...prev, [idx]: isNaN(n) ? 0 : Math.max(0, n) }))
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -30,21 +32,21 @@ export function RefundModal({ transaction, onConfirm, onClose, isLoading }: Prop
       setError('Refund reason is required')
       return
     }
-    const items: RefundItem[] = transaction.items
-      .filter(it => (quantities[it.productId] ?? 0) > 0)
-      .map(it => ({ productId: it.productId, quantity: quantities[it.productId] }))
 
-    if (items.length === 0) {
-      setError('Select at least one item to refund')
-      return
-    }
-
-    for (const it of transaction.items) {
-      const qty = quantities[it.productId] ?? 0
+    const items: RefundItem[] = []
+    for (let i = 0; i < transaction.items.length; i++) {
+      const it = transaction.items[i]
+      const qty = quantities[i] ?? 0
       if (qty > it.quantity) {
         setError(`Refund quantity for "${it.name}" exceeds sold quantity (${it.quantity})`)
         return
       }
+      if (qty > 0) items.push({ productId: it.productId, quantity: qty })
+    }
+
+    if (items.length === 0) {
+      setError('Select at least one item to refund')
+      return
     }
 
     setError('')
@@ -52,57 +54,87 @@ export function RefundModal({ transaction, onConfirm, onClose, isLoading }: Prop
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">Issue Refund</h2>
-        <p className="text-sm text-gray-500 mb-4">
-          Receipt <span className="font-medium text-gray-700">{transaction.receiptNo}</span>
-        </p>
+    <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="modal-panel w-full max-w-lg overflow-hidden">
 
-        <div className="space-y-2 mb-4">
-          <p className="text-sm font-medium text-gray-700">Select items to refund:</p>
-          {transaction.items.map(it => (
-            <div key={it.productId} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg text-sm">
-              <div className="flex-1">
-                <p className="font-medium text-gray-800">{it.name}</p>
-                <p className="text-gray-500 text-xs">{it.sku} · Sold qty: {it.quantity}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <label className="text-gray-500 text-xs">Refund qty:</label>
-                <input
-                  type="number"
-                  min="0"
-                  max={it.quantity}
-                  value={quantities[it.productId] ?? 0}
-                  onChange={e => handleQtyChange(it.productId, e.target.value)}
-                  className="w-16 border border-gray-300 rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5"
+          style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: 'rgba(79,70,229,0.10)' }}>
+              <Undo2 className="w-4 h-4" style={{ color: 'var(--accent)' }} />
             </div>
-          ))}
+            <div>
+              <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>Issue Refund</h2>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                Receipt <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{transaction.receiptNo}</span>
+              </p>
+            </div>
+          </div>
+          <button onClick={onClose} style={{ color: 'var(--text-muted)' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Reason *</label>
-            <textarea
-              value={reason}
-              onChange={e => setReason(e.target.value)}
-              rows={2}
-              placeholder="Enter refund reason…"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+        {/* Body */}
+        <form onSubmit={handleSubmit}>
+          <div className="px-6 py-5 space-y-4">
+            <div className="space-y-2">
+              <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Select items to refund:</p>
+              {transaction.items.map((it, idx) => (
+                <div key={idx} className="flex items-center gap-3 p-3 text-sm rounded-xl" style={{ background: 'var(--bg-base)', border: '1px solid var(--border-subtle)' }}>
+                  <div className="flex-1">
+                    <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{it.name}</p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{it.sku} · Sold qty: {it.quantity}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label style={{ fontSize: '12px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>Refund qty:</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max={it.quantity}
+                      value={quantities[idx] ?? 0}
+                      onChange={e => handleQtyChange(idx, e.target.value)}
+                      className="dark-input w-16 text-center"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>Reason *</label>
+              <textarea
+                value={reason}
+                onChange={e => setReason(e.target.value)}
+                rows={2}
+                placeholder="Enter refund reason…"
+                className="dark-input resize-none mt-1"
+              />
+              {error && (
+                <div className="mb-4 px-4 py-3 rounded-lg text-sm mt-2"
+                  style={{ background: 'var(--color-danger-bg)', border: '1px solid var(--color-danger-border)', color: 'var(--color-danger)' }}>
+                  {error}
+                </div>
+              )}
+            </div>
           </div>
-          <div className="flex gap-3 justify-end">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+
+          {/* Footer */}
+          <div className="flex justify-end gap-2 px-6 py-4"
+            style={{ borderTop: '1px solid var(--border-subtle)' }}>
+            <button type="button" onClick={onClose} className="btn-secondary px-5 py-2">
               Cancel
             </button>
-            <button type="submit" disabled={isLoading} className="px-4 py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50">
+            <button type="submit" disabled={isLoading} className="btn-primary px-5 py-2 disabled:opacity-50">
               {isLoading ? 'Processing…' : 'Issue Refund'}
             </button>
           </div>
         </form>
+
       </div>
     </div>
   )

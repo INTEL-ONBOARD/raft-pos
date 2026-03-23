@@ -1,5 +1,6 @@
 // src/renderer/src/pages/transactions/VoidModal.tsx
 import { useState } from 'react'
+import { X, Ban } from 'lucide-react'
 import type { ITransaction } from '@shared/types/transaction.types'
 
 interface Props {
@@ -24,37 +25,70 @@ export function VoidModal({ transaction, onConfirm, onClose, isLoading }: Props)
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">Void Transaction</h2>
-        <p className="text-sm text-gray-500 mb-4">
-          Receipt <span className="font-medium text-gray-700">{transaction.receiptNo}</span> — ₱{transaction.totalAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-        </p>
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800 mb-4">
-          This will cancel the transaction and restore all inventory. This action cannot be undone.
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Reason *</label>
-            <textarea
-              value={reason}
-              onChange={e => setReason(e.target.value)}
-              rows={3}
-              placeholder="Enter void reason…"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-              autoFocus
-            />
-            {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+    <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="modal-panel w-full max-w-md overflow-hidden">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5"
+          style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: 'rgba(79,70,229,0.10)' }}>
+              <Ban className="w-4 h-4" style={{ color: 'var(--accent)' }} />
+            </div>
+            <div>
+              <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>Void Transaction</h2>
+            </div>
           </div>
-          <div className="flex gap-3 justify-end">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+          <button onClick={onClose} style={{ color: 'var(--text-muted)' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <form onSubmit={handleSubmit}>
+          <div className="px-6 py-5 space-y-4">
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              Receipt <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{transaction.receiptNo}</span> — ₱{transaction.totalAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+            </p>
+
+            <div className="rounded-xl p-3 text-sm" style={{ background: 'rgba(180,83,9,0.08)', color: '#b45309', border: '1px solid rgba(180,83,9,0.18)' }}>
+              This will cancel the transaction and restore all inventory. This action cannot be undone.
+            </div>
+
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>Reason *</label>
+              <textarea
+                value={reason}
+                onChange={e => setReason(e.target.value)}
+                rows={3}
+                placeholder="Enter void reason…"
+                className="dark-input resize-none mt-1"
+                autoFocus
+              />
+              {error && (
+                <div className="mb-4 px-4 py-3 rounded-lg text-sm mt-2"
+                  style={{ background: 'var(--color-danger-bg)', border: '1px solid var(--color-danger-border)', color: 'var(--color-danger)' }}>
+                  {error}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex justify-end gap-2 px-6 py-4"
+            style={{ borderTop: '1px solid var(--border-subtle)' }}>
+            <button type="button" onClick={onClose} className="btn-secondary px-5 py-2">
               Cancel
             </button>
-            <button type="submit" disabled={isLoading} className="px-4 py-2 text-sm text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50">
+            <button type="submit" disabled={isLoading} className="btn-danger px-5 py-2 disabled:opacity-50">
               {isLoading ? 'Voiding…' : 'Void Transaction'}
             </button>
           </div>
         </form>
+
       </div>
     </div>
   )

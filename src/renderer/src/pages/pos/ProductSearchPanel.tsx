@@ -161,7 +161,7 @@ export function ProductSearchPanel() {
                   disabled={outOfStock}
                   className={`text-left transition-all rounded-xl p-3.5 ${outOfStock ? 'opacity-45 cursor-not-allowed' : 'active:scale-[0.97] cursor-pointer'}`}
                   style={{
-                    background: '#ffffff',
+                    background: 'var(--bg-card)',
                     border: '1px solid var(--border-subtle)',
                     outline: 'none',
                     boxShadow: 'var(--shadow-xs)'
@@ -169,9 +169,9 @@ export function ProductSearchPanel() {
                   onMouseEnter={(e) => {
                     if (!outOfStock) {
                       const el = e.currentTarget as HTMLButtonElement
-                      el.style.borderColor = 'rgba(79,70,229,0.3)'
+                      el.style.borderColor = 'rgba(99,102,241,0.35)'
                       el.style.boxShadow = 'var(--shadow-sm)'
-                      el.style.background = '#f8f9ff'
+                      el.style.background = 'var(--bg-hover)'
                     }
                   }}
                   onMouseLeave={(e) => {
@@ -179,7 +179,7 @@ export function ProductSearchPanel() {
                       const el = e.currentTarget as HTMLButtonElement
                       el.style.borderColor = 'var(--border-subtle)'
                       el.style.boxShadow = 'var(--shadow-xs)'
-                      el.style.background = '#ffffff'
+                      el.style.background = 'var(--bg-card)'
                     }
                   }}
                 >

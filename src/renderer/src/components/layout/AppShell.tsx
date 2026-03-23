@@ -44,7 +44,7 @@ export function AppShell() {
         className="flex items-center justify-between px-5 shrink-0"
         style={{
           height: '56px',
-          background: '#ffffff',
+          background: 'var(--bg-surface)',
           borderBottom: '1px solid var(--border-subtle)',
           boxShadow: 'var(--shadow-xs)',
         }}

@@ -59,7 +59,7 @@ export function Sidebar() {
   return (
     <div
       className="flex flex-col h-screen w-48 shrink-0"
-      style={{ background: '#ffffff', borderRight: '1px solid var(--border-subtle)' }}
+      style={{ background: 'var(--bg-surface)', borderRight: '1px solid var(--border-subtle)' }}
     >
       {/* Brand */}
       <div

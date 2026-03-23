@@ -143,7 +143,7 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
   }
 
   return (
-    <div className="flex flex-col h-full" style={{ background: '#ffffff' }}>
+    <div className="flex flex-col h-full" style={{ background: 'var(--bg-surface)' }}>
       {/* Header */}
       <div
         className="flex items-center justify-between px-4 py-3"
@@ -182,7 +182,7 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
               <div
                 key={item.productId}
                 className="rounded-xl p-3"
-                style={{ background: '#ffffff', border: '1px solid var(--border-subtle)' }}
+                style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
               >
                 {/* Top row: name + remove button */}
                 <div className="flex items-start justify-between gap-2 mb-1">

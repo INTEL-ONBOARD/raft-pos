@@ -8,6 +8,7 @@ import { connectDB, disconnectDB } from './db/connection'
 import { startChangeStreams, stopChangeStreams } from './db/change-streams'
 import { startConnectivityMonitor, stopConnectivityMonitor } from './connectivity/monitor'
 import { registerAllHandlers } from './handlers/registry'
+import { initScanner, closeScanner } from './services/scanner.service'
 
 function createWindow(): BrowserWindow {
   const win = new BrowserWindow({
@@ -67,6 +68,7 @@ app.whenReady().then(async () => {
     startChangeStreams(win)
   }
   startConnectivityMonitor(win)
+  initScanner()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
@@ -79,6 +81,7 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', (event) => {
   event.preventDefault()
+  closeScanner()
   stopConnectivityMonitor()
   stopChangeStreams()
   disconnectDB().finally(() => {

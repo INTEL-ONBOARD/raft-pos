@@ -55,6 +55,9 @@ export function registerInventoryHandlers(): void {
   ipcMain.handle(IPC.INVENTORY_GET_ADJUSTMENTS, async (_e, req: unknown) => {
     try {
       const auth = await requireAuth(store.get('jwt') ?? null)
+      if (!auth.role.permissions.includes('can_manage_inventory')) {
+        return { success: false, error: 'Permission denied' }
+      }
       const r = (req ?? {}) as { productId?: string }
       const data = await getAdjustments(auth.user.branchId, r.productId)
       return { success: true, data }

@@ -57,20 +57,21 @@ export async function openDrawer(
 export async function closeDrawer(
   input: CloseDrawerInput,
   userId: string,
-  branchId: string,
+  _branchId: string,
   terminalId: string
 ): Promise<ICashDrawer> {
-  const drawer = await CashDrawer.findOne({ terminalId, status: 'open' })
-  if (!drawer) throw new Error('No open drawer found for this terminal')
+  // Read the open drawer first to get openedAt/branchId for the aggregation
+  const openDrawer = await CashDrawer.findOne({ terminalId, status: 'open' }).lean()
+  if (!openDrawer) throw new Error('No open drawer found for this terminal')
 
   // Aggregate sales since drawer was opened
   const [agg] = await Transaction.aggregate([
     {
       $match: {
-        branchId: drawer.branchId,
+        branchId: openDrawer.branchId,
         terminalId,
         status: 'completed',
-        createdAt: { $gte: drawer.openedAt }
+        createdAt: { $gte: openDrawer.openedAt }
       }
     },
     {
@@ -133,11 +134,12 @@ export async function closeDrawer(
   const totalMobile = agg?.totalMobile ?? 0
   const totalTransactions = agg?.totalTransactions ?? 0
 
-  const expectedCash = Math.round((drawer.openingCash + totalCash) * 100) / 100
+  const expectedCash = Math.round(((openDrawer.openingCash as number) + totalCash) * 100) / 100
   const variance = Math.round((input.closingCash - expectedCash) * 100) / 100
 
-  const updated = await CashDrawer.findByIdAndUpdate(
-    drawer._id,
+  // Atomic close: only succeeds if drawer is still 'open' (prevents double-close race)
+  const updated = await CashDrawer.findOneAndUpdate(
+    { _id: openDrawer._id, status: 'open' },
     {
       status: 'closed',
       closingCash: input.closingCash,
@@ -156,7 +158,7 @@ export async function closeDrawer(
 
   await ActivityLog.create({
     userId,
-    branchId,
+    branchId: openDrawer.branchId.toString(),
     terminalId,
     action: 'drawer_closed',
     targetId: updated._id,

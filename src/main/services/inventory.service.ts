@@ -40,40 +40,53 @@ export async function manualAdjustment(
   branchId: string,
   userId: string
 ): Promise<IStockAdjustment> {
-  const inventory = await Inventory.findOne({
-    productId: input.productId,
-    branchId
-  })
+  const { productId, type, quantity, reason, notes } = input
 
-  if (!inventory) {
-    throw new Error('No inventory record found for this product and branch')
-  }
+  // Fetch current stock for recording previousStock (read before atomic write)
+  const current = await Inventory.findOne({ productId, branchId }).lean()
+  if (!current) throw new Error('No inventory record found for this product at this branch')
+  const previousStock = current.quantity
 
-  const previousStock = inventory.quantity
   let newStock: number
+  let updatedInventory: any
 
-  if (input.type === 'in') {
-    newStock = previousStock + input.quantity
-  } else if (input.type === 'out') {
-    newStock = previousStock - input.quantity
-    if (newStock < 0) throw new Error('Insufficient stock for this adjustment')
+  if (type === 'in') {
+    updatedInventory = await Inventory.findOneAndUpdate(
+      { productId, branchId },
+      { $inc: { quantity: quantity } },
+      { new: true, runValidators: true }
+    )
+    if (!updatedInventory) throw new Error('Inventory record not found')
+    newStock = updatedInventory.quantity
+  } else if (type === 'out') {
+    // Atomic: only decrement if sufficient stock exists
+    updatedInventory = await Inventory.findOneAndUpdate(
+      { productId, branchId, quantity: { $gte: quantity } },
+      { $inc: { quantity: -quantity } },
+      { new: true, runValidators: true }
+    )
+    if (!updatedInventory) throw new Error('Insufficient stock for this adjustment')
+    newStock = updatedInventory.quantity
   } else {
-    // 'adjustment' — direct set
-    newStock = input.quantity
+    // adjustment = set exact quantity
+    updatedInventory = await Inventory.findOneAndUpdate(
+      { productId, branchId },
+      { $set: { quantity: quantity } },
+      { new: true, runValidators: true }
+    )
+    if (!updatedInventory) throw new Error('Inventory record not found')
+    newStock = updatedInventory.quantity
   }
-
-  // Atomic update
-  await Inventory.findByIdAndUpdate(inventory._id, { quantity: newStock })
 
   const adj = await StockAdjustment.create({
     branchId,
-    productId: input.productId,
-    type: input.type,
-    quantity: input.quantity,
+    productId,
+    type,
+    quantity,
     previousStock,
     newStock,
-    reason: input.reason,
-    notes: input.notes ?? '',
+    reason,
+    notes: notes ?? '',
     createdBy: userId
   })
 
@@ -87,12 +100,12 @@ export async function manualAdjustment(
     targetId: adj._id,
     targetCollection: 'stock_adjustments',
     metadata: {
-      productId: input.productId,
-      type: input.type,
-      quantity: input.quantity,
+      productId,
+      type,
+      quantity,
       previousStock,
       newStock,
-      reason: input.reason
+      reason
     }
   }).catch(() => { /* non-fatal — don't fail adjustment if log fails */ })
 

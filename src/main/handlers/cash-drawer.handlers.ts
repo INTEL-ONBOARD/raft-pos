@@ -70,4 +70,16 @@ export function registerCashDrawerHandlers(): void {
       return { success: false, error: err.message ?? 'Failed to get drawers' }
     }
   })
+
+  // Z-Report printing is handled in the renderer via window.print().
+  // This handler exists so IPC.DRAWER_PRINT_Z_REPORT doesn't throw "No handler registered".
+  ipcMain.handle(IPC.DRAWER_PRINT_Z_REPORT, async (_e, req: unknown) => {
+    try {
+      await requireAuth(store.get('jwt') ?? null)
+      const r = (req ?? {}) as { drawerId?: string }
+      return { success: true, drawerId: r.drawerId ?? null }
+    } catch (err: any) {
+      return { success: false, error: err.message ?? 'Failed to process Z-report request' }
+    }
+  })
 }

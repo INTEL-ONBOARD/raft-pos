@@ -20,8 +20,11 @@ export function useInventory() {
   })
 
   const adjust = useMutation({
-    mutationFn: (input: ManualAdjustmentInput) =>
-      ipc.invoke<AdjustmentResult>(IPC.INVENTORY_ADJUST, input),
+    mutationFn: async (input: ManualAdjustmentInput) => {
+      const result = await ipc.invoke<AdjustmentResult>(IPC.INVENTORY_ADJUST, input)
+      if (!result.success) throw new Error(result.error)
+      return result
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory'] })
     }

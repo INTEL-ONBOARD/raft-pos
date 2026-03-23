@@ -19,7 +19,8 @@ export function registerAuthHandlers(): void {
       return { success: false, error: 'Invalid request payload' }
     }
     try {
-      return await login(req as { email: string; password: string })
+      const result = await login(req as { email: string; password: string })
+      return JSON.parse(JSON.stringify(result))
     } catch (err) {
       console.error('[IPC] AUTH_LOGIN error:', err)
       return { success: false, error: 'An internal error occurred. Please try again.' }
@@ -43,7 +44,8 @@ export function registerAuthHandlers(): void {
     try {
       const token = store.get('jwt')
       if (!token) return { valid: false, reason: 'not_found' }
-      return validateSession(token)
+      const result = await validateSession(token)
+      return JSON.parse(JSON.stringify(result))
     } catch (err) {
       console.error('[IPC] AUTH_VALIDATE_SESSION error:', err)
       return { valid: false, reason: 'not_found' }
@@ -55,7 +57,8 @@ export function registerAuthHandlers(): void {
     try {
       const token = store.get('jwt')
       if (!token) return { valid: false, reason: 'not_found' }
-      return validateSession(token)
+      const result = await validateSession(token)
+      return JSON.parse(JSON.stringify(result))
     } catch (err) {
       console.error('[IPC] AUTH_ME error:', err)
       return { valid: false, reason: 'not_found' }

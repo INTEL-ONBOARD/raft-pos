@@ -8,11 +8,13 @@ import store from '../store/electron-store'
 import type { AuthPayload, AuthResult, SessionValidationResult, LoginRequest } from '@shared/types/auth.types'
 import type { PublicRole, PublicUser } from '@shared/types/auth.types'
 
-const _jwtSecret = process.env.JWT_SECRET
-if (!_jwtSecret || _jwtSecret.length < 32) {
-  throw new Error('JWT_SECRET env variable is missing or too short (minimum 32 chars). Set it in .env.')
+function getJwtSecret(): string {
+  const s = process.env.JWT_SECRET
+  if (!s || s.length < 32) {
+    throw new Error('JWT_SECRET env variable is missing or too short (minimum 32 chars). Set it in .env.')
+  }
+  return s
 }
-const JWT_SECRET: string = _jwtSecret
 const JWT_EXPIRES_IN = '8h'
 const SESSION_DURATION_MS = 8 * 60 * 60 * 1000 // 8 hours
 
@@ -44,7 +46,7 @@ export async function login(req: LoginRequest): Promise<AuthResult> {
 
   const token = jwt.sign(
     { sub: user._id.toString(), jti: jwtId, roleId: role._id.toString() },
-    JWT_SECRET,
+    getJwtSecret(),
     { expiresIn: JWT_EXPIRES_IN }
   )
 
@@ -76,10 +78,10 @@ export async function login(req: LoginRequest): Promise<AuthResult> {
 
   const publicRole: PublicRole = {
     _id: role._id.toString(),
-    name: role.name,
-    permissions: role.permissions,
-    maxDiscountPercent: role.maxDiscountPercent,
-    requiresSupervisorOverride: role.requiresSupervisorOverride
+    name: String(role.name),
+    permissions: role.permissions.map(p => String(p)) as PublicRole['permissions'],
+    maxDiscountPercent: Number(role.maxDiscountPercent),
+    requiresSupervisorOverride: Boolean(role.requiresSupervisorOverride)
   }
 
   const payload: AuthPayload = {
@@ -94,7 +96,7 @@ export async function login(req: LoginRequest): Promise<AuthResult> {
 
 export async function validateSession(token: string): Promise<SessionValidationResult> {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { sub: string; jti: string; roleId: string }
+    const decoded = jwt.verify(token, getJwtSecret()) as { sub: string; jti: string; roleId: string }
 
     const session = await Session.findOne({ jwtId: decoded.jti })
     if (!session) {
@@ -126,10 +128,10 @@ export async function validateSession(token: string): Promise<SessionValidationR
 
     const publicRole: PublicRole = {
       _id: role._id.toString(),
-      name: role.name,
-      permissions: role.permissions,
-      maxDiscountPercent: role.maxDiscountPercent,
-      requiresSupervisorOverride: role.requiresSupervisorOverride
+      name: String(role.name),
+      permissions: role.permissions.map(p => String(p)) as PublicRole['permissions'],
+      maxDiscountPercent: Number(role.maxDiscountPercent),
+      requiresSupervisorOverride: Boolean(role.requiresSupervisorOverride)
     }
 
     return {
@@ -147,7 +149,7 @@ export async function validateSession(token: string): Promise<SessionValidationR
 
 export async function logout(token: string): Promise<void> {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET, { ignoreExpiration: true }) as { jti: string }
+    const decoded = jwt.verify(token, getJwtSecret(), { ignoreExpiration: true }) as { jti: string }
     await Session.findOneAndUpdate(
       { jwtId: decoded.jti },
       { isRevoked: true, revokedAt: new Date() }

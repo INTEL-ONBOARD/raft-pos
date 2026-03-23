@@ -29,8 +29,11 @@ export function useCashDrawer() {
   })
 
   const openMutation = useMutation({
-    mutationFn: (input: OpenDrawerInput) =>
-      ipc.invoke<DrawerResult>(IPC.DRAWER_OPEN, input),
+    mutationFn: async (input: OpenDrawerInput) => {
+      const result = await ipc.invoke<DrawerResult>(IPC.DRAWER_OPEN, input)
+      if (!result.success) throw new Error(result.error ?? 'Failed to open drawer')
+      return result
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['drawer-open'] })
       queryClient.invalidateQueries({ queryKey: ['drawers'] })
@@ -38,8 +41,11 @@ export function useCashDrawer() {
   })
 
   const closeMutation = useMutation({
-    mutationFn: (input: CloseDrawerInput) =>
-      ipc.invoke<DrawerResult>(IPC.DRAWER_CLOSE, input),
+    mutationFn: async (input: CloseDrawerInput) => {
+      const result = await ipc.invoke<DrawerResult>(IPC.DRAWER_CLOSE, input)
+      if (!result.success) throw new Error(result.error ?? 'Failed to close drawer')
+      return result
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['drawer-open'] })
       queryClient.invalidateQueries({ queryKey: ['drawers'] })

@@ -11,7 +11,7 @@ const store = new Store<StoreSchema>({
   name: 'raft-pos-config',
   encryptionKey: 'raft-pos-machine-key', // TODO: derive from machine UUID in production
   defaults: {
-    terminalId: null,
+    terminalId: 'T01',
     branchId: null,
     jwt: null,
     resumeTokens: {}

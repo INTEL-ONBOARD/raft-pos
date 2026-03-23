@@ -80,6 +80,34 @@ export const IPC = {
 
   // Dashboard
   DASHBOARD_GET_STATS: 'dashboard:getStats',
+
+  // Users
+  USERS_GET_ALL: 'users:getAll',
+  USERS_GET_BY_ID: 'users:getById',
+  USERS_CREATE: 'users:create',
+  USERS_UPDATE: 'users:update',
+  USERS_DEACTIVATE: 'users:deactivate',
+  USERS_FORCE_LOGOUT: 'users:forceLogout',
+  USERS_GET_ACTIVITY: 'users:getActivity',
+
+  // Roles
+  ROLES_GET_ALL: 'roles:getAll',
+  ROLES_GET_BY_ID: 'roles:getById',
+  ROLES_CREATE: 'roles:create',
+  ROLES_UPDATE: 'roles:update',
+  ROLES_DELETE: 'roles:delete',
+
+  // Settings
+  SETTINGS_GET: 'settings:get',
+  SETTINGS_UPDATE: 'settings:update',
+
+  // Reporting
+  REPORTING_GET_SALES_SUMMARY: 'reporting:getSalesSummary',
+  REPORTING_GET_SALES_BY_PRODUCT: 'reporting:getSalesByProduct',
+  REPORTING_GET_INVENTORY_VALUATION: 'reporting:getInventoryValuation',
+  REPORTING_GET_CASH_DRAWER_REPORT: 'reporting:getCashDrawerReport',
+  REPORTING_EXPORT_PDF: 'reporting:exportPdf',
+  REPORTING_EXPORT_EXCEL: 'reporting:exportExcel',
 } as const
 
 export type IpcChannel = typeof IPC[keyof typeof IPC]

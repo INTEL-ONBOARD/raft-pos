@@ -20,20 +20,29 @@ export function useCategories() {
   })
 
   const create = useMutation({
-    mutationFn: (data: { name: string; parentId?: string | null }) =>
-      ipc.invoke<CategoryResult>(IPC.CATEGORIES_CREATE, data),
+    mutationFn: async (data: { name: string; parentId?: string | null }) => {
+      const result = await ipc.invoke<CategoryResult>(IPC.CATEGORIES_CREATE, data)
+      if (!result.success) throw new Error(result.error)
+      return result
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] })
   })
 
   const update = useMutation({
-    mutationFn: (vars: { id: string; data: any }) =>
-      ipc.invoke<CategoryResult>(IPC.CATEGORIES_UPDATE, vars),
+    mutationFn: async (vars: { id: string; data: any }) => {
+      const result = await ipc.invoke<CategoryResult>(IPC.CATEGORIES_UPDATE, vars)
+      if (!result.success) throw new Error(result.error)
+      return result
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] })
   })
 
   const remove = useMutation({
-    mutationFn: (id: string) =>
-      ipc.invoke<{ success: boolean; error?: string }>(IPC.CATEGORIES_DELETE, { id }),
+    mutationFn: async (id: string) => {
+      const result = await ipc.invoke<{ success: boolean; error?: string }>(IPC.CATEGORIES_DELETE, { id })
+      if (!result.success) throw new Error(result.error)
+      return result
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] })
   })
 

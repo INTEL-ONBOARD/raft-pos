@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { ipc } from './lib/ipc'
@@ -9,6 +9,7 @@ import { ConnectivityOverlay } from './components/ConnectivityOverlay'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { AppShell } from './components/layout/AppShell'
 import LoginPage from './pages/auth/LoginPage'
+import HomePage from './pages/home/HomePage'
 import DashboardPage from './pages/dashboard/DashboardPage'
 import CategoriesPage from './pages/categories/CategoriesPage'
 import ProductsPage from './pages/products/ProductsPage'
@@ -17,13 +18,18 @@ import PosPage from './pages/pos/PosPage'
 import SuppliersPage from './pages/suppliers/SuppliersPage'
 import PurchaseOrdersPage from './pages/purchase-orders/PurchaseOrdersPage'
 import PurchaseOrderFormPage from './pages/purchase-orders/PurchaseOrderFormPage'
+import TransactionsPage from './pages/transactions/TransactionsPage'
+import CashDrawerPage from './pages/cash-drawer/CashDrawerPage'
+import UsersPage from './pages/users/UsersPage'
+import RolesPage from './pages/roles/RolesPage'
+import SettingsPage from './pages/settings/SettingsPage'
+import ReportingPage from './pages/reporting/ReportingPage'
 import type { ConnectivityEvent } from '@shared/types/connectivity.types'
 import type { SessionValidationResult } from '@shared/types/auth.types'
 
 export default function App() {
   const setConnectivityStatus = useConnectivityStore((s) => s.setStatus)
   const { setAuth, clearAuth } = useAuthStore()
-  const [sessionChecked, setSessionChecked] = useState(false)
   const queryClient = useQueryClient()
 
   // Subscribe to connectivity events
@@ -74,23 +80,17 @@ export default function App() {
 
   // Restore session from electron-store on startup
   useEffect(() => {
-    ipc
-      .invoke<SessionValidationResult>(IPC.AUTH_VALIDATE_SESSION)
+    const timeout = new Promise<SessionValidationResult>((resolve) =>
+      setTimeout(() => resolve({ valid: false, reason: 'not_found' }), 5000)
+    )
+    Promise.race([ipc.invoke<SessionValidationResult>(IPC.AUTH_VALIDATE_SESSION), timeout])
       .then((result) => {
         if (result.valid) {
           setAuth(result.data)
         }
       })
-      .finally(() => setSessionChecked(true))
+      .catch(() => {})
   }, [setAuth])
-
-  if (!sessionChecked) {
-    return (
-      <div className="h-screen w-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
 
   return (
     <HashRouter>
@@ -105,7 +105,8 @@ export default function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route index element={<Navigate to="/home" replace />} />
+          <Route path="home" element={<HomePage />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="categories" element={<CategoriesPage />} />
           <Route path="products" element={<ProductsPage />} />
@@ -115,6 +116,12 @@ export default function App() {
           <Route path="purchase-orders" element={<PurchaseOrdersPage />} />
           <Route path="purchase-orders/new" element={<PurchaseOrderFormPage />} />
           <Route path="purchase-orders/:id/edit" element={<PurchaseOrderFormPage />} />
+          <Route path="transactions" element={<TransactionsPage />} />
+          <Route path="cash-drawer" element={<CashDrawerPage />} />
+          <Route path="users" element={<UsersPage />} />
+          <Route path="roles" element={<RolesPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="reporting" element={<ReportingPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -22,6 +22,7 @@
   --accent-hover:  #4338CA;
   --accent-light:  #EEF2FF;
   --accent-muted:  rgba(79,70,229,0.08);
+  --accent-text:   #ffffff;
 
   /* Semantic */
   --color-success:        #16a34a;
@@ -34,8 +35,17 @@
   --color-danger-hover:   #b91c1c;
   --color-danger-bg:      #fef2f2;
   --color-danger-border:  rgba(220,38,38,0.20);
+  --color-info:           #2563eb;
+  --color-info-bg:        #eff6ff;
+  --color-info-border:    rgba(37,99,235,0.20);
 
   /* Badge tokens */
+  --badge-green-bg:    #f0fdf4;
+  --badge-green-text:  #16a34a;
+  --badge-red-bg:      #fef2f2;
+  --badge-red-text:    #dc2626;
+  --badge-yellow-bg:   #fffbeb;
+  --badge-yellow-text: #d97706;
   --badge-blue-bg:     #eff6ff;
   --badge-blue-text:   #1d4ed8;
   --badge-gray-bg:     #f3f4f6;
@@ -51,7 +61,7 @@
   --rank-silver:     #4b5563;
   --rank-silver-bg:  #f3f4f6;
   --rank-bronze:     #92400e;
-  --rank-bronze-bg:  #fef3c7;
+  --rank-bronze-bg:  #fdf6ec;
 
   /* Borders */
   --border-subtle:  rgba(17,24,39,0.06);
@@ -67,6 +77,9 @@
   /* Transitions */
   --transition-fast: 150ms ease-out;
   --transition-base: 200ms ease-out;
+
+  /* Overlay */
+  --overlay-bg: rgba(17,24,39,0.45);
 }
 
 html, body {
@@ -84,7 +97,6 @@ html, body {
   gap: 0.625rem;
   height: 36px;
   padding: 0 0.625rem;
-  padding-left: 0.625rem;
   border-radius: 0.5rem;
   margin: 1px 0.5rem;
   font-size: 0.8125rem;
@@ -160,7 +172,7 @@ html, body {
 
 /* ─── Modal overlay ───────────────────────────────────────── */
 .modal-overlay {
-  background: rgba(17,24,39,0.45);
+  background: var(--overlay-bg);
   backdrop-filter: blur(2px);
 }
 
@@ -312,9 +324,9 @@ textarea.dark-input {
 }
 
 /* ─── Status badges ───────────────────────────────────────── */
-.badge-green  { display:inline-flex;align-items:center;white-space:nowrap;background:var(--color-success-bg);color:var(--color-success);border-radius:9999px;padding:0.125rem 0.5rem;font-size:0.6875rem;font-weight:500; }
-.badge-red    { display:inline-flex;align-items:center;white-space:nowrap;background:var(--color-danger-bg);color:var(--color-danger);border-radius:9999px;padding:0.125rem 0.5rem;font-size:0.6875rem;font-weight:500; }
-.badge-yellow { display:inline-flex;align-items:center;white-space:nowrap;background:var(--color-warning-bg);color:var(--color-warning);border-radius:9999px;padding:0.125rem 0.5rem;font-size:0.6875rem;font-weight:500; }
+.badge-green  { display:inline-flex;align-items:center;white-space:nowrap;background:var(--badge-green-bg);color:var(--badge-green-text);border-radius:9999px;padding:0.125rem 0.5rem;font-size:0.6875rem;font-weight:500; }
+.badge-red    { display:inline-flex;align-items:center;white-space:nowrap;background:var(--badge-red-bg);color:var(--badge-red-text);border-radius:9999px;padding:0.125rem 0.5rem;font-size:0.6875rem;font-weight:500; }
+.badge-yellow { display:inline-flex;align-items:center;white-space:nowrap;background:var(--badge-yellow-bg);color:var(--badge-yellow-text);border-radius:9999px;padding:0.125rem 0.5rem;font-size:0.6875rem;font-weight:500; }
 .badge-gray   { display:inline-flex;align-items:center;white-space:nowrap;background:var(--badge-gray-bg);color:var(--badge-gray-text);border-radius:9999px;padding:0.125rem 0.5rem;font-size:0.6875rem;font-weight:500; }
 .badge-blue   { display:inline-flex;align-items:center;white-space:nowrap;background:var(--badge-blue-bg);color:var(--badge-blue-text);border-radius:9999px;padding:0.125rem 0.5rem;font-size:0.6875rem;font-weight:500; }
 .badge-purple { display:inline-flex;align-items:center;white-space:nowrap;background:var(--badge-purple-bg);color:var(--badge-purple-text);border-radius:9999px;padding:0.125rem 0.5rem;font-size:0.6875rem;font-weight:500; }
@@ -322,6 +334,9 @@ textarea.dark-input {
 
 /* ─── Page header ─────────────────────────────────────────── */
 .page-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border-subtle);
   padding: 1.25rem 1.5rem;
@@ -378,8 +393,8 @@ textarea.dark-input {
 
 /* ─── Skeleton / shimmer loading ─────────────────────────── */
 @keyframes shimmer {
-  0%   { background-position: -800px 0; }
-  100% { background-position: 800px 0; }
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
 }
 .skeleton {
   background: linear-gradient(

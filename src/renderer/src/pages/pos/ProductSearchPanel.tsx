@@ -40,17 +40,17 @@ export function ProductSearchPanel() {
   }
 
   return (
-    <div className="flex flex-col min-h-full" style={{ background: '#f5f6f8' }}>
+    <div className="flex flex-col min-h-full" style={{ background: 'var(--bg-base)' }}>
       {/* Page header */}
-      <div className="sticky top-0 z-10 px-6 py-4" style={{ background: '#f5f6f8', borderBottom: '1px solid rgba(15,17,23,0.07)' }}>
+      <div className="sticky top-0 z-10 px-6 py-4" style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--border-subtle)' }}>
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0" style={{ background: 'rgba(79,70,229,0.10)', border: '1px solid rgba(79,70,229,0.18)' }}>
-              <ShoppingBag className="w-4 h-4" style={{ color: '#4F46E5' }} />
+            <div className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0" style={{ background: 'rgba(79,70,229,0.10)' }}>
+              <ShoppingBag className="w-4 h-4" style={{ color: 'var(--accent)' }} />
             </div>
             <div>
-              <h1 className="text-base font-bold" style={{ color: '#0f1117' }}>Point of Sale</h1>
-              <p className="text-xs mt-0.5" style={{ color: 'rgba(15,17,23,0.45)' }}>
+              <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)' }}>Point of Sale</h1>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
                 {productsQuery.isLoading
                   ? 'Loading products…'
                   : `${products.length} product${products.length !== 1 ? 's' : ''} shown`}
@@ -81,9 +81,9 @@ export function ProductSearchPanel() {
             title="USB HID barcode scanner active when connected"
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium"
             style={{
-              background: '#ffffff',
-              border: '1px solid rgba(15,17,23,0.12)',
-              color: 'rgba(15,17,23,0.45)'
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-default)',
+              color: 'var(--text-muted)'
             }}
           >
             <Scan className="w-3.5 h-3.5" />
@@ -141,12 +141,12 @@ export function ProductSearchPanel() {
           </div>
         ) : products.length === 0 ? (
           <div className="flex flex-col items-center justify-center mt-16 gap-3">
-            <div className="flex items-center justify-center w-14 h-14 rounded-2xl" style={{ background: 'rgba(15,17,23,0.04)', border: '1px solid rgba(15,17,23,0.08)' }}>
-              <ShoppingBag className="w-6 h-6" style={{ color: 'rgba(15,17,23,0.20)' }} />
+            <div className="flex items-center justify-center w-14 h-14 rounded-2xl" style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)' }}>
+              <ShoppingBag className="w-6 h-6" style={{ color: 'var(--text-disabled)' }} />
             </div>
             <div className="text-center">
-              <p className="text-sm font-medium" style={{ color: 'rgba(15,17,23,0.45)' }}>No products found</p>
-              <p className="text-xs mt-1" style={{ color: 'rgba(15,17,23,0.28)' }}>Try a different search or category.</p>
+              <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>No products found</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Try a different search or category.</p>
             </div>
           </div>
         ) : (

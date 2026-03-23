@@ -4,7 +4,7 @@ import {
   ShoppingCart, Package, FolderOpen, Warehouse,
   ClipboardList, Truck, ArrowLeftRight, BarChart3,
   CreditCard, Users, Shield, Settings,
-  LayoutDashboard
+  LayoutDashboard, ArrowRight
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { PERMISSIONS } from '@shared/types/permissions'
@@ -16,131 +16,156 @@ interface Tile {
   label: string
   description: string
   color: string
-  iconBg: string
+  gradient: string
   permission?: Permission
   permissionAny?: Permission[]
 }
 
-const ALL_TILES: Tile[] = [
+interface TileGroup {
+  label: string
+  tiles: Tile[]
+}
+
+const TILE_GROUPS: TileGroup[] = [
   {
-    to: '/orders',
-    icon: ShoppingCart,
-    label: 'Point of Sale',
-    description: 'Process sales and payments',
-    color: '#4F46E5',
-    iconBg: 'rgba(79,70,229,0.10)',
-    permission: PERMISSIONS.CAN_MAKE_SALE,
-  },
-  {
-    to: '/dashboard',
-    icon: LayoutDashboard,
-    label: 'Dashboard',
-    description: 'Sales overview and KPIs',
-    color: '#0d9488',
-    iconBg: 'rgba(13,148,136,0.10)',
-  },
-  {
-    to: '/products',
-    icon: Package,
-    label: 'Products',
-    description: 'Manage your product catalog',
-    color: '#7c3aed',
-    iconBg: 'rgba(124,58,237,0.10)',
-    permission: PERMISSIONS.CAN_MANAGE_PRODUCTS,
-  },
-  {
-    to: '/inventory',
-    icon: Warehouse,
-    label: 'Inventory',
-    description: 'Track stock levels and adjustments',
-    color: '#2563eb',
-    iconBg: 'rgba(37,99,235,0.10)',
-    permission: PERMISSIONS.CAN_MANAGE_INVENTORY,
-  },
-  {
-    to: '/categories',
-    icon: FolderOpen,
-    label: 'Categories',
-    description: 'Organise product categories',
-    color: '#c2410c',
-    iconBg: 'rgba(194,65,12,0.10)',
-    permission: PERMISSIONS.CAN_MANAGE_CATEGORIES,
-  },
-  {
-    to: '/purchase-orders',
-    icon: ClipboardList,
-    label: 'Purchase Orders',
-    description: 'Create and receive orders',
-    color: '#0369a1',
-    iconBg: 'rgba(3,105,161,0.10)',
-    permission: PERMISSIONS.CAN_MANAGE_PURCHASE_ORDERS,
-  },
-  {
-    to: '/suppliers',
-    icon: Truck,
-    label: 'Suppliers',
-    description: 'Manage supplier contacts',
-    color: '#b45309',
-    iconBg: 'rgba(180,83,9,0.10)',
-    permission: PERMISSIONS.CAN_MANAGE_SUPPLIERS,
-  },
-  {
-    to: '/transactions',
-    icon: ArrowLeftRight,
-    label: 'Transactions',
-    description: 'View, void and refund sales',
-    color: '#4338CA',
-    iconBg: 'rgba(67,56,202,0.10)',
-    permissionAny: [
-      PERMISSIONS.CAN_VOID_TRANSACTION,
-      PERMISSIONS.CAN_REFUND_TRANSACTION,
-      PERMISSIONS.CAN_REPRINT_RECEIPT,
+    label: 'Sales',
+    tiles: [
+      {
+        to: '/orders',
+        icon: ShoppingCart,
+        label: 'Point of Sale',
+        description: 'Process sales & payments',
+        color: '#4F46E5',
+        gradient: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+        permission: PERMISSIONS.CAN_MAKE_SALE,
+      },
+      {
+        to: '/dashboard',
+        icon: LayoutDashboard,
+        label: 'Dashboard',
+        description: 'Revenue overview & KPIs',
+        color: '#0891b2',
+        gradient: 'linear-gradient(135deg, #0891b2 0%, #0e7490 100%)',
+      },
+      {
+        to: '/transactions',
+        icon: ArrowLeftRight,
+        label: 'Transactions',
+        description: 'View, void & refund sales',
+        color: '#4338CA',
+        gradient: 'linear-gradient(135deg, #4338CA 0%, #6D28D9 100%)',
+        permissionAny: [
+          PERMISSIONS.CAN_VOID_TRANSACTION,
+          PERMISSIONS.CAN_REFUND_TRANSACTION,
+          PERMISSIONS.CAN_REPRINT_RECEIPT,
+        ],
+      },
+      {
+        to: '/cash-drawer',
+        icon: CreditCard,
+        label: 'Cash Drawer',
+        description: 'Open, close & audit cash',
+        color: '#dc2626',
+        gradient: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+        permission: PERMISSIONS.CAN_OPEN_CLOSE_DRAWER,
+      },
     ],
   },
   {
-    to: '/reporting',
-    icon: BarChart3,
-    label: 'Reports',
-    description: 'Sales and performance reports',
-    color: '#15803d',
-    iconBg: 'rgba(21,128,61,0.10)',
-    permission: PERMISSIONS.CAN_VIEW_REPORTS,
+    label: 'Inventory',
+    tiles: [
+      {
+        to: '/products',
+        icon: Package,
+        label: 'Products',
+        description: 'Manage your catalog',
+        color: '#7c3aed',
+        gradient: 'linear-gradient(135deg, #7c3aed 0%, #6D28D9 100%)',
+        permission: PERMISSIONS.CAN_MANAGE_PRODUCTS,
+      },
+      {
+        to: '/inventory',
+        icon: Warehouse,
+        label: 'Inventory',
+        description: 'Track stock & adjustments',
+        color: '#2563eb',
+        gradient: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+        permission: PERMISSIONS.CAN_MANAGE_INVENTORY,
+      },
+      {
+        to: '/categories',
+        icon: FolderOpen,
+        label: 'Categories',
+        description: 'Organise product groups',
+        color: '#c2410c',
+        gradient: 'linear-gradient(135deg, #c2410c 0%, #b45309 100%)',
+        permission: PERMISSIONS.CAN_MANAGE_CATEGORIES,
+      },
+      {
+        to: '/purchase-orders',
+        icon: ClipboardList,
+        label: 'Purchase Orders',
+        description: 'Create & receive orders',
+        color: '#0369a1',
+        gradient: 'linear-gradient(135deg, #0369a1 0%, #0284c7 100%)',
+        permission: PERMISSIONS.CAN_MANAGE_PURCHASE_ORDERS,
+      },
+      {
+        to: '/suppliers',
+        icon: Truck,
+        label: 'Suppliers',
+        description: 'Manage supplier contacts',
+        color: '#b45309',
+        gradient: 'linear-gradient(135deg, #b45309 0%, #d97706 100%)',
+        permission: PERMISSIONS.CAN_MANAGE_SUPPLIERS,
+      },
+    ],
   },
   {
-    to: '/cash-drawer',
-    icon: CreditCard,
-    label: 'Cash Drawer',
-    description: 'Open, close and audit cash',
-    color: '#dc2626',
-    iconBg: 'rgba(220,38,38,0.10)',
-    permission: PERMISSIONS.CAN_OPEN_CLOSE_DRAWER,
+    label: 'Finance & Reports',
+    tiles: [
+      {
+        to: '/reporting',
+        icon: BarChart3,
+        label: 'Reports',
+        description: 'Sales & performance data',
+        color: '#15803d',
+        gradient: 'linear-gradient(135deg, #15803d 0%, #16a34a 100%)',
+        permission: PERMISSIONS.CAN_VIEW_REPORTS,
+      },
+    ],
   },
   {
-    to: '/users',
-    icon: Users,
-    label: 'Users',
-    description: 'Manage staff accounts',
-    color: '#6d28d9',
-    iconBg: 'rgba(109,40,217,0.10)',
-    permission: PERMISSIONS.CAN_MANAGE_USERS,
-  },
-  {
-    to: '/roles',
-    icon: Shield,
-    label: 'Roles',
-    description: 'Configure permissions and roles',
-    color: '#0d9488',
-    iconBg: 'rgba(13,148,136,0.10)',
-    permission: PERMISSIONS.CAN_MANAGE_ROLES,
-  },
-  {
-    to: '/settings',
-    icon: Settings,
-    label: 'Settings',
-    description: 'System and store settings',
-    color: '#4b5563',
-    iconBg: 'rgba(75,85,99,0.10)',
-    permission: PERMISSIONS.CAN_MANAGE_SETTINGS,
+    label: 'Admin',
+    tiles: [
+      {
+        to: '/users',
+        icon: Users,
+        label: 'Users',
+        description: 'Manage staff accounts',
+        color: '#6d28d9',
+        gradient: 'linear-gradient(135deg, #6d28d9 0%, #7c3aed 100%)',
+        permission: PERMISSIONS.CAN_MANAGE_USERS,
+      },
+      {
+        to: '/roles',
+        icon: Shield,
+        label: 'Roles',
+        description: 'Permissions & access levels',
+        color: '#0d9488',
+        gradient: 'linear-gradient(135deg, #0d9488 0%, #0891b2 100%)',
+        permission: PERMISSIONS.CAN_MANAGE_ROLES,
+      },
+      {
+        to: '/settings',
+        icon: Settings,
+        label: 'Settings',
+        description: 'System & store settings',
+        color: '#374151',
+        gradient: 'linear-gradient(135deg, #374151 0%, #4b5563 100%)',
+        permission: PERMISSIONS.CAN_MANAGE_SETTINGS,
+      },
+    ],
   },
 ]
 
@@ -148,81 +173,219 @@ export default function HomePage() {
   const navigate = useNavigate()
   const { user, role, hasPermission } = useAuth()
 
-  const tiles = ALL_TILES.filter((t) => {
-    if (t.permission) return hasPermission(t.permission)
-    if (t.permissionAny) return t.permissionAny.some((p) => hasPermission(p))
-    return true
-  })
-
   const firstName = user?.name?.split(' ')[0] ?? 'there'
   const hour = new Date().getHours()
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+  const greeting =
+    hour < 5 ? 'Good night' :
+    hour < 12 ? 'Good morning' :
+    hour < 17 ? 'Good afternoon' :
+    'Good evening'
+
+  // Filter tiles by permission, then filter out empty groups
+  const groups = TILE_GROUPS.map((g) => ({
+    ...g,
+    tiles: g.tiles.filter((t) => {
+      if (t.permission) return hasPermission(t.permission)
+      if (t.permissionAny) return t.permissionAny.some((p) => hasPermission(p))
+      return true
+    }),
+  })).filter((g) => g.tiles.length > 0)
+
+  // Flat index for stagger delay
+  let tileIndex = 0
 
   return (
     <div
-      className="flex flex-col min-h-screen p-8"
-      style={{ background: 'var(--bg-base)' }}
+      className="flex flex-col min-h-full"
+      style={{ background: 'var(--bg-base)', padding: '48px 56px 64px' }}
     >
-      {/* Header */}
-      <div className="mb-10">
-        <h1 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-          {greeting}, {firstName}
-        </h1>
-        <p style={{ fontSize: '15px', color: 'var(--text-muted)', marginTop: '4px' }}>
-          {role?.name ?? 'Staff'} · What would you like to do?
-        </p>
+      {/* ── Hero header ── */}
+      <div className="home-header mb-12" style={{ animationDelay: '0ms' }}>
+        <div className="flex items-end justify-between">
+          <div>
+            <p style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: '8px' }}>
+              {role?.name ?? 'Staff'}
+            </p>
+            <h1 style={{ fontSize: '40px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+              {greeting},<br />{firstName} 👋
+            </h1>
+            <p style={{ fontSize: '16px', color: 'var(--text-muted)', marginTop: '10px' }}>
+              Select a module to get started
+            </p>
+          </div>
+
+          {/* Live clock */}
+          <Clock />
+        </div>
+
+        {/* Divider */}
+        <div style={{ marginTop: '32px', height: '1px', background: 'var(--border-subtle)' }} />
       </div>
 
-      {/* Tile grid */}
-      <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
-        {tiles.map((tile) => {
-          const Icon = tile.icon
-          return (
-            <button
-              key={tile.to}
-              onClick={() => navigate(tile.to)}
-              className="text-left transition-all rounded-2xl p-5 active:scale-[0.97]"
+      {/* ── Grouped tile sections ── */}
+      <div className="flex flex-col gap-10">
+        {groups.map((group) => (
+          <div key={group.label}>
+            {/* Section label */}
+            <p
               style={{
-                background: '#ffffff',
-                border: '1px solid var(--border-subtle)',
-                boxShadow: 'var(--shadow-sm)',
-                cursor: 'pointer',
-                outline: 'none',
-              }}
-              onMouseEnter={(e) => {
-                const el = e.currentTarget
-                el.style.borderColor = tile.color + '40'
-                el.style.boxShadow = `0 4px 16px ${tile.color}18, var(--shadow-sm)`
-                el.style.transform = 'translateY(-2px)'
-              }}
-              onMouseLeave={(e) => {
-                const el = e.currentTarget
-                el.style.borderColor = 'var(--border-subtle)'
-                el.style.boxShadow = 'var(--shadow-sm)'
-                el.style.transform = 'none'
+                fontSize: '11px',
+                fontWeight: 700,
+                letterSpacing: '0.09em',
+                textTransform: 'uppercase',
+                color: 'var(--text-muted)',
+                marginBottom: '16px',
               }}
             >
-              {/* Icon */}
-              <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
-                style={{ background: tile.iconBg }}
-              >
-                <Icon className="w-5 h-5" style={{ color: tile.color }} />
-              </div>
+              {group.label}
+            </p>
 
-              {/* Label */}
-              <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                {tile.label}
-              </p>
-
-              {/* Description */}
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                {tile.description}
-              </p>
-            </button>
-          )
-        })}
+            {/* Tiles */}
+            <div
+              className="grid gap-3"
+              style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}
+            >
+              {group.tiles.map((tile) => {
+                const delay = 60 + tileIndex++ * 40
+                const Icon = tile.icon
+                return (
+                  <TileCard
+                    key={tile.to}
+                    tile={tile}
+                    delay={delay}
+                    onNavigate={() => navigate(tile.to)}
+                    Icon={Icon}
+                  />
+                )
+              })}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
+  )
+}
+
+// ── Live Clock ────────────────────────────────────────────────────────────────
+import { useState, useEffect } from 'react'
+
+function Clock() {
+  const [now, setNow] = useState(new Date())
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(id)
+  }, [])
+
+  const time = now.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  const date = now.toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric' })
+
+  return (
+    <div className="text-right" style={{ opacity: 0.9 }}>
+      <p style={{ fontSize: '32px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>
+        {time}
+      </p>
+      <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
+        {date}
+      </p>
+    </div>
+  )
+}
+
+// ── Tile Card ─────────────────────────────────────────────────────────────────
+interface TileCardProps {
+  tile: Tile
+  delay: number
+  onNavigate: () => void
+  Icon: React.ElementType
+}
+
+function TileCard({ tile, delay, onNavigate, Icon }: TileCardProps) {
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <button
+      onClick={onNavigate}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="home-tile text-left"
+      style={{
+        animationDelay: `${delay}ms`,
+        background: hovered ? '#ffffff' : '#ffffff',
+        border: `1px solid ${hovered ? tile.color + '30' : 'var(--border-subtle)'}`,
+        borderRadius: '16px',
+        padding: '20px',
+        cursor: 'pointer',
+        outline: 'none',
+        boxShadow: hovered
+          ? `0 8px 32px ${tile.color}20, 0 2px 8px ${tile.color}10`
+          : '0 1px 3px rgba(17,24,39,0.06)',
+        transform: hovered ? 'translateY(-3px)' : 'translateY(0)',
+        transition: 'transform 200ms cubic-bezier(0.22,1,0.36,1), box-shadow 200ms cubic-bezier(0.22,1,0.36,1), border-color 150ms ease-out',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Subtle top gradient accent on hover */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '3px',
+          background: tile.gradient,
+          opacity: hovered ? 1 : 0,
+          transition: 'opacity 200ms ease-out',
+        }}
+      />
+
+      {/* Icon circle */}
+      <div
+        style={{
+          width: '44px',
+          height: '44px',
+          borderRadius: '12px',
+          background: hovered ? tile.gradient : `${tile.color}14`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: '16px',
+          transition: 'background 200ms ease-out',
+          boxShadow: hovered ? `0 4px 12px ${tile.color}30` : 'none',
+        }}
+      >
+        <Icon
+          style={{
+            width: '20px',
+            height: '20px',
+            color: hovered ? '#ffffff' : tile.color,
+            transition: 'color 200ms ease-out',
+          }}
+        />
+      </div>
+
+      {/* Label + arrow */}
+      <div className="flex items-center justify-between mb-1.5">
+        <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>
+          {tile.label}
+        </p>
+        <ArrowRight
+          style={{
+            width: '14px',
+            height: '14px',
+            color: tile.color,
+            opacity: hovered ? 1 : 0,
+            transform: hovered ? 'translateX(0)' : 'translateX(-6px)',
+            transition: 'opacity 180ms ease-out, transform 200ms cubic-bezier(0.22,1,0.36,1)',
+            flexShrink: 0,
+          }}
+        />
+      </div>
+
+      {/* Description */}
+      <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+        {tile.description}
+      </p>
+    </button>
   )
 }

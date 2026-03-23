@@ -375,7 +375,7 @@ export default function HomePage() {
               display: 'grid',
               gap: '14px',
               gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
-              alignContent: 'start',
+              gridAutoRows: '1fr',
               animation: 'fadeSlideUp 0.35s cubic-bezier(0.22,1,0.36,1) both',
             }}
           >
@@ -448,7 +448,9 @@ function TileCard({ tile, delay, onNavigate }: TileCardProps) {
         cursor: 'pointer',
         outline: 'none',
         borderRadius: '20px',
-        padding: '22px',
+        padding: '28px 24px',
+        width: '100%',
+        height: '100%',
         background: hovered
           ? 'rgba(255,255,255,0.06)'
           : 'rgba(255,255,255,0.03)',

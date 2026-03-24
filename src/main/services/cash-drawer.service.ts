@@ -21,7 +21,20 @@ function toShared(doc: any): ICashDrawer {
     totalMobile: doc.totalMobile,
     totalTransactions: doc.totalTransactions,
     openedAt: doc.openedAt.toISOString(),
-    closedAt: doc.closedAt?.toISOString() ?? null
+    closedAt: doc.closedAt?.toISOString() ?? null,
+    payOuts: (doc.payOuts ?? []).map((p: any) => ({
+      _id: p._id?.toString(),
+      amount: p.amount,
+      reason: p.reason,
+      category: p.category,
+      recipient: p.recipient,
+      recordedBy: p.recordedBy?.toString(),
+      recordedAt: p.recordedAt?.toISOString(),
+      status: p.status,
+      reviewedBy: p.reviewedBy?.toString() ?? null,
+      reviewedAt: p.reviewedAt?.toISOString() ?? null,
+      reviewNote: p.reviewNote ?? null,
+    })),
   }
 }
 

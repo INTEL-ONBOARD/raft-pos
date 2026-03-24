@@ -1,6 +1,33 @@
 // src/main/models/cash-drawer.model.ts
 import { Schema, model, Document, Types } from 'mongoose'
 
+export interface IPayOutDoc {
+  _id: Types.ObjectId
+  amount: number
+  reason: string
+  category: 'supplies' | 'cod_delivery' | 'petty_cash' | 'other'
+  recipient: string
+  recordedBy: Types.ObjectId
+  recordedAt: Date
+  status: 'pending' | 'approved' | 'rejected'
+  reviewedBy: Types.ObjectId | null
+  reviewedAt: Date | null
+  reviewNote: string | null
+}
+
+const payOutSchema = new Schema<IPayOutDoc>({
+  amount: { type: Number, required: true, min: 0.01 },
+  reason: { type: String, required: true, trim: true },
+  category: { type: String, enum: ['supplies', 'cod_delivery', 'petty_cash', 'other'], required: true },
+  recipient: { type: String, required: true, trim: true },
+  recordedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  recordedAt: { type: Date, required: true },
+  status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+  reviewedBy: { type: Schema.Types.ObjectId, default: null },
+  reviewedAt: { type: Date, default: null },
+  reviewNote: { type: String, default: null },
+})
+
 export interface ICashDrawerDoc extends Document {
   branchId: Types.ObjectId
   terminalId: string
@@ -17,6 +44,7 @@ export interface ICashDrawerDoc extends Document {
   totalTransactions: number
   openedAt: Date
   closedAt: Date | null
+  payOuts: Types.DocumentArray<IPayOutDoc>
 }
 
 const cashDrawerSchema = new Schema<ICashDrawerDoc>(
@@ -35,7 +63,8 @@ const cashDrawerSchema = new Schema<ICashDrawerDoc>(
     totalMobile: { type: Number, default: 0 },
     totalTransactions: { type: Number, default: 0 },
     openedAt: { type: Date, required: true },
-    closedAt: { type: Date, default: null }
+    closedAt: { type: Date, default: null },
+    payOuts: { type: [payOutSchema], default: [] },
   },
   { timestamps: false }
 )

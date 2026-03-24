@@ -18,6 +18,19 @@ export interface ICashDrawer {
   totalTransactions: number
   openedAt: string       // ISO string
   closedAt: string | null
+  payOuts?: Array<{
+    _id: string
+    amount: number
+    reason: string
+    category: 'supplies' | 'cod_delivery' | 'petty_cash' | 'other'
+    recipient: string
+    recordedBy: string
+    recordedAt: string
+    status: 'pending' | 'approved' | 'rejected'
+    reviewedBy: string | null
+    reviewedAt: string | null
+    reviewNote: string | null
+  }>
 }
 
 export interface OpenDrawerInput {

@@ -1,8 +1,43 @@
 import { useState, useMemo } from 'react'
-import { Plus, Pencil, Trash2, ChevronRight, FolderOpen } from 'lucide-react'
+import {
+  PlusIcon,
+  PencilSquareIcon,
+  TrashIcon,
+  ChevronDownIcon,
+  FolderOpenIcon,
+} from '@heroicons/react/24/outline'
 import { useCategories } from '../../hooks/useCategories'
 import { useCategoryStore } from '../../stores/category.store'
 import type { ICategory, CategoryTree } from '@shared/types/category.types'
+
+// ── Shared inline style tokens ──────────────────────────────────────────────
+const tableContainerStyle: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.03)',
+  border: '1px solid rgba(255,255,255,0.07)',
+  borderRadius: 16,
+  overflow: 'hidden',
+}
+
+const thStyle: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.02)',
+  color: 'rgba(255,255,255,0.28)',
+  fontSize: 10,
+  fontWeight: 600,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+  padding: '10px 16px',
+  borderBottom: '1px solid rgba(255,255,255,0.06)',
+  textAlign: 'left',
+  whiteSpace: 'nowrap',
+}
+
+const thRightStyle: React.CSSProperties = { ...thStyle, textAlign: 'right' }
+
+const tdStyle: React.CSSProperties = {
+  padding: '12px 16px',
+  borderBottom: '1px solid rgba(255,255,255,0.05)',
+  verticalAlign: 'middle',
+}
 
 function CategoryRow({
   node, depth, onEdit, onDelete
@@ -13,40 +48,66 @@ function CategoryRow({
   onDelete: (c: ICategory) => void
 }) {
   const [open, setOpen] = useState(true)
+  const [hovered, setHovered] = useState(false)
+
   return (
     <>
-      <tr>
-        <td className="py-2.5 px-4">
-          <div className="flex items-center gap-2" style={{ paddingLeft: depth * 24 }}>
-            {node.children.length > 0 && (
-              <button onClick={() => setOpen(v => !v)} style={{ color: 'var(--text-muted)' }}
-                onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
-                <ChevronRight className={`w-4 h-4 transition-transform ${open ? 'rotate-90' : ''}`} />
+      <tr
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{ background: hovered ? 'rgba(255,255,255,0.03)' : 'transparent' }}
+      >
+        <td style={tdStyle}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingLeft: depth * 24 }}>
+            {node.children.length > 0 ? (
+              <button
+                onClick={() => setOpen(v => !v)}
+                style={{ color: 'rgba(255,255,255,0.30)', transition: 'color 0.15s', display: 'flex', alignItems: 'center' }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.70)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.30)')}
+              >
+                <ChevronDownIcon style={{
+                  width: 14, height: 14,
+                  transform: open ? 'rotate(0deg)' : 'rotate(-90deg)',
+                  transition: 'transform 0.15s',
+                }} />
               </button>
+            ) : (
+              <span style={{ width: 14, display: 'inline-block' }} />
             )}
-            {node.children.length === 0 && <span className="w-4" />}
-            <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{node.name}</span>
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', fontWeight: depth === 0 ? 500 : 400 }}>
+              {node.name}
+            </span>
           </div>
         </td>
-        <td className="py-2.5 px-4">
+        <td style={tdStyle}>
           {node.isActive ? <span className="badge-green">Active</span> : <span className="badge-gray">Inactive</span>}
         </td>
-        <td className="py-2.5 px-4 text-right row-actions">
-          <button onClick={() => onEdit(node)}
-            className="mr-2 transition-colors" style={{ color: 'var(--text-muted)' }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
-            <Pencil className="w-4 h-4" />
-          </button>
-          {node.children.length === 0 && (
-            <button onClick={() => onDelete(node)}
-              className="transition-colors" style={{ color: 'var(--text-muted)' }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#dc2626')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
-              <Trash2 className="w-4 h-4" />
+        <td style={{ ...tdStyle, textAlign: 'right' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+            <button
+              onClick={() => onEdit(node)}
+              style={{ color: 'rgba(255,255,255,0.30)', padding: '4px 6px', borderRadius: 6, transition: 'color 0.15s' }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.85)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.30)')}
+              title="Edit category"
+              aria-label={`Edit ${node.name}`}
+            >
+              <PencilSquareIcon style={{ width: 16, height: 16 }} />
             </button>
-          )}
+            {node.children.length === 0 && (
+              <button
+                onClick={() => onDelete(node)}
+                style={{ color: 'rgba(255,255,255,0.30)', padding: '4px 6px', borderRadius: 6, transition: 'color 0.15s' }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#dc2626')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.30)')}
+                title="Delete category"
+                aria-label={`Delete ${node.name}`}
+              >
+                <TrashIcon style={{ width: 16, height: 16 }} />
+              </button>
+            )}
+          </div>
         </td>
       </tr>
       {open && node.children.map(child => (
@@ -100,120 +161,199 @@ export default function CategoriesPage() {
   const isLoading = create.isPending || update.isPending
 
   return (
-    <div className="flex flex-col min-h-full" style={{ background: 'var(--bg-base)' }}>
-      <div className="page-header">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: 'rgba(79,70,229,0.10)' }}>
-            <FolderOpen className="w-4 h-4" style={{ color: 'var(--accent)' }} />
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      minHeight: '100%',
+      background: '#080810',
+      position: 'relative',
+    }}>
+      {/* Ambient glow */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        background: 'radial-gradient(ellipse 900px 600px at 20% 0%, rgba(124,58,237,0.10) 0%, transparent 70%)',
+        pointerEvents: 'none',
+        zIndex: 0,
+      }} />
+
+      {/* Page header */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '28px 36px 20px',
+        flexShrink: 0,
+        position: 'relative',
+        zIndex: 1,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            width: 38,
+            height: 38,
+            borderRadius: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(99,102,241,0.12)',
+            flexShrink: 0,
+          }}>
+            <FolderOpenIcon style={{ width: 18, height: 18, color: '#818cf8' }} />
           </div>
           <div>
-            <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)' }}>Categories</h1>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>Organize products into a hierarchy up to 3 levels deep</p>
+            <h1 style={{ fontSize: 20, fontWeight: 700, color: 'rgba(255,255,255,0.92)', lineHeight: 1.2 }}>Categories</h1>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.38)', marginTop: 2 }}>
+              Organize products into a hierarchy up to 3 levels deep
+            </p>
           </div>
         </div>
         <button
           onClick={() => { setAdding(true); setEditing(null); setForm({ name: '', parentId: '' }) }}
           className="btn-primary flex items-center gap-2 px-4 py-2"
         >
-          <Plus className="w-4 h-4" /> Add Category
+          <PlusIcon style={{ width: 16, height: 16 }} /> Add Category
         </button>
       </div>
-      <div className="p-6 flex-1">
 
-      {adding && (
-        <div className="p-5 mb-6 rounded-xl" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)', boxShadow: 'var(--shadow-xs)' }}>
-          <h2 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>{editing ? 'Edit Category' : 'New Category'}</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="cat-name" className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Name *</label>
-              <input
-                id="cat-name"
-                value={form.name}
-                onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                className="dark-input w-full px-3 py-2 text-sm"
-                placeholder="e.g. Electrical"
-              />
-            </div>
-            <div>
-              <label htmlFor="cat-parent" className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Parent Category</label>
-              <select
-                id="cat-parent"
-                value={form.parentId}
-                onChange={e => setForm(f => ({ ...f, parentId: e.target.value }))}
-                className="dark-select w-full px-3 py-2 text-sm"
-              >
-                <option value="">None (root)</option>
-                {categories.filter(c => c._id !== editing?._id && c.isActive).map(c => (
-                  <option key={c._id} value={c._id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          {error && <p role="alert" className="text-sm mt-3" style={{ color: '#dc2626' }}>{error}</p>}
-          <div className="flex gap-2 mt-4">
-            <button onClick={handleSave} disabled={isLoading}
-              className="btn-primary flex items-center gap-2 disabled:opacity-60 px-4 py-2">
-              {isLoading ? 'Saving...' : 'Save'}
-            </button>
-            <button onClick={() => { setAdding(false); setEditing(null); setError(null) }}
-              className="btn-secondary flex items-center gap-2 px-4 py-2">
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Content */}
+      <div style={{ padding: '0 36px 36px', flex: 1, position: 'relative', zIndex: 1 }}>
 
-      <div className="content-card overflow-hidden">
-        {query.isLoading ? (
-          <table className="dark-table">
-            <thead>
-              <tr>
-                <th className="text-left">Name</th>
-                <th className="text-left">Status</th>
-                <th className="text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Array.from({ length: 4 }).map((_, i) => (
-                <tr key={i}>
-                  {Array.from({ length: 3 }).map((__, j) => (
-                    <td key={j}>
-                      <div className="h-4 rounded animate-pulse" style={{ background: 'var(--border-subtle)', width: j === 0 ? '120px' : j === 2 ? '60px' : '70px' }} />
-                    </td>
+        {/* Inline add/edit form */}
+        {adding && (
+          <div style={{
+            padding: 20,
+            marginBottom: 20,
+            borderRadius: 16,
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.07)',
+          }}>
+            <h2 style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.85)', marginBottom: 16 }}>
+              {editing ? 'Edit Category' : 'New Category'}
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div>
+                <label
+                  htmlFor="cat-name"
+                  style={{
+                    display: 'block', fontSize: 10, fontWeight: 700,
+                    letterSpacing: '0.10em', textTransform: 'uppercase',
+                    color: 'rgba(255,255,255,0.22)', marginBottom: 6,
+                  }}
+                >
+                  Name *
+                </label>
+                <input
+                  id="cat-name"
+                  value={form.name}
+                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                  className="dark-input w-full px-3 py-2 text-sm"
+                  placeholder="e.g. Electrical"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="cat-parent"
+                  style={{
+                    display: 'block', fontSize: 10, fontWeight: 700,
+                    letterSpacing: '0.10em', textTransform: 'uppercase',
+                    color: 'rgba(255,255,255,0.22)', marginBottom: 6,
+                  }}
+                >
+                  Parent Category
+                </label>
+                <select
+                  id="cat-parent"
+                  value={form.parentId}
+                  onChange={e => setForm(f => ({ ...f, parentId: e.target.value }))}
+                  className="dark-select w-full px-3 py-2 text-sm"
+                >
+                  <option value="">None (root)</option>
+                  {categories.filter(c => c._id !== editing?._id && c.isActive).map(c => (
+                    <option key={c._id} value={c._id}>{c.name}</option>
                   ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : tree.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
-              style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)' }}>
-              <FolderOpen className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
+                </select>
+              </div>
             </div>
-            <div className="text-center">
-              <p style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-secondary)' }}>No categories yet</p>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>Add one to get started.</p>
+            {error && <p role="alert" style={{ fontSize: 13, color: '#dc2626', marginTop: 12 }}>{error}</p>}
+            <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+              <button
+                onClick={handleSave}
+                disabled={isLoading}
+                className="btn-primary flex items-center gap-2 disabled:opacity-60 px-4 py-2"
+              >
+                {isLoading ? 'Saving...' : 'Save'}
+              </button>
+              <button
+                onClick={() => { setAdding(false); setEditing(null); setError(null) }}
+                className="btn-secondary flex items-center gap-2 px-4 py-2"
+              >
+                Cancel
+              </button>
             </div>
           </div>
-        ) : (
-          <table className="dark-table">
-            <thead>
-              <tr>
-                <th className="text-left">Name</th>
-                <th className="text-left">Status</th>
-                <th className="text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tree.map(node => (
-                <CategoryRow key={node._id} node={node} depth={0} onEdit={openEdit} onDelete={handleDelete} />
-              ))}
-            </tbody>
-          </table>
         )}
-      </div>
+
+        {/* Table */}
+        <div style={tableContainerStyle}>
+          {query.isLoading ? (
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={thStyle}>Name</th>
+                  <th style={thStyle}>Status</th>
+                  <th style={thRightStyle}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <tr key={i}>
+                    {Array.from({ length: 3 }).map((__, j) => (
+                      <td key={j} style={tdStyle}>
+                        <div className="animate-pulse" style={{
+                          height: 14, borderRadius: 6,
+                          background: 'rgba(255,255,255,0.06)',
+                          width: j === 0 ? 120 : j === 2 ? 60 : 70,
+                        }} />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : tree.length === 0 ? (
+            <div style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              justifyContent: 'center', padding: '64px 0', gap: 12,
+            }}>
+              <div style={{
+                width: 48, height: 48, borderRadius: 16,
+                background: 'rgba(255,255,255,0.04)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <FolderOpenIcon style={{ width: 22, height: 22, color: 'rgba(255,255,255,0.25)' }} />
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.55)' }}>No categories yet</p>
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.28)', marginTop: 4 }}>Add one to get started.</p>
+              </div>
+            </div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={thStyle}>Name</th>
+                  <th style={thStyle}>Status</th>
+                  <th style={thRightStyle}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tree.map(node => (
+                  <CategoryRow key={node._id} node={node} depth={0} onEdit={openEdit} onDelete={handleDelete} />
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
     </div>
   )

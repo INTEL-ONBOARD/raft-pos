@@ -1,10 +1,19 @@
 // src/renderer/src/pages/dashboard/DashboardPage.tsx
 import { useState } from 'react'
 import {
-  TrendingUp, ShoppingCart, Package, BarChart2,
-  AlertTriangle, CheckCircle2, ArrowRight,
-  RefreshCw, Box, ArrowUpRight, ArrowDownRight
-} from 'lucide-react'
+  ArrowTrendingUpIcon,
+  ShoppingCartIcon,
+  ArchiveBoxIcon,
+  ChartBarSquareIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+  ArrowRightIcon,
+  ArrowPathIcon,
+  CubeIcon,
+  ArrowUpRightIcon,
+  ArrowDownRightIcon,
+  Squares2X2Icon,
+} from '@heroicons/react/24/outline'
 import { useDashboard } from '../../hooks/useDashboard'
 import { useAuthStore } from '../../stores/auth.store'
 import type { TopSellerItem, LowStockItem } from '@shared/types/dashboard.types'
@@ -18,7 +27,7 @@ function fmtCompact(n: number) {
   return fmt(n)
 }
 
-// ─── KPI Card (matches reference: label + big value + delta badge) ───────────
+// ─── KPI Card ────────────────────────────────────────────────────────────────
 interface KPICardProps {
   icon: React.ReactNode
   iconBg: string
@@ -30,47 +39,60 @@ interface KPICardProps {
   accent: string
 }
 
-function KPICard({ icon, iconBg, iconColor, label, value, delta, deltaUp, accent }: KPICardProps) {
+function KPICard({ icon, iconBg, label, value, delta, deltaUp, accent }: KPICardProps) {
   return (
     <div
-      className="content-card flex flex-col gap-2 p-5 relative overflow-hidden"
-      style={{ borderTop: `2px solid ${accent}` }}
+      style={{
+        background: 'rgba(255,255,255,0.03)',
+        border: '1px solid rgba(255,255,255,0.07)',
+        borderRadius: '16px',
+        padding: '16px 20px',
+        borderTop: `2px solid ${accent}`,
+        position: 'relative',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+      }}
     >
       {/* subtle top glow */}
       <div
-        className="absolute inset-x-0 top-0 h-10 pointer-events-none"
-        style={{ background: `linear-gradient(180deg, ${accent}1a 0%, transparent 100%)` }}
+        style={{ position: 'absolute', insetInline: 0, top: 0, height: '40px', pointerEvents: 'none', background: `linear-gradient(180deg, ${accent}1a 0%, transparent 100%)` }}
       />
-      <div className="flex items-center justify-between relative">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: iconBg }}
+          style={{ width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: iconBg }}
         >
-          <span style={{ color: iconColor }}>{icon}</span>
+          {icon}
         </div>
         {delta && (
           <span
-            className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full"
             style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontSize: '12px',
+              fontWeight: 600,
+              padding: '2px 8px',
+              borderRadius: '999px',
               background: deltaUp ? 'rgba(22,163,74,0.10)' : 'rgba(220,38,38,0.10)',
-              color: deltaUp ? '#15803d' : '#dc2626'
+              color: deltaUp ? '#15803d' : '#dc2626',
             }}
           >
             {deltaUp
-              ? <ArrowUpRight className="w-3 h-3" />
-              : <ArrowDownRight className="w-3 h-3" />
+              ? <ArrowUpRightIcon style={{ width: '12px', height: '12px' }} />
+              : <ArrowDownRightIcon style={{ width: '12px', height: '12px' }} />
             }
             {delta}
           </span>
         )}
       </div>
-      <div className="relative">
-        <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+      <div style={{ position: 'relative' }}>
+        <p style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.35)', margin: 0 }}>
           {label}
         </p>
         <p
-          className="mt-0.5 leading-tight tabular-nums"
-          style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}
+          style={{ fontSize: '2rem', fontWeight: 800, color: '#ffffff', marginTop: '2px', marginBottom: 0, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}
         >
           {value}
         </p>
@@ -97,14 +119,12 @@ function catmullRom(points: [number, number][]): string {
   return d
 }
 
-// ─── Revenue Sparkline (SVG, no lib needed) ──────────────────────────────────
+// ─── Revenue Sparkline ────────────────────────────────────────────────────────
 function RevenueTrendPanel({ revenue, transactions, avgOrder }: {
   revenue: number
   transactions: number
   avgOrder: number
 }) {
-  // Generate a plausible intra-day distribution from today's total revenue
-  // Spread across 7 hourly buckets (9am–3pm typical retail hours)
   const hours = ['9am', '10am', '11am', '12pm', '1pm', '2pm', '3pm']
   const weights = [0.06, 0.11, 0.16, 0.22, 0.19, 0.15, 0.11]
   const points = weights.map(w => Math.round(w * revenue))
@@ -124,25 +144,25 @@ function RevenueTrendPanel({ revenue, transactions, avgOrder }: {
   const isPositive = revenue > 0
 
   return (
-    <div className="content-card overflow-hidden flex flex-col">
+    <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+          <p style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.35)', margin: 0 }}>
             Revenue Trend
           </p>
-          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+          <p style={{ fontSize: '12px', marginTop: '2px', color: 'rgba(255,255,255,0.35)', marginBottom: 0 }}>
             Today — estimated hourly distribution
           </p>
         </div>
-        <div className="text-right">
-          <p className="text-2xl font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>₱{fmtCompact(revenue)}</p>
-          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>total today</p>
+        <div style={{ textAlign: 'right' }}>
+          <p style={{ fontSize: '24px', fontWeight: 700, color: '#ffffff', margin: 0, fontVariantNumeric: 'tabular-nums' }}>₱{fmtCompact(revenue)}</p>
+          <p style={{ fontSize: '12px', marginTop: '2px', color: 'rgba(255,255,255,0.35)', marginBottom: 0 }}>total today</p>
         </div>
       </div>
 
-      {/* SVG Chart */}
-      <div className="px-4 pt-4 pb-2">
+      {/* SVG Chart — kept as-is per spec */}
+      <div style={{ padding: '16px 16px 8px' }}>
         <svg viewBox={`0 0 ${W} 140`} className="w-full" style={{ height: 140 }}>
           <defs>
             <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
@@ -156,7 +176,7 @@ function RevenueTrendPanel({ revenue, transactions, avgOrder }: {
           <path
             d={linePath}
             fill="none"
-            stroke={isPositive ? '#4F46E5' : 'var(--border-default)'}
+            stroke={isPositive ? '#4F46E5' : 'rgba(255,255,255,0.10)'}
             strokeWidth="2"
             strokeLinejoin="round"
             strokeLinecap="round"
@@ -181,7 +201,7 @@ function RevenueTrendPanel({ revenue, transactions, avgOrder }: {
               y={H - 4}
               textAnchor="middle"
               fontSize="9"
-              fill="var(--text-muted)"
+              fill="rgba(255,255,255,0.28)"
               fontFamily="Inter, sans-serif"
             >
               {h}
@@ -192,17 +212,26 @@ function RevenueTrendPanel({ revenue, transactions, avgOrder }: {
 
       {/* Bottom stat row */}
       <div
-        className="grid grid-cols-3 divide-x mt-auto"
-        style={{ borderTop: '1px solid var(--border-subtle)', borderColor: 'var(--border-subtle)' }}
+        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 'auto' }}
       >
         {[
           { label: 'Transactions', value: String(transactions) },
           { label: 'Avg Order', value: `₱${fmtCompact(avgOrder)}` },
           { label: 'Revenue/Txn', value: transactions > 0 ? `₱${fmtCompact(revenue / transactions)}` : '—' },
-        ].map(({ label, value }) => (
-          <div key={label} className="flex flex-col items-center py-3 gap-0.5" style={{ borderColor: 'var(--border-subtle)' }}>
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{label}</span>
-            <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>{value}</span>
+        ].map(({ label, value }, idx) => (
+          <div
+            key={label}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              padding: '12px 0',
+              gap: '2px',
+              borderRight: idx < 2 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+            }}
+          >
+            <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)' }}>{label}</span>
+            <span style={{ fontSize: '14px', fontWeight: 700, color: '#ffffff', fontVariantNumeric: 'tabular-nums' }}>{value}</span>
           </div>
         ))}
       </div>
@@ -218,100 +247,105 @@ const rankStyle = (rank: number) => {
   return { bg: 'var(--badge-gray-bg)', color: 'var(--badge-gray-text)' }
 }
 
-// ─── Best Sellers Table (matches reference layout) ───────────────────────────
+// ─── Best Sellers Panel ───────────────────────────────────────────────────────
 function BestSellersPanel({ items }: { items: TopSellerItem[] }) {
   const maxRevenue = Math.max(...items.map(s => s.revenue), 1)
   const totalRevenue = items.reduce((s, i) => s + i.revenue, 0)
 
   return (
-    <div className="content-card overflow-hidden flex flex-col">
+    <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-        <div className="flex items-center gap-2.5">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center"
-            style={{ background: 'rgba(217,119,6,0.10)' }}
+            style={{ width: '28px', height: '28px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(217,119,6,0.10)' }}
           >
-            <TrendingUp className="w-3.5 h-3.5" style={{ color: '#b45309' }} />
+            <ArrowTrendingUpIcon style={{ width: '14px', height: '14px', color: '#b45309' }} />
           </div>
-          <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Best selling products</span>
+          <span style={{ fontSize: '14px', fontWeight: 700, color: '#ffffff' }}>Best selling products</span>
         </div>
         {items.length > 0 && (
-          <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: 'rgba(217,119,6,0.10)', color: '#b45309' }}>
+          <span style={{ fontSize: '12px', fontWeight: 500, padding: '2px 8px', borderRadius: '999px', background: 'rgba(217,119,6,0.10)', color: '#b45309' }}>
             {items.length} tracked
           </span>
         )}
       </div>
 
       {items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-12 flex-1">
-          <TrendingUp className="w-8 h-8" style={{ color: 'var(--text-disabled)' }} />
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No sales yet today</p>
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Process a transaction to see top products here</p>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '48px 0', flex: 1 }}>
+          <ArrowTrendingUpIcon style={{ width: '32px', height: '32px', color: 'rgba(255,255,255,0.20)' }} />
+          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.40)', margin: 0 }}>No sales yet today</p>
+          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.30)', margin: 0 }}>Process a transaction to see top products here</p>
         </div>
       ) : (
         <>
           {/* Column headers */}
           <div
-            className="grid px-5 py-2 text-xs font-semibold uppercase tracking-wider"
             style={{
+              display: 'grid',
               gridTemplateColumns: '28px 1fr 90px 64px',
-              color: 'var(--text-muted)',
-              borderBottom: '1px solid var(--border-subtle)',
-              background: 'var(--bg-subtle)'
+              padding: '8px 20px',
+              fontSize: '10px',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              color: 'rgba(255,255,255,0.28)',
+              borderBottom: '1px solid rgba(255,255,255,0.06)',
+              background: 'rgba(255,255,255,0.02)',
             }}
           >
             <span>#</span>
             <span>Product</span>
-            <span className="text-right">Revenue</span>
-            <span className="text-right">Sales</span>
+            <span style={{ textAlign: 'right' }}>Revenue</span>
+            <span style={{ textAlign: 'right' }}>Sales</span>
           </div>
 
-          <div className="flex-1 overflow-y-auto">
+          <div style={{ flex: 1, overflowY: 'auto' }}>
             {items.map((item, i) => {
               return (
                 <div
                   key={item.productId}
-                  className="grid items-start px-5 py-3"
                   style={{
+                    display: 'grid',
                     gridTemplateColumns: '28px 1fr 90px 64px',
-                    borderBottom: '1px solid var(--border-subtle)'
+                    alignItems: 'start',
+                    padding: '12px 20px',
+                    borderBottom: '1px solid rgba(255,255,255,0.05)',
                   }}
                 >
                   {/* Rank badge */}
                   <span
-                    className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                    style={{ background: rankStyle(i + 1).bg, color: rankStyle(i + 1).color }}
+                    style={{ width: '24px', height: '24px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, flexShrink: 0, background: rankStyle(i + 1).bg, color: rankStyle(i + 1).color }}
                   >
                     {i + 1}
                   </span>
 
                   {/* Name + progress bar */}
-                  <div className="min-w-0 pr-4">
-                    <p className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{item.name}</p>
-                    {/* Revenue progress bar */}
-                    <div className="mt-1.5 h-1 rounded-full overflow-hidden" style={{ background: 'var(--bg-subtle)' }}>
+                  <div style={{ minWidth: 0, paddingRight: '16px' }}>
+                    <p style={{ fontSize: '14px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#ffffff', margin: 0 }}>{item.name}</p>
+                    <div style={{ marginTop: '6px', height: '4px', borderRadius: '999px', overflow: 'hidden', background: 'rgba(255,255,255,0.06)' }}>
                       <div
-                        className="h-full rounded-full"
                         style={{
+                          height: '100%',
+                          borderRadius: '999px',
                           width: `${maxRevenue > 0 ? (item.revenue / maxRevenue) * 100 : 0}%`,
-                          background: 'var(--accent)',
-                          opacity: 0.6
+                          background: '#6366f1',
+                          opacity: 0.6,
                         }}
                       />
                     </div>
-                    <span className="text-xs font-mono mt-0.5 block" style={{ color: 'var(--text-muted)' }}>
+                    <span style={{ fontSize: '11px', fontFamily: 'monospace', marginTop: '2px', display: 'block', color: 'rgba(255,255,255,0.35)' }}>
                       {item.sku}
                     </span>
                   </div>
 
                   {/* Revenue */}
-                  <span className="text-sm font-bold tabular-nums text-right" style={{ color: 'var(--text-primary)' }}>
+                  <span style={{ fontSize: '14px', fontWeight: 700, textAlign: 'right', color: '#ffffff', fontVariantNumeric: 'tabular-nums' }}>
                     ₱{fmtCompact(item.revenue)}
                   </span>
 
                   {/* Units */}
-                  <span className="text-sm tabular-nums text-right" style={{ color: 'var(--text-secondary)' }}>
+                  <span style={{ fontSize: '14px', textAlign: 'right', color: 'rgba(255,255,255,0.55)', fontVariantNumeric: 'tabular-nums' }}>
                     {item.unitsSold}
                   </span>
                 </div>
@@ -321,13 +355,12 @@ function BestSellersPanel({ items }: { items: TopSellerItem[] }) {
 
           {/* Footer */}
           <div
-            className="flex items-center justify-between px-5 py-3"
-            style={{ borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-subtle)' }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}
           >
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)' }}>
               Top {items.length} products today
             </span>
-            <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>₱{fmt(totalRevenue)}</span>
+            <span style={{ fontSize: '14px', fontWeight: 700, color: '#ffffff', fontVariantNumeric: 'tabular-nums' }}>₱{fmt(totalRevenue)}</span>
           </div>
         </>
       )}
@@ -341,32 +374,31 @@ function StockAlertsPanel({ items }: { items: LowStockItem[] }) {
   const low = items.filter(i => i.quantity > 0)
 
   return (
-    <div className="content-card overflow-hidden flex flex-col">
+    <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-        <div className="flex items-center gap-2.5">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center"
-            style={{ background: critical.length > 0 ? 'rgba(220,38,38,0.10)' : 'rgba(217,119,6,0.10)' }}
+            style={{ width: '28px', height: '28px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: critical.length > 0 ? 'rgba(220,38,38,0.10)' : 'rgba(217,119,6,0.10)' }}
           >
-            <AlertTriangle className="w-3.5 h-3.5" style={{ color: critical.length > 0 ? '#dc2626' : '#b45309' }} />
+            <ExclamationTriangleIcon style={{ width: '14px', height: '14px', color: critical.length > 0 ? '#dc2626' : '#b45309' }} />
           </div>
-          <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Stock Alerts</span>
+          <span style={{ fontSize: '14px', fontWeight: 700, color: '#ffffff' }}>Stock Alerts</span>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           {critical.length > 0 && (
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(220,38,38,0.10)', color: '#dc2626' }}>
+            <span style={{ fontSize: '12px', fontWeight: 600, padding: '2px 8px', borderRadius: '999px', background: 'rgba(220,38,38,0.10)', color: '#dc2626' }}>
               {critical.length} out
             </span>
           )}
           {low.length > 0 && (
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(217,119,6,0.10)', color: '#b45309' }}>
+            <span style={{ fontSize: '12px', fontWeight: 600, padding: '2px 8px', borderRadius: '999px', background: 'rgba(217,119,6,0.10)', color: '#b45309' }}>
               {low.length} low
             </span>
           )}
           {items.length === 0 && (
-            <span className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full" style={{ background: 'rgba(22,163,74,0.10)', color: '#15803d' }}>
-              <CheckCircle2 className="w-3 h-3" />
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 500, padding: '4px 10px', borderRadius: '999px', background: 'rgba(22,163,74,0.10)', color: '#15803d' }}>
+              <CheckCircleIcon style={{ width: '12px', height: '12px' }} />
               All clear
             </span>
           )}
@@ -374,18 +406,18 @@ function StockAlertsPanel({ items }: { items: LowStockItem[] }) {
       </div>
 
       {items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-10 flex-1">
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(22,163,74,0.07)', border: '1px solid rgba(22,163,74,0.12)' }}>
-            <CheckCircle2 className="w-5 h-5" style={{ color: '#16a34a' }} />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '40px 0', flex: 1 }}>
+          <div style={{ width: '48px', height: '48px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(22,163,74,0.07)', border: '1px solid rgba(22,163,74,0.12)' }}>
+            <CheckCircleIcon style={{ width: '20px', height: '20px', color: '#16a34a' }} />
           </div>
-          <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Inventory looks healthy</p>
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>All products above reorder thresholds</p>
+          <p style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.60)', margin: 0 }}>Inventory looks healthy</p>
+          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', margin: 0 }}>All products above reorder thresholds</p>
         </div>
       ) : (
         <>
           {/* Two-column grid layout */}
-          <div className="flex-1 overflow-y-auto p-4">
-            <div className="grid grid-cols-2 gap-2">
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
               {critical.map((item) => {
                 const pct = item.reorderPoint > 0
                   ? Math.min(100, Math.round((item.quantity / (item.reorderPoint * 2)) * 100))
@@ -394,35 +426,23 @@ function StockAlertsPanel({ items }: { items: LowStockItem[] }) {
                 return (
                   <div
                     key={item.productId}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg"
-                    style={{
-                      borderLeft: '3px solid #dc2626',
-                      background: 'rgba(220,38,38,0.03)'
-                    }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '8px', borderLeft: '3px solid #dc2626', background: 'rgba(220,38,38,0.03)' }}
                   >
-                    <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: '#dc2626' }} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-sm font-semibold truncate mr-3" style={{ color: 'var(--text-primary)' }}>{item.name}</p>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="text-sm font-bold tabular-nums" style={{ color: '#dc2626' }}>{item.quantity}</span>
-                          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>/ {item.reorderPoint}</span>
-                          <span
-                            className="text-xs font-semibold px-1.5 py-0.5 rounded"
-                            style={{ background: 'rgba(220,38,38,0.10)', color: '#dc2626' }}
-                          >
-                            OUT
-                          </span>
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0, background: '#dc2626' }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                        <p style={{ fontSize: '14px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '12px', color: '#ffffff', margin: 0 }}>{item.name}</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                          <span style={{ fontSize: '14px', fontWeight: 700, color: '#dc2626', fontVariantNumeric: 'tabular-nums' }}>{item.quantity}</span>
+                          <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)' }}>/ {item.reorderPoint}</span>
+                          <span style={{ fontSize: '11px', fontWeight: 600, padding: '2px 6px', borderRadius: '4px', background: 'rgba(220,38,38,0.10)', color: '#dc2626' }}>OUT</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'var(--border-subtle)' }}>
-                          <div
-                            className="h-full rounded-full"
-                            style={{ width: `${pct}%`, background: 'linear-gradient(90deg,#dc2626,#b91c1c)' }}
-                          />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ flex: 1, height: '4px', borderRadius: '999px', overflow: 'hidden', background: 'rgba(255,255,255,0.06)' }}>
+                          <div style={{ height: '100%', borderRadius: '999px', width: `${pct}%`, background: 'linear-gradient(90deg,#dc2626,#b91c1c)' }} />
                         </div>
-                        <span className="text-xs font-mono shrink-0" style={{ color: 'var(--text-muted)' }}>{item.sku}</span>
+                        <span style={{ fontSize: '11px', fontFamily: 'monospace', flexShrink: 0, color: 'rgba(255,255,255,0.35)' }}>{item.sku}</span>
                       </div>
                     </div>
                   </div>
@@ -437,35 +457,23 @@ function StockAlertsPanel({ items }: { items: LowStockItem[] }) {
                 return (
                   <div
                     key={item.productId}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg"
-                    style={{
-                      borderLeft: '3px solid #d97706',
-                      background: 'rgba(217,119,6,0.03)'
-                    }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '8px', borderLeft: '3px solid #d97706', background: 'rgba(217,119,6,0.03)' }}
                   >
-                    <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: '#d97706' }} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-sm font-semibold truncate mr-3" style={{ color: 'var(--text-primary)' }}>{item.name}</p>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="text-sm font-bold tabular-nums" style={{ color: '#b45309' }}>{item.quantity}</span>
-                          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>/ {item.reorderPoint}</span>
-                          <span
-                            className="text-xs font-semibold px-1.5 py-0.5 rounded"
-                            style={{ background: 'rgba(217,119,6,0.10)', color: '#b45309' }}
-                          >
-                            LOW
-                          </span>
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0, background: '#d97706' }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                        <p style={{ fontSize: '14px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '12px', color: '#ffffff', margin: 0 }}>{item.name}</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                          <span style={{ fontSize: '14px', fontWeight: 700, color: '#b45309', fontVariantNumeric: 'tabular-nums' }}>{item.quantity}</span>
+                          <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)' }}>/ {item.reorderPoint}</span>
+                          <span style={{ fontSize: '11px', fontWeight: 600, padding: '2px 6px', borderRadius: '4px', background: 'rgba(217,119,6,0.10)', color: '#b45309' }}>LOW</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'var(--border-subtle)' }}>
-                          <div
-                            className="h-full rounded-full"
-                            style={{ width: `${pct}%`, background: 'linear-gradient(90deg,#d97706,#b45309)' }}
-                          />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ flex: 1, height: '4px', borderRadius: '999px', overflow: 'hidden', background: 'rgba(255,255,255,0.06)' }}>
+                          <div style={{ height: '100%', borderRadius: '999px', width: `${pct}%`, background: 'linear-gradient(90deg,#d97706,#b45309)' }} />
                         </div>
-                        <span className="text-xs font-mono shrink-0" style={{ color: 'var(--text-muted)' }}>{item.sku}</span>
+                        <span style={{ fontSize: '11px', fontFamily: 'monospace', flexShrink: 0, color: 'rgba(255,255,255,0.35)' }}>{item.sku}</span>
                       </div>
                     </div>
                   </div>
@@ -475,15 +483,14 @@ function StockAlertsPanel({ items }: { items: LowStockItem[] }) {
           </div>
 
           <div
-            className="flex items-center justify-between px-5 py-3"
-            style={{ borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-subtle)' }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}
           >
-            <div className="flex items-center gap-3">
-              {critical.length > 0 && <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full" style={{ background: '#dc2626' }} /><span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{critical.length} out of stock</span></div>}
-              {low.length > 0 && <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full" style={{ background: '#d97706' }} /><span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{low.length} low stock</span></div>}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              {critical.length > 0 && <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#dc2626' }} /><span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)' }}>{critical.length} out of stock</span></div>}
+              {low.length > 0 && <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#d97706' }} /><span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)' }}>{low.length} low stock</span></div>}
             </div>
-            <div className="flex items-center gap-1 text-xs font-medium" style={{ color: '#4F46E5' }}>
-              <Box className="w-3 h-3" /><span>View Inventory</span><ArrowRight className="w-3 h-3" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 500, color: '#818cf8' }}>
+              <CubeIcon style={{ width: '12px', height: '12px' }} /><span>View Inventory</span><ArrowRightIcon style={{ width: '12px', height: '12px' }} />
             </div>
           </div>
         </>
@@ -512,23 +519,26 @@ export default function DashboardPage() {
   // ── Loading skeleton ──
   if (isLoading) {
     return (
-      <div className="flex flex-col min-h-full" style={{ background: 'var(--bg-base)' }}>
-        <div className="page-header">
-          <div><div className="skeleton h-5 w-40 rounded mb-2" /><div className="skeleton h-3 w-52 rounded" /></div>
-        </div>
-        <div className="p-6 space-y-5">
-          <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="content-card p-5 space-y-3">
-                <div className="skeleton h-9 w-9 rounded-xl" />
-                <div className="skeleton h-3 w-20 rounded" />
-                <div className="skeleton h-8 w-28 rounded" />
-              </div>
-            ))}
+      <div style={{ background: '#080810', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, background: 'radial-gradient(ellipse 900px 600px at 20% 0%, rgba(124,58,237,0.10) 0%, transparent 70%)' }} />
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', flex: 1 }}>
+          <div style={{ padding: '28px 36px 20px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div><div className="skeleton" style={{ height: '20px', width: '160px', borderRadius: '6px', marginBottom: '8px' }} /><div className="skeleton" style={{ height: '12px', width: '208px', borderRadius: '6px' }} /></div>
           </div>
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-            <div className="content-card" style={{ height: 300 }}><div className="skeleton h-full w-full rounded-xl" /></div>
-            <div className="content-card" style={{ height: 300 }}><div className="skeleton h-full w-full rounded-xl" /></div>
+          <div style={{ padding: '0 36px 36px', flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }} className="xl:grid-cols-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div className="skeleton" style={{ height: '36px', width: '36px', borderRadius: '10px' }} />
+                  <div className="skeleton" style={{ height: '12px', width: '80px', borderRadius: '4px' }} />
+                  <div className="skeleton" style={{ height: '32px', width: '112px', borderRadius: '4px' }} />
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', height: '300px' }}><div className="skeleton" style={{ height: '100%', width: '100%', borderRadius: '16px' }} /></div>
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', height: '300px' }}><div className="skeleton" style={{ height: '100%', width: '100%', borderRadius: '16px' }} /></div>
+            </div>
           </div>
         </div>
       </div>
@@ -538,16 +548,19 @@ export default function DashboardPage() {
   // ── Error state ──
   if (isError || !stats) {
     return (
-      <div className="flex flex-col min-h-full items-center justify-center gap-4" style={{ background: 'var(--bg-base)' }}>
-        <div className="flex flex-col items-center gap-4 px-8 py-8 rounded-2xl text-center" style={{ background: 'rgba(220,38,38,0.05)', border: '1px solid rgba(220,38,38,0.12)' }}>
-          <AlertTriangle className="w-10 h-10" style={{ color: '#dc2626' }} />
-          <div>
-            <p className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>Failed to load dashboard</p>
-            <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Check your connection and try again</p>
+      <div style={{ background: '#080810', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: '100%', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, background: 'radial-gradient(ellipse 900px 600px at 20% 0%, rgba(124,58,237,0.10) 0%, transparent 70%)' }} />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', padding: '32px', borderRadius: '16px', textAlign: 'center', background: 'rgba(220,38,38,0.05)', border: '1px solid rgba(220,38,38,0.12)' }}>
+            <ExclamationTriangleIcon style={{ width: '40px', height: '40px', color: '#dc2626' }} />
+            <div>
+              <p style={{ fontSize: '16px', fontWeight: 600, color: '#ffffff', margin: 0 }}>Failed to load dashboard</p>
+              <p style={{ fontSize: '14px', marginTop: '4px', color: 'rgba(255,255,255,0.55)', marginBottom: 0 }}>Check your connection and try again</p>
+            </div>
+            <button onClick={() => refetch()} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px' }}>
+              <ArrowPathIcon style={{ width: '16px', height: '16px' }} /> Retry
+            </button>
           </div>
-          <button onClick={() => refetch()} className="btn-secondary flex items-center gap-2 px-4 py-2">
-            <RefreshCw className="w-4 h-4" /> Retry
-          </button>
         </div>
       </div>
     )
@@ -556,132 +569,143 @@ export default function DashboardPage() {
   const revenuePerItem = stats.todayItemsSold > 0 ? stats.todayRevenue / stats.todayItemsSold : 0
 
   return (
-    <div className="flex flex-col min-h-full" style={{ background: 'var(--bg-base)' }}>
+    <div style={{ background: '#080810', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+      {/* Ambient glow */}
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, background: 'radial-gradient(ellipse 900px 600px at 20% 0%, rgba(124,58,237,0.10) 0%, transparent 70%)' }} />
 
-      {/* ── Page Header ── */}
-      <div className="page-header">
-        {/* Left: title + greeting */}
-        <div>
-          <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)' }}>Dashboard</h1>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '2px' }}>
-            Good morning, {firstName}
-          </p>
-        </div>
+      {/* Content wrapper */}
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', flex: 1 }}>
 
-        <div className="flex items-center gap-3">
-          {/* Period toggle */}
-          <div className="flex items-center gap-1 p-1 rounded-lg" style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)' }}>
-            {(['today', '7d', '30d'] as const).map((p) => (
-              <button
-                key={p}
-                onClick={() => setPeriod(p)}
-                className="px-3 py-1 rounded-md text-xs font-medium transition-all"
-                style={period === p
-                  ? { background: 'var(--accent)', color: '#ffffff', boxShadow: 'var(--shadow-xs)' }
-                  : { color: 'var(--text-muted)' }
-                }
-              >
-                {p === 'today' ? 'Today' : p === '7d' ? '7 Days' : '30 Days'}
-              </button>
-            ))}
+        {/* Page header */}
+        <div style={{ padding: '28px 36px 20px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          {/* Left: icon pill + title */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '38px', height: '38px', background: 'rgba(99,102,241,0.12)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Squares2X2Icon style={{ width: '18px', height: '18px', color: '#a5b4fc' }} />
+            </div>
+            <div>
+              <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', margin: 0 }}>Dashboard</h1>
+              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.40)', marginTop: '2px', marginBottom: 0 }}>
+                Good morning, {firstName}
+              </p>
+            </div>
           </div>
 
-          {lastUpdated && (
-            <div className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
-              <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#16a34a', boxShadow: '0 0 4px rgba(22,163,74,0.5)' }} />
-              Updated {lastUpdated}
+          {/* Right: controls */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {/* Period toggle */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px', borderRadius: '10px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              {(['today', '7d', '30d'] as const).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPeriod(p)}
+                  style={period === p
+                    ? { padding: '4px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 500, background: '#6366f1', color: '#ffffff', border: 'none', cursor: 'pointer' }
+                    : { padding: '4px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 500, color: 'rgba(255,255,255,0.40)', background: 'none', border: 'none', cursor: 'pointer' }
+                  }
+                >
+                  {p === 'today' ? 'Today' : p === '7d' ? '7 Days' : '30 Days'}
+                </button>
+              ))}
             </div>
-          )}
-          <button
-            onClick={() => refetch()}
-            disabled={isFetching}
-            aria-label="Refresh dashboard stats"
-            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors disabled:opacity-40"
-            style={{ color: 'var(--text-muted)', background: 'var(--bg-subtle)' }}
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} />
-          </button>
-          {canViewAll && (
-            <div className="flex items-center gap-2">
-              <label className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>Branch</label>
-              <input
-                type="text"
-                placeholder={user?.branchId ?? 'All branches'}
-                value={selectedBranchId}
-                onChange={e => setSelectedBranchId(e.target.value)}
-                className="dark-input w-44 font-mono text-sm"
-              />
-              {selectedBranchId && (
-                <button onClick={() => setSelectedBranchId('')} className="btn-secondary text-xs px-2.5 py-1">Clear</button>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
 
-      {/* ── Body ── */}
-      <div className="p-6 space-y-5 flex-1">
-
-        {/* ── KPI Row — 4 cards like reference ── */}
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-          <KPICard
-            icon={<TrendingUp className="w-4.5 h-4.5" />}
-            iconBg="rgba(79,70,229,0.10)" iconColor="#4F46E5"
-            label="Gross Revenue"
-            value={`₱${fmtCompact(stats.todayRevenue)}`}
-            delta={stats.todayRevenue > 0 ? 'Today' : undefined}
-            deltaUp={true}
-            accent="#4F46E5"
-          />
-          <KPICard
-            icon={<BarChart2 className="w-4.5 h-4.5" />}
-            iconBg="rgba(22,163,74,0.10)" iconColor="#16a34a"
-            label="Avg. Order Value"
-            value={`₱${fmtCompact(stats.averageOrderValue)}`}
-            delta={stats.averageOrderValue > 0 ? `₱${fmtCompact(revenuePerItem)}/item` : undefined}
-            deltaUp={true}
-            accent="#16a34a"
-          />
-          <KPICard
-            icon={<ShoppingCart className="w-4.5 h-4.5" />}
-            iconBg="rgba(124,58,237,0.10)" iconColor="#7c3aed"
-            label="Transactions"
-            value={String(stats.todayTransactions)}
-            delta={stats.todayTransactions > 0 ? `${stats.todayTransactions} sales` : undefined}
-            deltaUp={true}
-            accent="#7c3aed"
-          />
-          <KPICard
-            icon={<Package className="w-4.5 h-4.5" />}
-            iconBg="rgba(234,88,12,0.10)" iconColor="#ea580c"
-            label="Items Sold"
-            value={String(stats.todayItemsSold)}
-            delta={stats.lowStockItems.length > 0
-              ? `${stats.lowStockItems.length} alert${stats.lowStockItems.length !== 1 ? 's' : ''}`
-              : 'Stock OK'
-            }
-            deltaUp={stats.lowStockItems.length === 0}
-            accent="#ea580c"
-          />
+            {lastUpdated && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'rgba(255,255,255,0.40)' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', boxShadow: '0 0 4px rgba(22,163,74,0.5)' }} />
+                Updated {lastUpdated}
+              </div>
+            )}
+            <button
+              onClick={() => refetch()}
+              disabled={isFetching}
+              aria-label="Refresh dashboard stats"
+              style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.40)', background: 'rgba(255,255,255,0.04)', border: 'none', cursor: 'pointer', opacity: isFetching ? 0.4 : 1 }}
+            >
+              <ArrowPathIcon className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} style={{ width: '14px', height: '14px' }} />
+            </button>
+            {canViewAll && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(255,255,255,0.50)' }}>Branch</label>
+                <input
+                  type="text"
+                  placeholder={user?.branchId ?? 'All branches'}
+                  value={selectedBranchId}
+                  onChange={e => setSelectedBranchId(e.target.value)}
+                  className="dark-input"
+                  style={{ width: '176px', fontFamily: 'monospace', fontSize: '13px' }}
+                />
+                {selectedBranchId && (
+                  <button onClick={() => setSelectedBranchId('')} className="btn-secondary" style={{ fontSize: '12px', padding: '4px 10px' }}>Clear</button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* ── Main Content: Revenue Trend (3/5) + Best Sellers (2/5) ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-          <div className="lg:col-span-3">
-            <RevenueTrendPanel
-              revenue={stats.todayRevenue}
-              transactions={stats.todayTransactions}
-              avgOrder={stats.averageOrderValue}
+        {/* Body */}
+        <div style={{ padding: '0 36px 36px', flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+          {/* KPI Row */}
+          <div className="grid grid-cols-2 xl:grid-cols-4" style={{ display: 'grid', gap: '16px' }}>
+            <KPICard
+              icon={<ArrowTrendingUpIcon style={{ width: '18px', height: '18px', color: '#6366f1' }} />}
+              iconBg="rgba(99,102,241,0.12)" iconColor="#6366f1"
+              label="Gross Revenue"
+              value={`₱${fmtCompact(stats.todayRevenue)}`}
+              delta={stats.todayRevenue > 0 ? 'Today' : undefined}
+              deltaUp={true}
+              accent="#6366f1"
+            />
+            <KPICard
+              icon={<ChartBarSquareIcon style={{ width: '18px', height: '18px', color: '#16a34a' }} />}
+              iconBg="rgba(22,163,74,0.10)" iconColor="#16a34a"
+              label="Avg. Order Value"
+              value={`₱${fmtCompact(stats.averageOrderValue)}`}
+              delta={stats.averageOrderValue > 0 ? `₱${fmtCompact(revenuePerItem)}/item` : undefined}
+              deltaUp={true}
+              accent="#16a34a"
+            />
+            <KPICard
+              icon={<ShoppingCartIcon style={{ width: '18px', height: '18px', color: '#7c3aed' }} />}
+              iconBg="rgba(124,58,237,0.10)" iconColor="#7c3aed"
+              label="Transactions"
+              value={String(stats.todayTransactions)}
+              delta={stats.todayTransactions > 0 ? `${stats.todayTransactions} sales` : undefined}
+              deltaUp={true}
+              accent="#7c3aed"
+            />
+            <KPICard
+              icon={<ArchiveBoxIcon style={{ width: '18px', height: '18px', color: '#ea580c' }} />}
+              iconBg="rgba(234,88,12,0.10)" iconColor="#ea580c"
+              label="Items Sold"
+              value={String(stats.todayItemsSold)}
+              delta={stats.lowStockItems.length > 0
+                ? `${stats.lowStockItems.length} alert${stats.lowStockItems.length !== 1 ? 's' : ''}`
+                : 'Stock OK'
+              }
+              deltaUp={stats.lowStockItems.length === 0}
+              accent="#ea580c"
             />
           </div>
-          <div className="lg:col-span-2">
-            <BestSellersPanel items={stats.topSellers} />
+
+          {/* Revenue Trend (3/5) + Best Sellers (2/5) */}
+          <div className="grid grid-cols-1 lg:grid-cols-5" style={{ display: 'grid', gap: '20px' }}>
+            <div className="lg:col-span-3">
+              <RevenueTrendPanel
+                revenue={stats.todayRevenue}
+                transactions={stats.todayTransactions}
+                avgOrder={stats.averageOrderValue}
+              />
+            </div>
+            <div className="lg:col-span-2">
+              <BestSellersPanel items={stats.topSellers} />
+            </div>
           </div>
+
+          {/* Stock Alerts */}
+          <StockAlertsPanel items={stats.lowStockItems} />
+
         </div>
-
-        {/* ── Bottom Row: Stock Alerts full width ── */}
-        <StockAlertsPanel items={stats.lowStockItems} />
-
       </div>
     </div>
   )

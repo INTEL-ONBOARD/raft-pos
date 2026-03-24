@@ -1,9 +1,17 @@
 // src/renderer/src/pages/pos/CartPanel.tsx
 import { useState } from 'react'
-import { Trash2, Plus, Minus, Tag, ArrowRight, X } from 'lucide-react'
+import {
+  TrashIcon,
+  PlusIcon,
+  MinusIcon,
+  TagIcon,
+  ArrowRightIcon,
+  XMarkIcon
+} from '@heroicons/react/24/outline'
 import { usePosStore, selectSubtotal, selectOrderDiscountAmount, selectTaxAmount, selectTotalAmount, selectTotalPaid } from '../../stores/pos.store'
 import { useCartTotals, usePOS } from '../../hooks/usePOS'
 import { useAuthStore } from '../../stores/auth.store'
+import { useSettings } from '../../hooks/useSettings'
 import { PaymentModal } from './PaymentModal'
 import { SupervisorPinModal } from './SupervisorPinModal'
 import type { ITransaction, DiscountType } from '@shared/types/transaction.types'
@@ -20,17 +28,15 @@ interface CartPanelProps {
   onSaleComplete: (txn: ITransaction) => void
 }
 
-// Tax rate default — Phase 7 settings page will write this to electron-store.
-// For Phase 4, default to 0 (no tax) to avoid breaking builds.
-const DEFAULT_TAX_RATE = 0
-
 export function CartPanel({ onSaleComplete }: CartPanelProps) {
   const items = usePosStore((s) => s.items)
   const orderDiscount = usePosStore((s) => s.orderDiscount)
   const payments = usePosStore((s) => s.payments)
   const { updateQty, removeItem, setItemDiscount, setOrderDiscount, clearOrderDiscount, removePayment, clearCart } = usePosStore()
 
-  const totals = useCartTotals(DEFAULT_TAX_RATE)
+  const { settingsQuery } = useSettings()
+  const taxRate = settingsQuery.data?.globalTaxRate ?? 0
+  const totals = useCartTotals(taxRate)
   const { completeSaleMutation, validateSupervisorPin, maxDiscountPercent, requiresSupervisorOverride } = usePOS()
   const role = useAuthStore((s) => s.role)
   const canApplyDiscount = role?.permissions?.includes('can_apply_discount') ?? false
@@ -47,7 +53,7 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
     totals.totalPaid >= totals.totalAmount
 
   async function handlePay() {
-    if (!canPay) return
+    if (!canPay || completeSaleMutation.isPending) return
     setError(null)
 
     const input = {
@@ -65,17 +71,14 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
       subtotal: totals.subtotal,
       discountAmount: orderDiscount?.amount ?? 0,
       discountType: (orderDiscount?.type ?? 'fixed') as DiscountType,
-      taxRate: DEFAULT_TAX_RATE,
+      taxRate: taxRate,
       taxAmount: totals.taxAmount,
       totalAmount: totals.totalAmount,
       payments: payments.map((p) => ({
         method: p.method,
         amount: p.amount,
         reference: p.reference || null
-      })),
-      // Phase 7 settings will populate branchCode properly via electron-store.
-      // For now, default to 'BR' as a safe fallback.
-      branchCode: 'BR'
+      }))
     }
 
     try {
@@ -165,7 +168,7 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
             title="Clear cart"
             aria-label="Clear cart"
           >
-            <Trash2 className="w-4 h-4" />
+            <TrashIcon className="w-4 h-4" />
           </button>
         )}
       </div>
@@ -182,11 +185,18 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
               <div
                 key={item.productId}
                 className="rounded-xl p-3"
-                style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
+                style={{
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.07)',
+                  borderRadius: '12px'
+                }}
               >
                 {/* Top row: name + remove button */}
                 <div className="flex items-start justify-between gap-2 mb-1">
-                  <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }} className="line-clamp-2 flex-1">
+                  <p
+                    style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}
+                    className="line-clamp-2 flex-1"
+                  >
                     {item.name}
                   </p>
                   <button
@@ -197,7 +207,7 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
                     onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
                     aria-label={`Remove ${item.name}`}
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <XMarkIcon className="w-3.5 h-3.5" />
                   </button>
                 </div>
                 <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
@@ -209,7 +219,12 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
                   {/* Pill qty stepper */}
                   <div
                     className="flex items-center"
-                    style={{ border: '1px solid var(--border-default)', borderRadius: '999px', height: '28px', overflow: 'hidden' }}
+                    style={{
+                      border: '1px solid var(--border-default)',
+                      borderRadius: '999px',
+                      height: '28px',
+                      overflow: 'hidden'
+                    }}
                   >
                     <button
                       onClick={() => updateQty(item.productId, item.quantity - 1)}
@@ -219,9 +234,17 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                       aria-label="Decrease quantity"
                     >
-                      <Minus className="w-3 h-3" />
+                      <MinusIcon className="w-3 h-3" />
                     </button>
-                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', minWidth: '24px', textAlign: 'center' }}>
+                    <span
+                      style={{
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        color: 'var(--text-primary)',
+                        minWidth: '24px',
+                        textAlign: 'center'
+                      }}
+                    >
                       {item.quantity}
                     </span>
                     <button
@@ -232,7 +255,7 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                       aria-label="Increase quantity"
                     >
-                      <Plus className="w-3 h-3" />
+                      <PlusIcon className="w-3 h-3" />
                     </button>
                   </div>
                   <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
@@ -250,7 +273,7 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
                 {/* Per-item discount */}
                 {canApplyDiscount && (
                   <div className="flex items-center gap-2 mt-2">
-                    <Tag className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--text-muted)' }} />
+                    <TagIcon className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--text-muted)' }} />
                     <select
                       value={item.discountType}
                       onChange={(e) =>
@@ -328,20 +351,33 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
           )}
           {totals.taxAmount > 0 && (
             <div className="flex justify-between" style={{ color: 'var(--text-muted)' }}>
-              <span>Tax ({DEFAULT_TAX_RATE}%)</span>
+              <span>Tax ({taxRate}%)</span>
               <span>&#8369;{totals.taxAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
             </div>
           )}
-          <div className="flex justify-between font-bold pt-2" style={{ color: 'var(--text-primary)', borderTop: '2px solid var(--border-default)', marginTop: '8px' }}>
+          <div
+            className="flex justify-between font-bold pt-2"
+            style={{
+              color: 'var(--text-primary)',
+              borderTop: '2px solid var(--border-default)',
+              marginTop: '8px'
+            }}
+          >
             <span style={{ fontSize: '16px', fontWeight: 600 }}>Total</span>
-            <span style={{ fontSize: '24px', fontWeight: 800 }}>&#8369;{totals.totalAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+            <span style={{ fontSize: '24px', fontWeight: 800 }}>
+              &#8369;{totals.totalAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+            </span>
           </div>
         </div>
 
         {/* Payments */}
         <div className="space-y-1">
           {payments.map((p) => (
-            <div key={p.id} className="flex items-center justify-between text-sm" style={{ color: 'var(--text-secondary)' }}>
+            <div
+              key={p.id}
+              className="flex items-center justify-between text-sm"
+              style={{ color: 'var(--text-secondary)' }}
+            >
               <span className="capitalize">{p.method}</span>
               <div className="flex items-center gap-2">
                 <span>&#8369;{p.amount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
@@ -350,7 +386,7 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
                   style={{ color: 'var(--color-danger)' }}
                   aria-label="Remove payment"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <TrashIcon className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -369,15 +405,27 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
 
         {/* Change */}
         {totals.change > 0 && (
-          <div className="flex justify-between text-sm font-semibold px-3 py-2 rounded-lg"
-            style={{ color: 'var(--color-success)', background: 'var(--color-success-bg)', border: '1px solid var(--color-success-border)' }}>
+          <div
+            className="flex justify-between text-sm font-semibold px-3 py-2 rounded-lg"
+            style={{
+              color: 'var(--color-success)',
+              background: 'var(--color-success-bg)',
+              border: '1px solid var(--color-success-border)'
+            }}
+          >
             <span>Change</span>
             <span>&#8369;{totals.change.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
           </div>
         )}
         {totals.remaining > 0 && payments.length > 0 && (
-          <div className="flex justify-between text-sm font-semibold px-3 py-2 rounded-lg"
-            style={{ color: 'var(--color-warning)', background: 'var(--color-warning-bg)', border: '1px solid var(--color-warning-border)' }}>
+          <div
+            className="flex justify-between text-sm font-semibold px-3 py-2 rounded-lg"
+            style={{
+              color: 'var(--color-warning)',
+              background: 'var(--color-warning-bg)',
+              border: '1px solid var(--color-warning-border)'
+            }}
+          >
             <span>Remaining</span>
             <span>&#8369;{totals.remaining.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
           </div>
@@ -385,46 +433,62 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
 
         {/* Error */}
         {error && (
-          <p className="text-xs px-3 py-2 rounded-lg"
-            style={{ background: 'var(--color-danger-bg)', border: '1px solid var(--color-danger-border)', color: 'var(--color-danger)' }}>
+          <p
+            className="text-xs px-3 py-2 rounded-lg"
+            style={{
+              background: 'var(--color-danger-bg)',
+              border: '1px solid var(--color-danger-border)',
+              color: 'var(--color-danger)'
+            }}
+          >
             {error}
           </p>
         )}
 
-        {/* Pay button — 56px height primary CTA */}
+        {/* Pay button */}
         <button
           onClick={handlePay}
-          disabled={items.length === 0 || completeSaleMutation.isPending}
-          aria-disabled={items.length === 0 || completeSaleMutation.isPending}
-          className="w-full flex items-center justify-center gap-2 font-semibold transition-all"
+          disabled={!canPay || completeSaleMutation.isPending}
+          aria-disabled={!canPay || completeSaleMutation.isPending}
+          className="btn-primary w-full flex items-center justify-center gap-2 font-bold transition-all"
           style={{
-            height: '56px',
-            borderRadius: '10px',
-            background: 'var(--accent)',
-            color: '#ffffff',
+            width: '100%',
+            borderRadius: '12px',
             fontSize: '16px',
+            fontWeight: 700,
+            height: '52px',
             letterSpacing: '-0.01em',
-            border: 'none',
-            cursor: items.length === 0 ? 'not-allowed' : 'pointer',
-            opacity: items.length === 0 ? 0.5 : 1,
-            boxShadow: items.length > 0 ? 'var(--shadow-sm)' : 'none',
+            cursor: !canPay ? 'not-allowed' : 'pointer',
+            opacity: !canPay ? 0.5 : 1,
+            boxShadow: canPay ? 'var(--shadow-sm)' : 'none'
           }}
-          onMouseEnter={e => { if (items.length > 0) { e.currentTarget.style.background = 'var(--accent-hover)'; e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = 'var(--shadow-md)' }}}
-          onMouseLeave={e => { e.currentTarget.style.background = 'var(--accent)'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = items.length > 0 ? 'var(--shadow-sm)' : 'none' }}
+          onMouseEnter={e => {
+            if (canPay) {
+              e.currentTarget.style.transform = 'translateY(-1px)'
+              e.currentTarget.style.boxShadow = 'var(--shadow-md)'
+            }
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.transform = 'none'
+            e.currentTarget.style.boxShadow = canPay ? 'var(--shadow-sm)' : 'none'
+          }}
         >
           {completeSaleMutation.isPending ? (
-            <span className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#ffffff' }} />
+            <span
+              className="w-5 h-5 border-2 rounded-full animate-spin"
+              style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#ffffff' }}
+            />
           ) : (
             <>
               Pay &#8369;{totals.totalAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRightIcon className="w-4 h-4" />
             </>
           )}
         </button>
       </div>
 
       {showPaymentModal && (
-        <PaymentModal onClose={() => setShowPaymentModal(false)} />
+        <PaymentModal onClose={() => setShowPaymentModal(false)} taxRate={taxRate} />
       )}
       {showSupervisorModal && (
         <SupervisorPinModal

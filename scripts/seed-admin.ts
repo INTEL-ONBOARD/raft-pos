@@ -5,6 +5,7 @@ import mongoose from 'mongoose'
 import bcrypt from 'bcryptjs'
 import { Role } from '../src/main/models/role.model'
 import { User } from '../src/main/models/user.model'
+import { Branch } from '../src/main/models/branch.model'
 import { ALL_PERMISSIONS } from '../src/shared/types/permissions'
 
 async function seed() {
@@ -27,29 +28,37 @@ async function seed() {
   )
   console.log('[Seed] Admin role created/updated:', adminRole._id)
 
-  // Create a default branch placeholder ObjectId
-  // (real branches created via app — we just need a valid ObjectId for seeding)
-  // NOTE: This admin user's branchId will point to a non-existent branch document.
-  // After first login, go to Settings → Branches, create your branch, then update
-  // the admin user's branchId in User Management to point to the real branch.
-  const placeholderBranchId = new mongoose.Types.ObjectId()
+  // Create or reuse a real default branch
+  let branch = await Branch.findOne({})
+  if (!branch) {
+    branch = await Branch.create({ name: 'Main Branch', code: 'MAIN', isActive: true })
+    console.log('[Seed] Created default branch:', branch._id)
+  } else {
+    console.log('[Seed] Using existing branch:', branch._id, branch.name)
+  }
 
   // Create admin user if not exists
   const existing = await User.findOne({ email: 'admin@raftpos.com' })
   if (!existing) {
-    const passwordHash = await bcrypt.hash('admin123', 12)
+    const seedPassword = process.env.SEED_ADMIN_PASSWORD
+    if (!seedPassword || seedPassword.length < 12) {
+      throw new Error(
+        'Set SEED_ADMIN_PASSWORD env var (min 12 chars) before running this script.\n' +
+        'Example: SEED_ADMIN_PASSWORD="MySecurePass#1" npm run seed'
+      )
+    }
+    const passwordHash = await bcrypt.hash(seedPassword, 12)
     const admin = await User.create({
       name: 'Super Admin',
       email: 'admin@raftpos.com',
       passwordHash,
       supervisorPin: null,
       roleId: adminRole._id,
-      branchId: placeholderBranchId,
+      branchId: branch._id,
       isActive: true
     })
     console.log('[Seed] Admin user created:', admin._id)
-    console.log('[Seed] Login: admin@raftpos.com / admin123')
-    console.log('[Seed] IMPORTANT: Update admin branchId after creating a real branch in Settings')
+    console.log('[Seed] Login email: admin@raftpos.com')
   } else {
     console.log('[Seed] Admin user already exists, skipping')
   }

@@ -9,6 +9,10 @@ import { usePOSKeyboard } from '../../hooks/usePOSKeyboard'
 import type { ITransaction } from '@shared/types/transaction.types'
 
 export default function PosPage() {
+  // completedTxn is held in component state only (not persisted to store or localStorage).
+  // The receipt modal is shown immediately after a sale completes and dismissed by the cashier.
+  // If the window is closed/reloaded before dismissal, the receipt is lost — this is intentional
+  // for Phase 4. Phase 6 will add receipt reprint via POS_REPRINT_RECEIPT for recovery.
   const [completedTxn, setCompletedTxn] = useState<ITransaction | null>(null)
   const { openDrawerQuery } = useCashDrawer()
 

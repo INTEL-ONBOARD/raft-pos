@@ -54,7 +54,7 @@ export interface ITransaction extends Document {
   payments: IPaymentDoc[]
   isSplit: boolean
   change: number
-  status: 'completed' | 'voided' | 'refunded'
+  status: 'completed' | 'voided' | 'refunded' | 'partially_refunded'
   voidedBy: Types.ObjectId | null
   voidedAt: Date | null
   voidReason: string | null
@@ -81,7 +81,7 @@ const transactionSchema = new Schema<ITransaction>(
     payments: [paymentSchema],
     isSplit: { type: Boolean, default: false },
     change: { type: Number, default: 0 },
-    status: { type: String, enum: ['completed', 'voided', 'refunded'], default: 'completed' },
+    status: { type: String, enum: ['completed', 'voided', 'refunded', 'partially_refunded'], default: 'completed' },
     voidedBy: { type: Schema.Types.ObjectId, default: null },
     voidedAt: { type: Date, default: null },
     voidReason: { type: String, default: null },

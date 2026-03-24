@@ -36,10 +36,7 @@ export async function login(req: LoginRequest): Promise<AuthResult> {
     return { success: false, error: 'User role not found. Contact administrator.' }
   }
 
-  const terminalId = store.get('terminalId')
-  if (!terminalId) {
-    return { success: false, error: 'Terminal is not provisioned. Contact administrator.' }
-  }
+  const terminalId = store.get('terminalId') ?? 'unknown'
   const jwtId = randomUUID()
   const issuedAt = new Date()
   const expiresAt = new Date(Date.now() + SESSION_DURATION_MS)
@@ -158,6 +155,15 @@ export async function logout(token: string): Promise<void> {
     // Token unverifiable — nothing to revoke
   }
   store.delete('jwt') // returns key to its default value (null) without a type cast
+}
+
+export function requireAuthFast(token: string | null): { sub: string; jti: string; roleId: string } {
+  if (!token) throw new Error('UNAUTHORIZED')
+  try {
+    return jwt.verify(token, getJwtSecret()) as { sub: string; jti: string; roleId: string }
+  } catch {
+    throw new Error('UNAUTHORIZED')
+  }
 }
 
 export async function requireAuth(token: string | null): Promise<AuthPayload> {

@@ -101,6 +101,12 @@ export const IPC = {
   ROLES_UPDATE: 'roles:update',
   ROLES_DELETE: 'roles:delete',
 
+  // Branches
+  BRANCHES_GET_ALL: 'branches:getAll',
+  BRANCHES_CREATE: 'branches:create',
+  BRANCHES_UPDATE: 'branches:update',
+  BRANCHES_DEACTIVATE: 'branches:deactivate',
+
   // Settings
   SETTINGS_GET: 'settings:get',
   SETTINGS_UPDATE: 'settings:update',

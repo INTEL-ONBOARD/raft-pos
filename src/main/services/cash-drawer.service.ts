@@ -70,7 +70,9 @@ export async function closeDrawer(
       $match: {
         branchId: openDrawer.branchId,
         terminalId,
-        status: 'completed',
+        // completed = full sale; partially_refunded = some items returned but cash still partially held
+        // Exclude 'refunded' — all money was returned to customer, should not count toward totalSales
+        status: { $in: ['completed', 'partially_refunded'] },
         createdAt: { $gte: openDrawer.openedAt }
       }
     },

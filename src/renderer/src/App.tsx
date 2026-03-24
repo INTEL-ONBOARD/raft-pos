@@ -7,6 +7,7 @@ import { useConnectivityStore } from './stores/connectivity.store'
 import { useAuthStore } from './stores/auth.store'
 import { ConnectivityOverlay } from './components/ConnectivityOverlay'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import { PERMISSIONS } from '@shared/types/permissions'
 import { AppShell } from './components/layout/AppShell'
 import LoginPage from './pages/auth/LoginPage'
 import SetupPage from './pages/auth/SetupPage'
@@ -157,18 +158,18 @@ function AppRoutes() {
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="categories" element={<CategoriesPage />} />
           <Route path="products" element={<ProductsPage />} />
-          <Route path="inventory" element={<InventoryPage />} />
+          <Route path="inventory" element={<ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_INVENTORY}><InventoryPage /></ProtectedRoute>} />
           <Route path="orders" element={<PosPage />} />
           <Route path="suppliers" element={<SuppliersPage />} />
-          <Route path="purchase-orders" element={<PurchaseOrdersPage />} />
-          <Route path="purchase-orders/new" element={<PurchaseOrderFormPage />} />
-          <Route path="purchase-orders/:id/edit" element={<PurchaseOrderFormPage />} />
+          <Route path="purchase-orders" element={<ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_PURCHASE_ORDERS}><PurchaseOrdersPage /></ProtectedRoute>} />
+          <Route path="purchase-orders/new" element={<ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_PURCHASE_ORDERS}><PurchaseOrderFormPage /></ProtectedRoute>} />
+          <Route path="purchase-orders/:id/edit" element={<ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_PURCHASE_ORDERS}><PurchaseOrderFormPage /></ProtectedRoute>} />
           <Route path="transactions" element={<TransactionsPage />} />
           <Route path="cash-drawer" element={<CashDrawerPage />} />
-          <Route path="users" element={<UsersPage />} />
-          <Route path="roles" element={<RolesPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="reporting" element={<ReportingPage />} />
+          <Route path="users" element={<ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_USERS}><UsersPage /></ProtectedRoute>} />
+          <Route path="roles" element={<ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_ROLES}><RolesPage /></ProtectedRoute>} />
+          <Route path="settings" element={<ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_SETTINGS}><SettingsPage /></ProtectedRoute>} />
+          <Route path="reporting" element={<ProtectedRoute permission={PERMISSIONS.CAN_VIEW_REPORTS}><ReportingPage /></ProtectedRoute>} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

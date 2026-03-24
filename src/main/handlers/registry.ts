@@ -14,6 +14,7 @@ import { registerUserHandlers } from './user.handlers'
 import { registerRoleHandlers } from './role.handlers'
 import { registerSettingsHandlers } from './settings.handlers'
 import { registerReportingHandlers } from './reporting.handlers'
+import { registerBranchHandlers } from './branch.handlers'
 
 export function registerAllHandlers(): void {
   registerPingHandlers()
@@ -31,4 +32,5 @@ export function registerAllHandlers(): void {
   registerRoleHandlers()
   registerSettingsHandlers()
   registerReportingHandlers()
+  registerBranchHandlers()
 }

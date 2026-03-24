@@ -23,5 +23,12 @@ const sessionSchema = new Schema<ISession>({
 // jwtId unique index is created by the unique: true field option above
 // TTL index: delete session documents once current time passes expiresAt
 sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 })
+// Auto-delete revoked sessions after 7 days to prevent accumulation
+sessionSchema.index(
+  { revokedAt: 1 },
+  { expireAfterSeconds: 7 * 24 * 60 * 60, sparse: true }
+)
+// Compound index for forceLogout queries (updateMany by userId + isRevoked)
+sessionSchema.index({ userId: 1, isRevoked: 1 })
 
 export const Session = model<ISession>('Session', sessionSchema)

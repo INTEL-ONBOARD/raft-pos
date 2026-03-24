@@ -4,15 +4,18 @@ import { X, UserPlus, UserCog } from 'lucide-react'
 import type { IPublicUser, CreateUserInput, UpdateUserInput } from '@shared/types/user.types'
 import type { IPublicRole } from '@shared/types/role.types'
 
+interface IBranch { _id: string; name: string; code: string }
+
 interface Props {
   user?: IPublicUser | null
   roles: IPublicRole[]
+  branches: IBranch[]
   onConfirm: (data: CreateUserInput | UpdateUserInput) => void
   onClose: () => void
   isLoading: boolean
 }
 
-export function UserFormModal({ user, roles, onConfirm, onClose, isLoading }: Props) {
+export function UserFormModal({ user, roles, branches, onConfirm, onClose, isLoading }: Props) {
   const [name, setName] = useState(user?.name ?? '')
   const [email, setEmail] = useState(user?.email ?? '')
   const [password, setPassword] = useState('')
@@ -35,9 +38,9 @@ export function UserFormModal({ user, roles, onConfirm, onClose, isLoading }: Pr
     setError('')
     if (!name.trim()) return setError('Name is required')
     if (!email.trim()) return setError('Email is required')
-    if (!user && (!password || password.length < 6)) return setError('Password must be at least 6 characters')
+    if (!user && (!password || password.length < 8)) return setError('Password must be at least 8 characters')
     if (!roleId) return setError('Role is required')
-    if (!branchId.trim()) return setError('Branch ID is required')
+    if (!branchId) return setError('Branch is required')
     if (supervisorPin && !/^\d{4}$/.test(supervisorPin)) return setError('Supervisor PIN must be exactly 4 digits')
 
     const data: any = { name, email, roleId, branchId }
@@ -98,8 +101,11 @@ export function UserFormModal({ user, roles, onConfirm, onClose, isLoading }: Pr
               </select>
             </div>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>Branch ID *</label>
-              <input value={branchId} onChange={e => setBranchId(e.target.value)} placeholder="MongoDB ObjectId" className="dark-input mt-1" />
+              <label style={{ fontSize: '12px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>Branch *</label>
+              <select value={branchId} onChange={e => setBranchId(e.target.value)} className="dark-select mt-1">
+                <option value="">Select branch…</option>
+                {branches.map(b => <option key={b._id} value={b._id}>{b.name}</option>)}
+              </select>
             </div>
             <div>
               <label style={{ fontSize: '12px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>Supervisor PIN (4 digits, optional)</label>

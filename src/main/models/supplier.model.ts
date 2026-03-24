@@ -25,5 +25,6 @@ const supplierSchema = new Schema<ISupplier>(
 )
 
 supplierSchema.index({ name: 1 })
+supplierSchema.index({ isActive: 1 })
 
 export const Supplier = model<ISupplier>('Supplier', supplierSchema)

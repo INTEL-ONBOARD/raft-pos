@@ -27,7 +27,7 @@ const productSchema = new Schema<IProduct>(
     unit: { type: String, enum: UNITS, required: true },
     costPrice: { type: Number, required: true, min: 0 },
     sellingPrice: { type: Number, required: true, min: 0 },
-    barcode: { type: String, default: '', trim: true },
+    barcode: { type: String, default: null, trim: true },
     imageUrl: { type: String, default: null },
     taxRate: { type: Number, default: null, min: 0, max: 100 },
     isActive: { type: Boolean, default: true }
@@ -36,7 +36,7 @@ const productSchema = new Schema<IProduct>(
 )
 
 productSchema.index({ name: 'text', sku: 'text' })
-productSchema.index({ barcode: 1 }, { sparse: true })
+productSchema.index({ barcode: 1 }, { unique: true, sparse: true })
 productSchema.index({ categoryId: 1 })
 productSchema.index({ isActive: 1 })
 

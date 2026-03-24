@@ -18,5 +18,6 @@ const categorySchema = new Schema<ICategory>(
 )
 
 categorySchema.index({ parentId: 1, order: 1 })
+categorySchema.index({ isActive: 1 })
 
 export const Category = model<ICategory>('Category', categorySchema)

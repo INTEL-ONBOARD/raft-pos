@@ -19,7 +19,10 @@ function dateRange(dateFrom: string, dateTo: string) {
 
 export async function getSalesSummary(filters: ReportFilters) {
   const { start, end } = dateRange(filters.dateFrom, filters.dateTo)
-  const match: any = { status: 'completed', createdAt: { $gte: start, $lte: end } }
+  const match: any = {
+    status: { $in: ['completed', 'partially_refunded', 'refunded'] },
+    createdAt: { $gte: start, $lte: end }
+  }
   if (filters.branchId) match.branchId = new mongoose.Types.ObjectId(filters.branchId)
 
   const rows = await Transaction.aggregate([
@@ -61,7 +64,10 @@ export async function getSalesSummary(filters: ReportFilters) {
 
 export async function getSalesByProduct(filters: ReportFilters): Promise<SalesByProductRow[]> {
   const { start, end } = dateRange(filters.dateFrom, filters.dateTo)
-  const match: any = { status: 'completed', createdAt: { $gte: start, $lte: end } }
+  const match: any = {
+    status: { $in: ['completed', 'partially_refunded', 'refunded'] },
+    createdAt: { $gte: start, $lte: end }
+  }
   if (filters.branchId) match.branchId = new mongoose.Types.ObjectId(filters.branchId)
 
   const rows = await Transaction.aggregate([

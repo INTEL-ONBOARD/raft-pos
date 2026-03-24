@@ -7,6 +7,36 @@ import { User } from '../models/user.model'
 import { ActivityLog } from '../models/activity-log.model'
 import store from '../store/electron-store'
 
+// In-memory PIN attempt tracker: key = "email:terminalId", value = { count, resetAt }
+const pinAttempts = new Map<string, { count: number; resetAt: number }>()
+const PIN_MAX_ATTEMPTS = 5
+const PIN_WINDOW_MS = 5 * 60 * 1000 // 5 minutes
+
+function checkPinRateLimit(email: string, terminalId: string): { allowed: boolean; waitMs: number } {
+  const key = `${email.toLowerCase()}:${terminalId}`
+  const now = Date.now()
+  const entry = pinAttempts.get(key)
+  if (entry && now < entry.resetAt && entry.count >= PIN_MAX_ATTEMPTS) {
+    return { allowed: false, waitMs: entry.resetAt - now }
+  }
+  return { allowed: true, waitMs: 0 }
+}
+
+function recordPinFailure(email: string, terminalId: string): void {
+  const key = `${email.toLowerCase()}:${terminalId}`
+  const now = Date.now()
+  const entry = pinAttempts.get(key)
+  if (!entry || now >= entry.resetAt) {
+    pinAttempts.set(key, { count: 1, resetAt: now + PIN_WINDOW_MS })
+  } else {
+    entry.count++
+  }
+}
+
+function clearPinAttempts(email: string, terminalId: string): void {
+  pinAttempts.delete(`${email.toLowerCase()}:${terminalId}`)
+}
+
 export function registerSupervisorHandlers(): void {
 
   // ── POS_VALIDATE_SUPERVISOR_PIN ────────────────────────────────────────────
@@ -23,6 +53,13 @@ export function registerSupervisorHandlers(): void {
         return { valid: false, error: 'Supervisor email and PIN are required' }
       }
 
+      const terminalId = store.get('terminalId') ?? 'unknown'
+      const rateCheck = checkPinRateLimit(r.supervisorEmail, terminalId)
+      if (!rateCheck.allowed) {
+        const waitSec = Math.ceil(rateCheck.waitMs / 1000)
+        return { valid: false, error: `Too many failed attempts. Try again in ${waitSec} seconds.` }
+      }
+
       // Look up the supervisor — use lean() to bypass the toJSON transform that
       // strips supervisorPin from the response
       const supervisor = await User.findOne({
@@ -30,16 +67,23 @@ export function registerSupervisorHandlers(): void {
         isActive: true
       }).lean()
 
-      if (!supervisor) return { valid: false, error: 'Supervisor not found' }
+      if (!supervisor) {
+        recordPinFailure(r.supervisorEmail, terminalId)
+        return { valid: false, error: 'Supervisor not found' }
+      }
       if (!supervisor.supervisorPin) {
         return { valid: false, error: 'This user has no supervisor PIN configured' }
       }
 
       const valid = await bcrypt.compare(r.pin, supervisor.supervisorPin)
-      if (!valid) return { valid: false, error: 'Incorrect PIN' }
+      if (!valid) {
+        recordPinFailure(r.supervisorEmail, terminalId)
+        return { valid: false, error: 'Incorrect PIN' }
+      }
+
+      clearPinAttempts(r.supervisorEmail, terminalId)
 
       // Write activity log for audit trail
-      const terminalId = store.get('terminalId') ?? 'unknown'
       await ActivityLog.create({
         userId: auth.user._id,
         branchId: auth.user.branchId,

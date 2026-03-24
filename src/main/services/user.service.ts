@@ -8,22 +8,25 @@ import type { IPublicUser, CreateUserInput, UpdateUserInput, ActivityLogEntry } 
 
 function toShared(doc: any): IPublicUser {
   return {
-    _id: doc._id.toString(),
-    name: doc.name,
-    email: doc.email,
-    roleId: doc.roleId.toString(),
-    branchId: doc.branchId.toString(),
-    isActive: doc.isActive,
+    _id: doc._id?.toString() ?? '',
+    name: doc.name ?? '',
+    email: doc.email ?? '',
+    roleId: doc.roleId?.toString() ?? '',
+    branchId: doc.branchId?.toString() ?? '',
+    isActive: doc.isActive ?? false,
     lastLogin: doc.lastLogin ? new Date(doc.lastLogin).getTime() : null,
-    createdAt: doc.createdAt.toISOString()
+    createdAt: doc.createdAt ? new Date(doc.createdAt).toISOString() : new Date(0).toISOString()
   }
 }
 
 export async function getUsers(branchId: string | null): Promise<{ data: IPublicUser[]; total: number }> {
   const query: any = {}
   if (branchId) query.branchId = branchId
-  const docs = await User.find(query).sort({ name: 1 }).lean()
-  return { data: docs.map(toShared), total: docs.length }
+  const [docs, total] = await Promise.all([
+    User.find(query).sort({ name: 1 }).lean(),
+    User.countDocuments(query)
+  ])
+  return { data: docs.map(toShared), total }
 }
 
 export async function getUserById(id: string): Promise<IPublicUser | null> {
@@ -49,13 +52,15 @@ export async function createUser(input: CreateUserInput, createdById: string, br
   const terminalId = store.get('terminalId') ?? 'unknown'
   await ActivityLog.create({
     userId: createdById,
-    branchId,
+    branchId: branchId ?? 'unknown',
     terminalId,
     action: 'user_created',
     targetId: doc._id,
     targetCollection: 'users',
     metadata: { name: doc.name, email: doc.email }
-  }).catch(() => {})
+  }).catch((err) => {
+    console.warn('[ActivityLog] Failed to write activity log:', err?.message ?? err)
+  })
   return toShared(doc)
 }
 
@@ -71,11 +76,19 @@ export async function updateUser(id: string, input: UpdateUserInput): Promise<IP
     updates.supervisorPin = input.supervisorPin ? await bcrypt.hash(input.supervisorPin, 12) : null
   }
   const doc = await User.findByIdAndUpdate(id, { $set: updates }, { new: true }).lean()
+  if (doc && input.roleId !== undefined) {
+    // Role changed — revoke existing sessions so the user re-authenticates with new permissions
+    await forceLogout(id)
+  }
   return doc ? toShared(doc) : null
 }
 
 export async function deactivateUser(id: string): Promise<IPublicUser | null> {
   const doc = await User.findByIdAndUpdate(id, { $set: { isActive: false } }, { new: true }).lean()
+  if (doc) {
+    // Revoke all active sessions so the deactivated user is kicked immediately
+    await forceLogout(id)
+  }
   return doc ? toShared(doc) : null
 }
 
@@ -86,17 +99,25 @@ export async function forceLogout(userId: string): Promise<void> {
   )
 }
 
-export async function getUserActivity(userId: string, limit = 50): Promise<ActivityLogEntry[]> {
-  const docs = await ActivityLog.find({ userId })
-    .sort({ createdAt: -1 })
-    .limit(limit)
-    .lean()
-  return docs.map((d: any) => ({
-    _id: d._id.toString(),
-    action: d.action,
-    targetId: d.targetId?.toString() ?? null,
-    targetCollection: d.targetCollection ?? null,
-    metadata: d.metadata ?? {},
-    createdAt: d.createdAt.toISOString()
-  }))
+export async function getUserActivity(userId: string, opts?: { limit?: number; skip?: number }): Promise<{ data: ActivityLogEntry[]; total: number }> {
+  const query = { userId }
+  const [docs, total] = await Promise.all([
+    ActivityLog.find(query)
+      .sort({ createdAt: -1 })
+      .skip(opts?.skip ?? 0)
+      .limit(opts?.limit ?? 50)
+      .lean(),
+    ActivityLog.countDocuments(query)
+  ])
+  return {
+    data: docs.map((d: any) => ({
+      _id: d._id.toString(),
+      action: d.action,
+      targetId: d.targetId?.toString() ?? null,
+      targetCollection: d.targetCollection ?? null,
+      metadata: d.metadata ?? {},
+      createdAt: d.createdAt.toISOString()
+    })),
+    total
+  }
 }

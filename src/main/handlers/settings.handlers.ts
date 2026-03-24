@@ -29,10 +29,34 @@ export function registerSettingsHandlers(): void {
         lowStockDefaultThreshold?: number
         terminalId?: string
       }
+      const MAX_LEN = { storeName: 100, receiptHeader: 500, receiptFooter: 500, currencySymbol: 5 }
+      if (typeof r?.storeName === 'string' && r.storeName.trim().length > MAX_LEN.storeName) {
+        return { success: false, error: `Store name must be ${MAX_LEN.storeName} characters or fewer` }
+      }
+      if (typeof r?.storeName === 'string' && r.storeName.trim().length === 0) {
+        return { success: false, error: 'Store name cannot be empty' }
+      }
+      if (typeof r?.receiptHeader === 'string' && r.receiptHeader.length > MAX_LEN.receiptHeader) {
+        return { success: false, error: `Receipt header must be ${MAX_LEN.receiptHeader} characters or fewer` }
+      }
+      if (typeof r?.receiptFooter === 'string' && r.receiptFooter.length > MAX_LEN.receiptFooter) {
+        return { success: false, error: `Receipt footer must be ${MAX_LEN.receiptFooter} characters or fewer` }
+      }
+      if (typeof r?.currencySymbol === 'string' && r.currencySymbol.trim().length > MAX_LEN.currencySymbol) {
+        return { success: false, error: `Currency symbol must be ${MAX_LEN.currencySymbol} characters or fewer` }
+      }
+      if (typeof r?.globalTaxRate === 'number' && (r.globalTaxRate < 0 || r.globalTaxRate > 100)) {
+        return { success: false, error: 'Tax rate must be between 0 and 100' }
+      }
       // terminalId is a local store value — validate it's a non-empty string if provided
-      const terminalId = typeof r?.terminalId === 'string' && r.terminalId.trim()
-        ? r.terminalId.trim()
-        : undefined
+      let terminalId: string | undefined
+      if (r?.terminalId !== undefined) {
+        const trimmed = typeof r.terminalId === 'string' ? r.terminalId.trim() : ''
+        if (!trimmed) {
+          return { success: false, error: 'Terminal ID cannot be empty' }
+        }
+        terminalId = trimmed
+      }
       const data = await updateSettings(r, terminalId)
       return { success: true, data }
     } catch (err: any) {

@@ -5,7 +5,13 @@ async function getCategoryDepth(categoryId: string | null): Promise<number> {
   if (!categoryId) return 0
   let depth = 0
   let current: string | null = categoryId
+  const visited = new Set<string>()
   while (current) {
+    if (visited.has(current)) {
+      // Cycle detected — treat as max depth to prevent the assignment
+      return 999
+    }
+    visited.add(current)
     const cat = await Category.findById(current).lean()
     if (!cat) break
     depth++
@@ -54,6 +60,9 @@ export async function updateCategory(
   data: { name?: string; parentId?: string | null; order?: number; isActive?: boolean }
 ): Promise<SharedCategory | null> {
   if (data.parentId) {
+    if (data.parentId === id) {
+      throw new Error('A category cannot be its own parent.')
+    }
     const parentDepth = await getCategoryDepth(data.parentId)
     if (parentDepth >= 2) {
       throw new Error('Categories support a maximum of 3 levels. This parent is already at the maximum depth.')

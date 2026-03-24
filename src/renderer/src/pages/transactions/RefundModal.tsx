@@ -21,9 +21,18 @@ export function RefundModal({ transaction, onConfirm, onClose, isLoading }: Prop
   const [quantities, setQuantities] = useState<Record<number, number>>({})
   const [error, setError] = useState('')
 
+  // Compute remaining refundable quantity per item (accounts for prior partial refunds)
+  const remainingQty = transaction.items.map(it => {
+    const alreadyRefunded = (transaction.refundedItems ?? [])
+      .filter(r => r.productId === it.productId)
+      .reduce((sum, r) => sum + r.quantity, 0)
+    return Math.max(0, it.quantity - alreadyRefunded)
+  })
+
   function handleQtyChange(idx: number, val: string) {
     const n = parseInt(val, 10)
-    setQuantities(prev => ({ ...prev, [idx]: isNaN(n) ? 0 : Math.max(0, n) }))
+    const max = remainingQty[idx] ?? 0
+    setQuantities(prev => ({ ...prev, [idx]: isNaN(n) ? 0 : Math.max(0, Math.min(n, max)) }))
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -37,8 +46,9 @@ export function RefundModal({ transaction, onConfirm, onClose, isLoading }: Prop
     for (let i = 0; i < transaction.items.length; i++) {
       const it = transaction.items[i]
       const qty = quantities[i] ?? 0
-      if (qty > it.quantity) {
-        setError(`Refund quantity for "${it.name}" exceeds sold quantity (${it.quantity})`)
+      const maxQty = remainingQty[i] ?? 0
+      if (qty > maxQty) {
+        setError(`Refund quantity for "${it.name}" exceeds remaining refundable quantity (${maxQty})`)
         return
       }
       if (qty > 0) items.push({ productId: it.productId, quantity: qty })
@@ -88,16 +98,19 @@ export function RefundModal({ transaction, onConfirm, onClose, isLoading }: Prop
                 <div key={idx} className="flex items-center gap-3 p-3 text-sm rounded-xl" style={{ background: 'var(--bg-base)', border: '1px solid var(--border-subtle)' }}>
                   <div className="flex-1">
                     <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{it.name}</p>
-                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{it.sku} · Sold qty: {it.quantity}</p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                      {it.sku} · Sold: {it.quantity} · Refundable: {remainingQty[idx]}
+                    </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <label style={{ fontSize: '12px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>Refund qty:</label>
                     <input
                       type="number"
                       min="0"
-                      max={it.quantity}
+                      max={remainingQty[idx]}
                       value={quantities[idx] ?? 0}
                       onChange={e => handleQtyChange(idx, e.target.value)}
+                      disabled={remainingQty[idx] === 0}
                       className="dark-input w-16 text-center"
                     />
                   </div>

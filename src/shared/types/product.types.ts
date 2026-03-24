@@ -9,7 +9,7 @@ export interface IProduct {
   unit: ProductUnit
   costPrice: number
   sellingPrice: number
-  barcode: string
+  barcode: string | null
   imageUrl: string | null
   taxRate: number | null   // null = use global tax rate
   isActive: boolean
@@ -25,7 +25,7 @@ export interface CreateProductInput {
   unit: ProductUnit
   costPrice: number
   sellingPrice: number
-  barcode?: string
+  barcode?: string | null
   imageUrl?: string | null
   taxRate?: number | null
 }

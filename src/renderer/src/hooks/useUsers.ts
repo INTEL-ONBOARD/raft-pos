@@ -14,7 +14,8 @@ export function useUsers() {
       if (!result.success) throw new Error(result.error)
       return result.data ?? []
     },
-    staleTime: 60_000
+    staleTime: 60_000,
+    retry: false
   })
 
   const createMutation = useMutation({

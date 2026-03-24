@@ -6,6 +6,9 @@ import store from '../store/electron-store'
 import {
   getUsers, getUserById, createUser, updateUser, deactivateUser, forceLogout, getUserActivity
 } from '../services/user.service'
+import { Branch } from '../models/branch.model'
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export function registerUserHandlers(): void {
   ipcMain.handle(IPC.USERS_GET_ALL, async () => {
@@ -41,9 +44,17 @@ export function registerUserHandlers(): void {
       const r = req as any
       if (!r?.name) return { success: false, error: 'Name is required' }
       if (!r?.email) return { success: false, error: 'Email is required' }
-      if (!r?.password || r.password.length < 6) return { success: false, error: 'Password must be at least 6 characters' }
+      if (!EMAIL_REGEX.test(r.email.trim())) {
+        return { success: false, error: 'Invalid email format' }
+      }
+      if (!r?.password || r.password.length < 8) return { success: false, error: 'Password must be at least 8 characters' }
       if (!r?.roleId) return { success: false, error: 'Role is required' }
       if (!r?.branchId) return { success: false, error: 'Branch is required' }
+      if (r.supervisorPin !== undefined && r.supervisorPin !== null && r.supervisorPin !== '') {
+        if (!/^\d{4,8}$/.test(r.supervisorPin)) {
+          return { success: false, error: 'Supervisor PIN must be 4 to 8 digits' }
+        }
+      }
       const data = await createUser(r, auth.user._id, auth.user.branchId)
       return { success: true, data }
     } catch (err: any) {
@@ -58,6 +69,18 @@ export function registerUserHandlers(): void {
       if (!auth.role.permissions.includes('can_manage_users')) return { success: false, error: 'Permission denied' }
       const r = req as { id: string; input: any }
       if (!r?.id) return { success: false, error: 'ID is required' }
+      if (r.input?.email !== undefined && !EMAIL_REGEX.test(String(r.input.email).trim())) {
+        return { success: false, error: 'Invalid email format' }
+      }
+      if (r.input?.supervisorPin !== undefined && r.input.supervisorPin !== null && r.input.supervisorPin !== '') {
+        if (!/^\d{4,8}$/.test(r.input.supervisorPin)) {
+          return { success: false, error: 'Supervisor PIN must be 4 to 8 digits' }
+        }
+      }
+      if (r.input?.branchId) {
+        const branchExists = await Branch.exists({ _id: r.input.branchId, isActive: true })
+        if (!branchExists) return { success: false, error: 'Branch not found or inactive' }
+      }
       const data = await updateUser(r.id, r.input)
       if (!data) return { success: false, error: 'User not found' }
       return { success: true, data }
@@ -99,10 +122,12 @@ export function registerUserHandlers(): void {
     try {
       const auth = await requireAuth(store.get('jwt') ?? null)
       if (!auth.role.permissions.includes('can_manage_users')) return { success: false, error: 'Permission denied' }
-      const r = req as { id: string; limit?: number }
+      const r = req as { id: string; limit?: number; skip?: number }
       if (!r?.id) return { success: false, error: 'ID is required' }
-      const data = await getUserActivity(r.id, r.limit)
-      return { success: true, data }
+      const limit = Math.min(Math.max(1, r.limit ?? 50), 500)
+      const skip = Math.max(0, r.skip ?? 0)
+      const { data, total } = await getUserActivity(r.id, { limit, skip })
+      return { success: true, data, total }
     } catch (err: any) {
       return { success: false, error: err.message ?? 'Failed to load activity' }
     }

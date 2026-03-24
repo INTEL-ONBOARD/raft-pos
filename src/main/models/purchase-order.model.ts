@@ -17,7 +17,7 @@ const poItemSchema = new Schema({
   receivedQty: { type: Number, default: 0 },
   receiveHistory: [receiveHistorySchema],
   unitCost: { type: Number, required: true, min: 0 },
-  totalCost: { type: Number, required: true }
+  totalCost: { type: Number, required: true, min: 0 }
 }, { _id: false })
 
 export interface IPurchaseOrder extends Document {

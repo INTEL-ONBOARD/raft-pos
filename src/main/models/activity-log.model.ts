@@ -1,9 +1,13 @@
 import { Schema, model, Document, Types } from 'mongoose'
 
 const ACTIONS = [
-  'login', 'logout', 'force_logout', 'void_transaction', 'refund_transaction',
-  'stock_adjustment', 'stock_transfer', 'discount_override', 'user_created',
-  'user_deactivated', 'role_changed', 'settings_changed', 'drawer_opened', 'drawer_closed'
+  'login', 'logout', 'force_logout',
+  'sale_completed',
+  'void_transaction', 'refund_transaction',
+  'stock_adjustment', 'stock_transfer', 'discount_override',
+  'user_created', 'user_deactivated', 'role_changed',
+  'settings_changed', 'drawer_opened', 'drawer_closed',
+  'purchase_order_created'
 ] as const
 
 export interface IActivityLog extends Document {
@@ -32,5 +36,7 @@ const activityLogSchema = new Schema<IActivityLog>(
 
 activityLogSchema.index({ userId: 1, createdAt: -1 })
 activityLogSchema.index({ branchId: 1, action: 1, createdAt: -1 })
+// TTL: auto-delete activity logs older than 1 year to prevent unbounded collection growth
+activityLogSchema.index({ createdAt: 1 }, { expireAfterSeconds: 365 * 24 * 60 * 60 })
 
 export const ActivityLog = model<IActivityLog>('ActivityLog', activityLogSchema)

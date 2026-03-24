@@ -1,6 +1,12 @@
 // src/renderer/src/pages/roles/RolesPage.tsx
 import { useState } from 'react'
-import { Plus, Pencil, Trash2, Shield, ShieldAlert, Lock } from 'lucide-react'
+import {
+  PlusIcon,
+  PencilSquareIcon,
+  ShieldCheckIcon,
+  LockClosedIcon,
+  TrashIcon,
+} from '@heroicons/react/24/outline'
 import { useRoles } from '../../hooks/useRoles'
 import { RoleFormModal } from './RoleFormModal'
 import type { IPublicRole } from '@shared/types/role.types'
@@ -40,198 +46,286 @@ export default function RolesPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-full" style={{ background: 'var(--bg-base)' }}>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      minHeight: '100%',
+      position: 'relative',
+      overflow: 'hidden',
+      background: '#080810',
+    }}>
+      {/* Ambient glow */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        pointerEvents: 'none',
+        zIndex: 0,
+        background: 'radial-gradient(ellipse 900px 600px at 20% 0%, rgba(124,58,237,0.10) 0%, transparent 70%)',
+      }} />
 
-      {/* Page header */}
-      <div className="page-header">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: 'rgba(79,70,229,0.10)' }}>
-            <Shield className="w-4 h-4" style={{ color: 'var(--accent)' }} />
-          </div>
-          <div>
-            <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)' }}>Roles</h1>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
-              Define access levels and capabilities for each staff role
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="btn-primary flex items-center gap-2 px-4 py-2 text-sm font-semibold"
-        >
-          <Plus className="w-4 h-4" />
-          New Role
-        </button>
-      </div>
+      {/* Content */}
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', flex: 1 }}>
 
-      <div className="p-8 flex-1 space-y-4">
-
-        {/* Error banner */}
-        {error && (
-          <div
-            className="flex items-center gap-3 p-4 text-sm rounded-xl"
-            style={{
-              background: 'rgba(220,38,38,0.06)',
-              border: '1px solid rgba(220,38,38,0.15)',
-              color: '#dc2626'
-            }}
-          >
-            <ShieldAlert className="w-4 h-4 shrink-0" />
-            {error}
-          </div>
-        )}
-
-        {/* Role list */}
-        {rolesQuery.isLoading ? (
-          <div className="flex items-center gap-3 text-sm" style={{ color: 'var(--text-muted)' }}>
-            <div
-              className="w-4 h-4 rounded-full animate-spin"
-              style={{ border: '2px solid var(--border-default)', borderTopColor: '#4F46E5' }}
-            />
-            Loading roles…
-          </div>
-        ) : roles.length === 0 ? (
-          <div
-            className="content-card flex flex-col items-center justify-center gap-4 py-16 text-center"
-          >
-            <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
-              style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)' }}
-            >
-              <Shield className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
+        {/* Page header */}
+        <div style={{
+          padding: '28px 36px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexShrink: 0,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: '38px',
+              height: '38px',
+              borderRadius: '12px',
+              background: 'rgba(99,102,241,0.12)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <ShieldCheckIcon style={{ width: '18px', height: '18px', color: '#6366f1' }} />
             </div>
             <div>
-              <p style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-secondary)' }}>No roles defined yet</p>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                Create your first role to start assigning permissions
+              <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', margin: 0 }}>Roles</h1>
+              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.40)', marginTop: '2px', margin: 0 }}>
+                Define access levels and capabilities for each staff role
               </p>
             </div>
-            <button
-              onClick={() => setShowCreate(true)}
-              className="btn-secondary flex items-center gap-2 px-4 py-2 text-sm mt-1"
-            >
-              <Plus className="w-4 h-4" />
-              Create First Role
-            </button>
           </div>
-        ) : (
-          <div className="grid gap-4">
-            {roles.map((role, idx) => {
-              const accent = ROLE_ACCENTS[idx % ROLE_ACCENTS.length]
-              return (
-                <div
-                  key={role._id}
-                  className="content-card overflow-hidden"
-                  style={{ borderLeft: `3px solid ${accent.border}` }}
-                >
-                  {/* Card top: name + actions */}
-                  <div className="flex items-start justify-between gap-4 px-6 py-4">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div
-                        className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                        style={{ background: accent.bg }}
-                      >
-                        <Shield className="w-4 h-4" style={{ color: accent.icon }} />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-semibold text-base leading-tight" style={{ color: 'var(--text-primary)' }}>
-                            {role.name}
-                          </h3>
-                          {role.requiresSupervisorOverride && (
-                            <span
-                              className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full"
-                              style={{
+          <button
+            onClick={() => setShowCreate(true)}
+            className="btn-primary flex items-center gap-2 px-4 py-2"
+          >
+            <PlusIcon style={{ width: '16px', height: '16px' }} />
+            New Role
+          </button>
+        </div>
+
+        {/* Content area */}
+        <div style={{ padding: '0 36px 36px', flex: 1 }}>
+
+          {/* Error banner */}
+          {error && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '14px',
+              fontSize: '13px',
+              borderRadius: '12px',
+              background: 'rgba(220,38,38,0.06)',
+              border: '1px solid rgba(220,38,38,0.15)',
+              color: '#dc2626',
+              marginBottom: '16px',
+            }}>
+              <ShieldCheckIcon style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+              {error}
+            </div>
+          )}
+
+          {/* Role list */}
+          {rolesQuery.isLoading ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '13px', color: 'rgba(255,255,255,0.40)' }}>
+              <div
+                className="animate-spin"
+                style={{
+                  width: '16px',
+                  height: '16px',
+                  borderRadius: '50%',
+                  border: '2px solid rgba(255,255,255,0.10)',
+                  borderTopColor: '#4F46E5',
+                  flexShrink: 0,
+                }}
+              />
+              Loading roles…
+            </div>
+          ) : roles.length === 0 ? (
+            <div style={{
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.07)',
+              borderRadius: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '16px',
+              padding: '64px 20px',
+              textAlign: 'center',
+            }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '12px',
+                background: 'rgba(255,255,255,0.04)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <ShieldCheckIcon style={{ width: '22px', height: '22px', color: 'rgba(255,255,255,0.28)' }} />
+              </div>
+              <div>
+                <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.55)', margin: 0 }}>No roles defined yet</p>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.28)', marginTop: '4px' }}>
+                  Create your first role to start assigning permissions
+                </p>
+              </div>
+              <button
+                onClick={() => setShowCreate(true)}
+                className="btn-secondary flex items-center gap-2 px-4 py-2"
+                style={{ marginTop: '4px' }}
+              >
+                <PlusIcon style={{ width: '16px', height: '16px' }} />
+                Create First Role
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gap: '16px' }}>
+              {roles.map((role, idx) => {
+                const accent = ROLE_ACCENTS[idx % ROLE_ACCENTS.length]
+                return (
+                  <div
+                    key={role._id}
+                    style={{
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(255,255,255,0.07)',
+                      borderRadius: '16px',
+                      overflow: 'hidden',
+                      borderLeft: `3px solid ${accent.border}`,
+                      transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.05)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.03)' }}
+                  >
+                    {/* Card top: name + actions */}
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', padding: '20px 24px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                        <div style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '10px',
+                          background: accent.bg,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                        }}>
+                          <ShieldCheckIcon style={{ width: '16px', height: '16px', color: accent.icon }} />
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <h3 style={{ fontWeight: 600, fontSize: '15px', lineHeight: 1.3, color: '#ffffff', margin: 0 }}>
+                              {role.name}
+                            </h3>
+                            {role.requiresSupervisorOverride && (
+                              <span style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                fontSize: '11px',
+                                fontWeight: 500,
+                                padding: '2px 8px',
+                                borderRadius: '999px',
                                 background: 'rgba(180,83,9,0.08)',
                                 border: '1px solid rgba(180,83,9,0.18)',
-                                color: '#b45309'
-                              }}
-                            >
-                              <Lock className="w-2.5 h-2.5" />
-                              Supervisor override
-                            </span>
-                          )}
+                                color: '#b45309',
+                              }}>
+                                <LockClosedIcon style={{ width: '10px', height: '10px' }} />
+                                Supervisor override
+                              </span>
+                            )}
+                          </div>
+                          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.40)', marginTop: '2px', margin: '2px 0 0' }}>
+                            Max discount: <span style={{ color: 'rgba(255,255,255,0.65)' }}>{role.maxDiscountPercent}%</span>
+                          </p>
                         </div>
-                        <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                          Max discount: <span style={{ color: 'var(--text-secondary)' }}>{role.maxDiscountPercent}%</span>
-                        </p>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                        <span style={{
+                          fontSize: '11px',
+                          fontWeight: 500,
+                          padding: '4px 10px',
+                          borderRadius: '999px',
+                          marginRight: '4px',
+                          background: accent.bg,
+                          color: accent.icon,
+                          border: `1px solid ${accent.border}22`,
+                        }}>
+                          {role.permissions.length} permission{role.permissions.length !== 1 ? 's' : ''}
+                        </span>
+                        <button
+                          onClick={() => setEditRole(role)}
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: 'rgba(255,255,255,0.35)',
+                            background: 'rgba(255,255,255,0.05)',
+                            transition: 'all 0.15s',
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.background = 'rgba(255,255,255,0.10)' }}
+                          onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.35)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+                          title="Edit role"
+                        >
+                          <PencilSquareIcon style={{ width: '14px', height: '14px' }} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(role)}
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: 'rgba(255,255,255,0.35)',
+                            background: 'rgba(255,255,255,0.05)',
+                            transition: 'all 0.15s',
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.color = '#dc2626'; e.currentTarget.style.background = 'rgba(220,38,38,0.08)' }}
+                          onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.35)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+                          title="Delete role"
+                        >
+                          <TrashIcon style={{ width: '14px', height: '14px' }} />
+                        </button>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <span
-                        className="text-xs font-medium px-2.5 py-1 rounded-full mr-1"
-                        style={{
-                          background: accent.bg,
-                          color: accent.icon,
-                          border: `1px solid ${accent.border}22`
-                        }}
-                      >
-                        {role.permissions.length} permission{role.permissions.length !== 1 ? 's' : ''}
-                      </span>
-                      <button
-                        onClick={() => setEditRole(role)}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-                        style={{ color: 'var(--text-muted)', background: 'var(--border-subtle)' }}
-                        onMouseEnter={e => {
-                          e.currentTarget.style.color = 'var(--text-primary)'
-                          e.currentTarget.style.background = 'var(--border-default)'
-                        }}
-                        onMouseLeave={e => {
-                          e.currentTarget.style.color = 'var(--text-muted)'
-                          e.currentTarget.style.background = 'var(--border-subtle)'
-                        }}
-                        title="Edit role"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(role)}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-                        style={{ color: 'var(--text-muted)', background: 'var(--border-subtle)' }}
-                        onMouseEnter={e => {
-                          e.currentTarget.style.color = '#dc2626'
-                          e.currentTarget.style.background = 'rgba(220,38,38,0.08)'
-                        }}
-                        onMouseLeave={e => {
-                          e.currentTarget.style.color = 'var(--text-muted)'
-                          e.currentTarget.style.background = 'var(--border-subtle)'
-                        }}
-                        title="Delete role"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                    {/* Divider + permissions */}
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div style={{ padding: '12px 24px 16px' }}>
+                        {role.permissions.length === 0 ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'rgba(255,255,255,0.28)' }}>
+                            <ShieldCheckIcon style={{ width: '12px', height: '12px' }} />
+                            No permissions assigned
+                          </span>
+                        ) : (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                            {role.permissions.map(p => (
+                              <span key={p} className="badge-blue">
+                                {p.replace('can_', '').replace(/_/g, ' ')}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
+                )
+              })}
+            </div>
+          )}
 
-                  {/* Divider + permissions */}
-                  <div style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                    <div className="px-6 py-3">
-                      {role.permissions.length === 0 ? (
-                        <span
-                          className="inline-flex items-center gap-1.5 text-xs"
-                          style={{ color: 'var(--text-muted)' }}
-                        >
-                          <Shield className="w-3 h-3" />
-                          No permissions assigned
-                        </span>
-                      ) : (
-                        <div className="flex flex-wrap gap-1.5">
-                          {role.permissions.map(p => (
-                            <span key={p} className="badge-blue">
-                              {p.replace('can_', '').replace(/_/g, ' ')}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
-
+        </div>
       </div>
 
       {(showCreate || editRole) && (

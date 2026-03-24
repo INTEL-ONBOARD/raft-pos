@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Trash2, ArrowLeft } from 'lucide-react'
+import { TrashIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { usePurchaseOrders } from '../../hooks/usePurchaseOrders'
 import { useSuppliers } from '../../hooks/useSuppliers'
 import { useProducts } from '../../hooks/useProducts'
@@ -110,36 +110,41 @@ export default function PurchaseOrderFormPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-full" style={{ background: 'var(--bg-base)' }}>
+    <div style={{ background: '#080810', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+      {/* Ambient glow */}
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, background: 'radial-gradient(ellipse 900px 600px at 20% 0%, rgba(124,58,237,0.10) 0%, transparent 70%)' }} />
+
+      {/* All content */}
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', flex: 1 }}>
 
       {/* Page header */}
-      <div className="page-header">
-        <div className="flex items-center gap-3">
+      <div style={{ padding: '28px 36px 20px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button
             onClick={() => navigate('/purchase-orders')}
             style={{
               width: '2rem', height: '2rem', borderRadius: '0.5rem', display: 'flex',
               alignItems: 'center', justifyContent: 'center',
-              color: 'var(--text-secondary)', background: 'transparent',
-              border: '1px solid var(--border-default)', cursor: 'pointer', transition: 'all 0.15s'
+              color: 'rgba(255,255,255,0.65)', background: 'transparent',
+              border: '1px solid rgba(255,255,255,0.10)', cursor: 'pointer', transition: 'all 0.15s'
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-subtle)'; e.currentTarget.style.color = 'var(--text-primary)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'rgba(255,255,255,0.88)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)' }}
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeftIcon style={{ width: '16px', height: '16px' }} />
           </button>
           <div>
-            <h1 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>
+            <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', margin: 0 }}>
               {isEdit ? 'Edit Purchase Order' : 'New Purchase Order'}
             </h1>
-            <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.40)', marginTop: '2px', margin: 0 }}>
               {isEdit ? 'Update draft purchase order' : 'Create a new purchase order'}
             </p>
           </div>
         </div>
       </div>
 
-      <div className="p-6 flex-1 space-y-5" style={{ maxWidth: '56rem' }}>
+      <div style={{ padding: '0 36px 36px', flex: 1, display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '56rem' }}>
 
         {/* Error banner */}
         {error && (
@@ -151,17 +156,17 @@ export default function PurchaseOrderFormPage() {
         )}
 
         {/* Section: Order Details */}
-        <div className="content-card">
-          <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', overflow: 'hidden' }}>
+          <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div style={{
               width: '1.75rem', height: '1.75rem', borderRadius: '0.5rem',
-              background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+              background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
             }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.40)" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             </div>
             <div>
-              <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Order Details</h2>
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Supplier and general information</p>
+              <h2 style={{ fontSize: '14px', fontWeight: 600, color: 'rgba(255,255,255,0.88)', margin: 0 }}>Order Details</h2>
+              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.40)', margin: 0 }}>Supplier and general information</p>
             </div>
           </div>
 
@@ -196,18 +201,18 @@ export default function PurchaseOrderFormPage() {
         </div>
 
         {/* Section: Line Items */}
-        <div className="content-card">
-          <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', overflow: 'hidden' }}>
+          <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <div style={{
                 width: '1.75rem', height: '1.75rem', borderRadius: '0.5rem',
-                background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
               }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.40)" strokeWidth="2" strokeLinecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
               </div>
               <div>
-                <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Line Items</h2>
-                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Products to order</p>
+                <h2 style={{ fontSize: '14px', fontWeight: 600, color: 'rgba(255,255,255,0.88)', margin: 0 }}>Line Items</h2>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.40)', margin: 0 }}>Products to order</p>
               </div>
             </div>
             {items.length > 0 && (
@@ -216,11 +221,11 @@ export default function PurchaseOrderFormPage() {
           </div>
 
           {/* Product search */}
-          <div style={{ padding: '1rem 1.5rem', borderBottom: items.length > 0 ? '1px solid var(--border-subtle)' : 'none' }}>
+          <div style={{ padding: '1rem 1.5rem', borderBottom: items.length > 0 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}>
             <div className="relative">
               <span style={{
                 position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)',
-                color: 'var(--text-muted)', pointerEvents: 'none'
+                color: 'rgba(255,255,255,0.40)', pointerEvents: 'none'
               }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               </span>
@@ -233,28 +238,28 @@ export default function PurchaseOrderFormPage() {
               />
               {productSearch && filteredProducts.length > 0 && (
                 <div className="absolute top-full left-0 right-0 z-10 mt-1.5 rounded-xl shadow-lg overflow-hidden"
-                  style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)' }}>
+                  style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.10)' }}>
                   {filteredProducts.map((p, idx) => (
                     <button
                       key={p._id}
                       onClick={() => addProduct(p)}
                       className="w-full flex items-center justify-between px-4 py-2.5 text-left text-sm transition-colors"
-                      style={{ color: 'var(--text-primary)', borderBottom: idx < filteredProducts.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}
-                      onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-subtle)')}
+                      style={{ color: 'rgba(255,255,255,0.88)', borderBottom: idx < filteredProducts.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none', background: 'transparent' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                     >
                       <div className="flex items-center gap-2.5">
                         <div style={{
                           width: '1.5rem', height: '1.5rem', borderRadius: '0.375rem',
-                          background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                          background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
                         }}>
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.40)" strokeWidth="2"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg>
                         </div>
                         <span className="font-medium">{p.name}</span>
                       </div>
                       <div className="flex items-center gap-3" style={{ flexShrink: 0 }}>
-                        <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{p.sku}</span>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        <span className="text-xs font-mono" style={{ color: 'rgba(255,255,255,0.40)' }}>{p.sku}</span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.40)" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                       </div>
                     </button>
                   ))}
@@ -268,18 +273,18 @@ export default function PurchaseOrderFormPage() {
             <div style={{ padding: '3rem 1.5rem', textAlign: 'center' }}>
               <div style={{
                 width: '3.5rem', height: '3.5rem', borderRadius: '1rem',
-                background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)',
+                background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem'
               }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-disabled)" strokeWidth="1.5" strokeLinecap="round">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.20)" strokeWidth="1.5" strokeLinecap="round">
                   <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
                   <line x1="8" y1="18" x2="21" y2="18"/>
                   <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/>
                   <line x1="3" y1="18" x2="3.01" y2="18"/>
                 </svg>
               </div>
-              <p className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>No items added yet</p>
-              <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Use the search above to find and add products</p>
+              <p className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.40)' }}>No items added yet</p>
+              <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.28)' }}>Use the search above to find and add products</p>
             </div>
           )}
 
@@ -287,29 +292,29 @@ export default function PurchaseOrderFormPage() {
           {items.length > 0 && (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead style={{ background: 'var(--bg-base)' }}>
+                <thead style={{ background: 'rgba(255,255,255,0.02)' }}>
                   <tr>
-                    <th className="text-left px-5 py-3 font-medium text-xs" style={{ color: 'var(--text-secondary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Product</th>
-                    <th className="text-left px-4 py-3 font-medium text-xs" style={{ color: 'var(--text-secondary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>SKU</th>
-                    <th className="text-left px-4 py-3 font-medium text-xs" style={{ color: 'var(--text-secondary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Unit</th>
-                    <th className="text-right px-4 py-3 font-medium text-xs" style={{ color: 'var(--text-secondary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Qty</th>
-                    <th className="text-right px-4 py-3 font-medium text-xs" style={{ color: 'var(--text-secondary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Unit Cost</th>
-                    <th className="text-right px-4 py-3 font-medium text-xs" style={{ color: 'var(--text-secondary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Total</th>
+                    <th className="text-left px-5 py-3 font-medium text-xs" style={{ color: 'rgba(255,255,255,0.28)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Product</th>
+                    <th className="text-left px-4 py-3 font-medium text-xs" style={{ color: 'rgba(255,255,255,0.28)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>SKU</th>
+                    <th className="text-left px-4 py-3 font-medium text-xs" style={{ color: 'rgba(255,255,255,0.28)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Unit</th>
+                    <th className="text-right px-4 py-3 font-medium text-xs" style={{ color: 'rgba(255,255,255,0.28)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Qty</th>
+                    <th className="text-right px-4 py-3 font-medium text-xs" style={{ color: 'rgba(255,255,255,0.28)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Unit Cost</th>
+                    <th className="text-right px-4 py-3 font-medium text-xs" style={{ color: 'rgba(255,255,255,0.28)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Total</th>
                     <th className="px-4 py-3 w-10" />
                   </tr>
                 </thead>
                 <tbody>
-                  {items.map((item, idx) => (
-                    <tr key={item.productId} style={{ borderTop: idx === 0 ? '1px solid var(--border-subtle)' : '1px solid var(--border-subtle)' }}>
+                  {items.map((item) => (
+                    <tr key={item.productId} style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                       <td className="px-5 py-3">
-                        <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{item.name}</span>
+                        <span className="font-medium" style={{ color: 'rgba(255,255,255,0.88)' }}>{item.name}</span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="font-mono text-xs px-2 py-1 rounded" style={{ background: 'var(--bg-subtle)', color: 'var(--text-secondary)' }}>
+                        <span className="font-mono text-xs px-2 py-1 rounded" style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.65)' }}>
                           {item.sku}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm" style={{ color: 'var(--text-secondary)' }}>{item.unit}</td>
+                      <td className="px-4 py-3 text-sm" style={{ color: 'rgba(255,255,255,0.65)' }}>{item.unit}</td>
                       <td className="px-4 py-3 text-right">
                         <input
                           type="number" min={0.001} step={0.001}
@@ -323,7 +328,7 @@ export default function PurchaseOrderFormPage() {
                         <div className="relative inline-block">
                           <span style={{
                             position: 'absolute', left: '0.625rem', top: '50%', transform: 'translateY(-50%)',
-                            color: 'var(--text-muted)', fontSize: '0.75rem', pointerEvents: 'none'
+                            color: 'rgba(255,255,255,0.40)', fontSize: '0.75rem', pointerEvents: 'none'
                           }}>₱</span>
                           <input
                             type="number" min={0} step={0.01}
@@ -335,7 +340,7 @@ export default function PurchaseOrderFormPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                        <span className="font-semibold" style={{ color: 'rgba(255,255,255,0.88)' }}>
                           ₱{(item.orderedQty * item.unitCost).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </td>
@@ -345,25 +350,25 @@ export default function PurchaseOrderFormPage() {
                           style={{
                             width: '1.75rem', height: '1.75rem', borderRadius: '0.375rem',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: 'var(--text-muted)', background: 'transparent',
+                            color: 'rgba(255,255,255,0.40)', background: 'transparent',
                             border: 'none', cursor: 'pointer', transition: 'all 0.15s'
                           }}
                           onMouseEnter={e => { e.currentTarget.style.color = '#dc2626'; e.currentTarget.style.background = 'rgba(220,38,38,0.08)' }}
-                          onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent' }}
+                          onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.40)'; e.currentTarget.style.background = 'transparent' }}
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <TrashIcon style={{ width: '14px', height: '14px' }} />
                         </button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
                 <tfoot>
-                  <tr style={{ borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-base)' }}>
-                    <td colSpan={5} className="px-5 py-3.5 text-right text-xs font-semibold" style={{ color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  <tr style={{ borderTop: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)' }}>
+                    <td colSpan={5} className="px-5 py-3.5 text-right text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                       Order Subtotal
                     </td>
                     <td className="px-4 py-3.5 text-right">
-                      <span className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>
+                      <span className="text-base font-bold" style={{ color: 'rgba(255,255,255,0.88)' }}>
                         ₱{subtotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
                     </td>
@@ -379,11 +384,10 @@ export default function PurchaseOrderFormPage() {
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.625rem',
           padding: '1rem 1.25rem', borderRadius: '0.875rem',
-          background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)',
-          boxShadow: 'var(--shadow-xs)'
+          background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)'
         }}>
           {items.length > 0 && (
-            <span className="text-xs mr-auto" style={{ color: 'var(--text-muted)' }}>
+            <span className="text-xs mr-auto" style={{ color: 'rgba(255,255,255,0.40)' }}>
               {items.length} item{items.length !== 1 ? 's' : ''} &middot; ₱{subtotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total
             </span>
           )}
@@ -412,6 +416,7 @@ export default function PurchaseOrderFormPage() {
           </button>
         </div>
 
+      </div>
       </div>
     </div>
   )

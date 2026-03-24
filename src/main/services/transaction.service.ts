@@ -5,6 +5,8 @@ import { Counter } from '../models/counter.model'
 import { Inventory } from '../models/inventory.model'
 import { StockAdjustment } from '../models/stock-adjustment.model'
 import { ActivityLog } from '../models/activity-log.model'
+import { Branch } from '../models/branch.model'
+import { Product } from '../models/product.model'
 import type {
   CompleteSaleInput,
   ITransaction,
@@ -110,9 +112,9 @@ export async function completeSale(
   branchId: string,
   terminalId: string
 ): Promise<ITransaction> {
-  // branchCode is passed from the renderer via CompleteSaleInput.
-  // Phase 7 settings will populate this properly; for now the renderer defaults to 'BR'.
-  const branchCode: string = input.branchCode ?? 'BR'
+  // Look up branchCode from DB using the authenticated branchId — never trust renderer
+  const branchDoc = await Branch.findById(branchId, 'code').lean()
+  const branchCode: string = (branchDoc as any)?.code ?? 'BR'
 
   // Validate renderer-computed total (guard against tampering or rounding bugs)
   const recomputed = computeTotal(input)
@@ -123,12 +125,24 @@ export async function completeSale(
   }
 
   const totalPaid = input.payments.reduce((s, p) => s + p.amount, 0)
+  if (totalPaid < input.totalAmount - 0.001) {
+    throw new Error('Total payment is less than the order total')
+  }
   const change = roundCents(Math.max(0, totalPaid - input.totalAmount))
 
   const session = await mongoose.startSession()
   let savedTxn: any
   try {
     await session.withTransaction(async () => {
+      // Validate prices against DB to prevent renderer-side price tampering
+      for (const item of input.items) {
+        const product = await Product.findById(item.productId, 'sellingPrice costPrice').lean()
+        if (!product) throw new Error(`Product ${item.sku} not found`)
+        if (Math.abs(item.unitPrice - (product as any).sellingPrice) > 0.001) {
+          throw new Error(`Price mismatch for product ${item.sku}: expected ${(product as any).sellingPrice}`)
+        }
+      }
+
       // Generate receipt number INSIDE session so counter increment is atomic with txn insert
       const receiptNo = await generateReceiptNo(branchCode, session)
 
@@ -215,7 +229,9 @@ export async function completeSale(
     targetId: savedTxn._id,
     targetCollection: 'transactions',
     metadata: { receiptNo: savedTxn.receiptNo, totalAmount: savedTxn.totalAmount }
-  }).catch(() => {})
+  }).catch((err) => {
+    console.warn('[ActivityLog] Failed to write activity log:', err?.message ?? err)
+  })
 
   return toShared(savedTxn)
 }
@@ -294,7 +310,9 @@ export async function voidTransaction(
     targetId: txn._id,
     targetCollection: 'transactions',
     metadata: { receiptNo: txn.receiptNo, reason: input.reason }
-  }).catch(() => {})
+  }).catch((err) => {
+    console.warn('[ActivityLog] Failed to write activity log:', err?.message ?? err)
+  })
 
   return toShared(updated)
 }
@@ -307,46 +325,85 @@ export async function refundTransaction(
   branchId: string,
   terminalId: string
 ): Promise<ITransaction> {
+  // Merge duplicate productIds in the refund request
+  const mergedMap = new Map<string, number>()
+  for (const ri of input.refundedItems) {
+    const pid = ri.productId.toString()
+    mergedMap.set(pid, (mergedMap.get(pid) ?? 0) + ri.quantity)
+  }
+  const deduped = Array.from(mergedMap.entries()).map(([productId, quantity]) => ({ productId, quantity }))
+  // Replace input.refundedItems for all downstream use
+  const refundItems = deduped
+
   const txn = await Transaction.findById(input.transactionId)
   if (!txn) throw new Error('Transaction not found')
-  if (txn.status !== 'completed') throw new Error('Only completed transactions can be refunded')
+  if (!['completed', 'partially_refunded'].includes(txn.status)) {
+    throw new Error('Only completed or partially-refunded transactions can be refunded')
+  }
   if (txn.branchId.toString() !== branchId) throw new Error('Transaction belongs to a different branch')
-  if (txn.refundedItems && txn.refundedItems.length > 0) {
-    throw new Error('This transaction has already been refunded')
-  }
-
-  // Validate refunded items exist in the original transaction
-  const txnItems = txn.items as any[]
-  for (const ri of input.refundedItems) {
-    const original = txnItems.find((i: any) => i.productId.toString() === ri.productId)
-    if (!original) throw new Error(`Product ${ri.productId} not in original transaction`)
-    if (ri.quantity > original.quantity) throw new Error(`Refund quantity exceeds sold quantity for product ${ri.productId}`)
-  }
 
   const now = new Date()
   const session = await mongoose.startSession()
   let updated: any
   try {
     await session.withTransaction(async () => {
-      // Atomically update only if still 'completed' and no refundedItems yet
+      // Re-read inside session to get authoritative state (prevents TOCTOU)
+      const txnFresh = await Transaction.findById(input.transactionId).session(session)
+      if (!txnFresh || !['completed', 'partially_refunded'].includes(txnFresh.status)) {
+        throw new Error('Transaction not found or not eligible for refund')
+      }
+      if (txnFresh.branchId.toString() !== branchId) throw new Error('Transaction belongs to a different branch')
+
+      // Validate per-item remaining quantities using the fresh in-session snapshot
+      const txnItems = txnFresh.items as any[]
+      for (const ri of refundItems) {
+        const original = txnItems.find((i: any) => i.productId.toString() === ri.productId)
+        if (!original) throw new Error(`Product ${ri.productId} not in original transaction`)
+        const alreadyRefunded = (txnFresh.refundedItems ?? [])
+          .filter((r: any) => r.productId.toString() === ri.productId)
+          .reduce((sum: number, r: any) => sum + r.quantity, 0)
+        const remaining = original.quantity - alreadyRefunded
+        if (ri.quantity > remaining) {
+          throw new Error(`Refund quantity exceeds remaining refundable quantity (${remaining}) for product ${ri.productId}`)
+        }
+      }
+
+      // Determine new status: fully refunded or partial
+      const allItemsFullyRefunded = txnItems.every((original: any) => {
+        const totalRefunded = [
+          ...(txnFresh.refundedItems ?? []),
+          ...refundItems
+            .filter(ri => ri.productId === original.productId.toString())
+            .map(ri => ({ productId: original.productId, quantity: ri.quantity }))
+        ]
+          .filter((r: any) => r.productId.toString() === original.productId.toString())
+          .reduce((sum: number, r: any) => sum + r.quantity, 0)
+        return totalRefunded >= original.quantity
+      })
+      const newStatus = allItemsFullyRefunded ? 'refunded' : 'partially_refunded'
+
       updated = await Transaction.findOneAndUpdate(
-        { _id: input.transactionId, status: 'completed', 'refundedItems.0': { $exists: false } },
+        { _id: input.transactionId, status: { $in: ['completed', 'partially_refunded'] } },
         {
-          status: 'refunded',
+          status: newStatus,
           refundedBy: userId,
           refundedAt: now,
           refundReason: input.reason,
-          refundedItems: input.refundedItems.map((ri) => ({
-            productId: ri.productId,
-            quantity: ri.quantity,
-            refundedAt: now
-          }))
+          $push: {
+            refundedItems: {
+              $each: refundItems.map((ri) => ({
+                productId: ri.productId,
+                quantity: ri.quantity,
+                refundedAt: now
+              }))
+            }
+          }
         },
         { session, new: true }
       )
-      if (!updated) throw new Error('Transaction not found, already refunded, or not eligible for refund')
+      if (!updated) throw new Error('Transaction not found or not eligible for refund')
 
-      for (const ri of input.refundedItems) {
+      for (const ri of refundItems) {
         const restoredInv = await Inventory.findOneAndUpdate(
           { productId: ri.productId, branchId },
           { $inc: { quantity: ri.quantity } },
@@ -355,7 +412,6 @@ export async function refundTransaction(
         if (restoredInv) {
           const newStock: number = (restoredInv as any).quantity
           const previousStock = newStock - ri.quantity
-          // Only create adjustment if inventory record existed
           await StockAdjustment.create(
             [
               {
@@ -387,16 +443,20 @@ export async function refundTransaction(
     action: 'refund_transaction',
     targetId: txn._id,
     targetCollection: 'transactions',
-    metadata: { receiptNo: txn.receiptNo, reason: input.reason, refundedItems: input.refundedItems }
-  }).catch(() => {})
+    metadata: { receiptNo: txn.receiptNo, reason: input.reason, refundedItems: refundItems }
+  }).catch((err) => {
+    console.warn('[ActivityLog] Failed to write activity log:', err?.message ?? err)
+  })
 
   return toShared(updated)
 }
 
 // ─── getTransaction ──────────────────────────────────────────────────────────
 
-export async function getTransaction(id: string): Promise<ITransaction> {
-  const txn = await Transaction.findById(id).lean()
+export async function getTransaction(id: string, branchId?: string): Promise<ITransaction> {
+  const query: any = { _id: id }
+  if (branchId) query.branchId = branchId
+  const txn = await Transaction.findOne(query).lean()
   if (!txn) throw new Error('Transaction not found')
   return toShared(txn)
 }

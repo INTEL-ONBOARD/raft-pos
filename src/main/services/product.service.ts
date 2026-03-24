@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'
 import { Product } from '../models/product.model'
 import { Inventory } from '../models/inventory.model'
 import type { IProduct, CreateProductInput, UpdateProductInput } from '@shared/types/product.types'
@@ -59,6 +60,9 @@ export async function createProduct(input: CreateProductInput, branchId: string)
   const existing = await Product.findOne({ sku: input.sku.toUpperCase() })
   if (existing) throw new Error(`SKU "${input.sku}" already exists`)
 
+  // Store barcode as null (not empty string) when absent so the unique+sparse index works correctly
+  const barcode = input.barcode?.trim() || null
+
   const product = await Product.create({
     sku: input.sku.toUpperCase(),
     name: input.name,
@@ -67,7 +71,7 @@ export async function createProduct(input: CreateProductInput, branchId: string)
     unit: input.unit,
     costPrice: input.costPrice,
     sellingPrice: input.sellingPrice,
-    barcode: input.barcode ?? '',
+    barcode,
     imageUrl: input.imageUrl ?? null,
     taxRate: input.taxRate ?? null,
     isActive: true
@@ -95,6 +99,10 @@ export async function updateProduct(id: string, input: UpdateProductInput): Prom
     const conflict = await Product.findOne({ sku: input.sku.toUpperCase(), _id: { $ne: id } })
     if (conflict) throw new Error(`SKU "${input.sku}" already exists`)
     input = { ...input, sku: input.sku.toUpperCase() }
+  }
+  // Normalize barcode: empty string → null so the unique+sparse index works correctly
+  if (input.barcode !== undefined) {
+    input = { ...input, barcode: input.barcode?.trim() || null }
   }
   const p = await Product.findByIdAndUpdate(id, { $set: input }, { new: true }).lean()
   return p ? toShared(p) : null
@@ -130,6 +138,9 @@ export async function importProductsFromCsv(
   const errors: CsvImportResult['errors'] = []
   let imported = 0
 
+  // First pass: validate all rows (no DB writes)
+  const validRows: Array<{ rowNum: number; row: CsvImportRow; costPrice: number; sellingPrice: number }> = []
+
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i]
     const rowNum = i + 2  // +2 because row 1 is header
@@ -144,21 +155,58 @@ export async function importProductsFromCsv(
     if (isNaN(costPrice) || costPrice < 0) { errors.push({ row: rowNum, sku: row.sku, error: 'costPrice must be a non-negative number' }); continue }
     if (isNaN(sellingPrice) || sellingPrice < 0) { errors.push({ row: rowNum, sku: row.sku, error: 'sellingPrice must be a non-negative number' }); continue }
 
+    validRows.push({ rowNum, row, costPrice, sellingPrice })
+  }
+
+  // Only write if there are no validation errors — all rows succeed or none are written
+  if (errors.length === 0 && validRows.length > 0) {
+    const session = await mongoose.startSession()
     try {
-      await createProduct({
-        sku: row.sku.trim(),
-        name: row.name.trim(),
-        description: row.description?.trim(),
-        categoryId: row.categoryId?.trim() || null,
-        unit: row.unit as any,
-        costPrice,
-        sellingPrice,
-        barcode: row.barcode?.trim(),
-        taxRate: row.taxRate ? parseFloat(row.taxRate) : null
-      }, branchId)
-      imported++
-    } catch (err: any) {
-      errors.push({ row: rowNum, sku: row.sku, error: err.message ?? 'Failed to import' })
+      await session.withTransaction(async () => {
+        for (const { row, costPrice, sellingPrice } of validRows) {
+          const sku = row.sku.trim().toUpperCase()
+          const existing = await Product.findOne({ sku }).session(session)
+          if (existing) throw new Error(`SKU "${sku}" already exists`)
+
+          const barcode = row.barcode?.trim() || null
+
+          const [product] = await Product.create(
+            [
+              {
+                sku,
+                name: row.name.trim(),
+                description: row.description?.trim() ?? '',
+                categoryId: row.categoryId?.trim() || null,
+                unit: row.unit as any,
+                costPrice,
+                sellingPrice,
+                barcode,
+                imageUrl: null,
+                taxRate: row.taxRate ? parseFloat(row.taxRate) : null,
+                isActive: true
+              }
+            ],
+            { session }
+          )
+
+          await Inventory.create(
+            [
+              {
+                productId: product._id,
+                branchId,
+                quantity: 0,
+                lowStockThreshold: 5,
+                reorderPoint: 10
+              }
+            ],
+            { session }
+          )
+
+          imported++
+        }
+      })
+    } finally {
+      await session.endSession()
     }
   }
 

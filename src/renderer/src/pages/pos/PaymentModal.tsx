@@ -12,15 +12,14 @@ const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
   { value: 'paymaya', label: 'PayMaya' }
 ]
 
-const DEFAULT_TAX_RATE = 0
-
 interface PaymentModalProps {
   onClose: () => void
+  taxRate: number
 }
 
-export function PaymentModal({ onClose }: PaymentModalProps) {
+export function PaymentModal({ onClose, taxRate }: PaymentModalProps) {
   const addPayment = usePosStore((s) => s.addPayment)
-  const totals = useCartTotals(DEFAULT_TAX_RATE)
+  const totals = useCartTotals(taxRate)
 
   const [method, setMethod] = useState<PaymentMethod>('cash')
   const [amount, setAmount] = useState<string>(

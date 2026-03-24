@@ -10,6 +10,8 @@ import type { ReportFilters } from '@shared/types/reporting.types'
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
+import ExcelJS from 'exceljs'
+import PDFDocument from 'pdfkit'
 
 function requireReporting(auth: any) {
   if (!auth.role.permissions.includes('can_view_reports')) throw new Error('Permission denied')
@@ -17,7 +19,12 @@ function requireReporting(auth: any) {
 
 function scopeFilters(auth: any, filters: ReportFilters): ReportFilters {
   const canViewAll = auth.role.permissions.includes('can_view_all_branches')
-  return { ...filters, branchId: canViewAll && filters.branchId ? filters.branchId : auth.user.branchId }
+  if (canViewAll) {
+    // Admin can query a specific branch OR all branches (branchId undefined = all)
+    return { ...filters }
+  }
+  // Non-admin: always scope to own branch, ignore any branchId in filters
+  return { ...filters, branchId: auth.user.branchId }
 }
 
 export function registerReportingHandlers(): void {
@@ -74,16 +81,22 @@ export function registerReportingHandlers(): void {
       const auth = await requireAuth(store.get('jwt') ?? null)
       if (!auth.role.permissions.includes('can_export_reports')) return { success: false, error: 'Permission denied' }
       const r = req as { filters: ReportFilters; rows: any[][]; headers: string[]; title: string }
+      // Sanitize title: strip path separators to prevent path traversal in defaultPath
+      const safeTitle = path.basename(String(r.title ?? 'Report').replace(/[/\\]/g, '_')).slice(0, 100)
 
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const ExcelJS = require('exceljs')
       const wb = new ExcelJS.Workbook()
-      const ws = wb.addWorksheet(r.title)
+      const ws = wb.addWorksheet(safeTitle)
       ws.addRow(r.headers)
-      r.rows.forEach((row: any[]) => ws.addRow(row))
+      r.rows.forEach((row: any[]) => {
+        // Force each cell value to String to prevent CSV/formula injection (=, +, -, @ prefixes)
+        ws.addRow(row.map((cell) => {
+          const s = String(cell ?? '')
+          return /^[=+\-@]/.test(s) ? `'${s}` : s
+        }))
+      })
 
       const { filePath } = await dialog.showSaveDialog({
-        defaultPath: path.join(os.homedir(), `${r.title.replace(/\s+/g, '_')}.xlsx`),
+        defaultPath: path.join(os.homedir(), `${safeTitle.replace(/\s+/g, '_')}.xlsx`),
         filters: [{ name: 'Excel', extensions: ['xlsx'] }]
       })
       if (!filePath) return { success: false, error: 'Cancelled' }
@@ -99,11 +112,10 @@ export function registerReportingHandlers(): void {
       const auth = await requireAuth(store.get('jwt') ?? null)
       if (!auth.role.permissions.includes('can_export_reports')) return { success: false, error: 'Permission denied' }
       const r = req as { filters: ReportFilters; rows: any[][]; headers: string[]; title: string }
+      const safeTitle = path.basename(String(r.title ?? 'Report').replace(/[/\\]/g, '_')).slice(0, 100)
 
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const PDFDocument = require('pdfkit')
       const { filePath } = await dialog.showSaveDialog({
-        defaultPath: path.join(os.homedir(), `${r.title.replace(/\s+/g, '_')}.pdf`),
+        defaultPath: path.join(os.homedir(), `${safeTitle.replace(/\s+/g, '_')}.pdf`),
         filters: [{ name: 'PDF', extensions: ['pdf'] }]
       })
       if (!filePath) return { success: false, error: 'Cancelled' }
@@ -111,7 +123,7 @@ export function registerReportingHandlers(): void {
       const doc = new PDFDocument({ margin: 40, size: 'A4' })
       const stream = fs.createWriteStream(filePath)
       doc.pipe(stream)
-      doc.fontSize(16).text(r.title, { align: 'center' })
+      doc.fontSize(16).text(safeTitle, { align: 'center' })
       doc.moveDown(0.5)
       doc.fontSize(9).text(r.headers.join('  |  '), { continued: false })
       doc.moveDown(0.2)

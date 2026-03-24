@@ -17,12 +17,14 @@ export function registerPurchaseOrderHandlers(): void {
 
       const r = req as { supplierId?: string; status?: string; limit?: number; skip?: number } | undefined
       const branchId = canViewAll ? null : auth.user.branchId
+      const limit = Math.min(Math.max(1, r?.limit ?? 50), 500)
+      const skip = Math.max(0, r?.skip ?? 0)
       const result = await getPOs({
         branchId,
         supplierId: r?.supplierId,
         status: r?.status,
-        limit: r?.limit,
-        skip: r?.skip
+        limit,
+        skip
       })
       return { success: true, ...result }
     } catch (err: any) {
@@ -72,9 +74,10 @@ export function registerPurchaseOrderHandlers(): void {
       if (!auth.role.permissions.includes('can_manage_purchase_orders')) {
         return { success: false, error: 'Permission denied' }
       }
+      const canViewAll = auth.role.permissions.includes('can_view_all_branches')
       const r = req as { id: string; input: any }
       if (!r?.id) return { success: false, error: 'ID is required' }
-      const data = await updatePO(r.id, r.input)
+      const data = await updatePO(r.id, r.input, auth.user.branchId, canViewAll)
       if (!data) return { success: false, error: 'Purchase order not found or not in draft status' }
       return { success: true, data }
     } catch (err: any) {
@@ -88,9 +91,10 @@ export function registerPurchaseOrderHandlers(): void {
       if (!auth.role.permissions.includes('can_manage_purchase_orders')) {
         return { success: false, error: 'Permission denied' }
       }
+      const canViewAllSend = auth.role.permissions.includes('can_view_all_branches')
       const r = req as { id: string }
       if (!r?.id) return { success: false, error: 'ID is required' }
-      const data = await sendPO(r.id)
+      const data = await sendPO(r.id, auth.user.branchId, canViewAllSend)
       if (!data) return { success: false, error: 'Purchase order not found or not in draft status' }
       return { success: true, data }
     } catch (err: any) {
@@ -120,9 +124,10 @@ export function registerPurchaseOrderHandlers(): void {
       if (!auth.role.permissions.includes('can_manage_purchase_orders')) {
         return { success: false, error: 'Permission denied' }
       }
+      const canViewAllCancel = auth.role.permissions.includes('can_view_all_branches')
       const r = req as { id: string }
       if (!r?.id) return { success: false, error: 'ID is required' }
-      const data = await cancelPO(r.id)
+      const data = await cancelPO(r.id, auth.user.branchId, canViewAllCancel)
       if (!data) return { success: false, error: 'Purchase order not found or cannot be cancelled in its current status' }
       return { success: true, data }
     } catch (err: any) {

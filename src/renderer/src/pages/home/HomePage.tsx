@@ -2,12 +2,31 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  ShoppingCart, Package, FolderOpen, Warehouse,
-  ClipboardList, Truck, ArrowLeftRight, BarChart3,
-  CreditCard, Users, Shield, Settings,
-  LayoutDashboard, ChevronRight,
-} from 'lucide-react'
+  ShoppingCartIcon,
+  CubeIcon,
+  FolderOpenIcon,
+  BuildingStorefrontIcon,
+  ClipboardDocumentListIcon,
+  TruckIcon,
+  ArrowsRightLeftIcon,
+  ChartBarSquareIcon,
+  CreditCardIcon,
+  UsersIcon,
+  ShieldCheckIcon,
+  Cog6ToothIcon,
+  Squares2X2Icon,
+  ChevronRightIcon,
+  ArrowTrendingUpIcon,
+  ExclamationTriangleIcon,
+  BanknotesIcon,
+  BoltIcon,
+  Square3Stack3DIcon,
+  ClockIcon,
+} from '@heroicons/react/24/outline'
 import { useAuth } from '../../hooks/useAuth'
+import { useDashboard } from '../../hooks/useDashboard'
+import { useCashDrawer } from '../../hooks/useCashDrawer'
+import { useInventory } from '../../hooks/useInventory'
 import { PERMISSIONS } from '@shared/types/permissions'
 import type { Permission } from '@shared/types/permissions'
 
@@ -38,7 +57,7 @@ const TILE_GROUPS: TileGroup[] = [
     tiles: [
       {
         to: '/orders',
-        icon: ShoppingCart,
+        icon: ShoppingCartIcon,
         label: 'Point of Sale',
         description: 'Process sales & payments',
         accent: '#a78bfa',
@@ -48,7 +67,7 @@ const TILE_GROUPS: TileGroup[] = [
       },
       {
         to: '/dashboard',
-        icon: LayoutDashboard,
+        icon: Squares2X2Icon,
         label: 'Dashboard',
         description: 'Revenue overview & KPIs',
         accent: '#38bdf8',
@@ -57,7 +76,7 @@ const TILE_GROUPS: TileGroup[] = [
       },
       {
         to: '/transactions',
-        icon: ArrowLeftRight,
+        icon: ArrowsRightLeftIcon,
         label: 'Transactions',
         description: 'View, void & refund sales',
         accent: '#818cf8',
@@ -71,7 +90,7 @@ const TILE_GROUPS: TileGroup[] = [
       },
       {
         to: '/cash-drawer',
-        icon: CreditCard,
+        icon: CreditCardIcon,
         label: 'Cash Drawer',
         description: 'Open, close & audit cash',
         accent: '#f87171',
@@ -87,7 +106,7 @@ const TILE_GROUPS: TileGroup[] = [
     tiles: [
       {
         to: '/products',
-        icon: Package,
+        icon: CubeIcon,
         label: 'Products',
         description: 'Manage your catalog',
         accent: '#c084fc',
@@ -97,7 +116,7 @@ const TILE_GROUPS: TileGroup[] = [
       },
       {
         to: '/inventory',
-        icon: Warehouse,
+        icon: BuildingStorefrontIcon,
         label: 'Inventory',
         description: 'Track stock & adjustments',
         accent: '#60a5fa',
@@ -107,7 +126,7 @@ const TILE_GROUPS: TileGroup[] = [
       },
       {
         to: '/categories',
-        icon: FolderOpen,
+        icon: FolderOpenIcon,
         label: 'Categories',
         description: 'Organise product groups',
         accent: '#fb923c',
@@ -117,7 +136,7 @@ const TILE_GROUPS: TileGroup[] = [
       },
       {
         to: '/purchase-orders',
-        icon: ClipboardList,
+        icon: ClipboardDocumentListIcon,
         label: 'Purchase Orders',
         description: 'Create & receive orders',
         accent: '#34d399',
@@ -127,7 +146,7 @@ const TILE_GROUPS: TileGroup[] = [
       },
       {
         to: '/suppliers',
-        icon: Truck,
+        icon: TruckIcon,
         label: 'Suppliers',
         description: 'Manage supplier contacts',
         accent: '#fbbf24',
@@ -143,7 +162,7 @@ const TILE_GROUPS: TileGroup[] = [
     tiles: [
       {
         to: '/reporting',
-        icon: BarChart3,
+        icon: ChartBarSquareIcon,
         label: 'Reports',
         description: 'Sales & performance data',
         accent: '#4ade80',
@@ -159,7 +178,7 @@ const TILE_GROUPS: TileGroup[] = [
     tiles: [
       {
         to: '/users',
-        icon: Users,
+        icon: UsersIcon,
         label: 'Users',
         description: 'Manage staff accounts',
         accent: '#a78bfa',
@@ -169,7 +188,7 @@ const TILE_GROUPS: TileGroup[] = [
       },
       {
         to: '/roles',
-        icon: Shield,
+        icon: ShieldCheckIcon,
         label: 'Roles',
         description: 'Permissions & access levels',
         accent: '#2dd4bf',
@@ -179,7 +198,7 @@ const TILE_GROUPS: TileGroup[] = [
       },
       {
         to: '/settings',
-        icon: Settings,
+        icon: Cog6ToothIcon,
         label: 'Settings',
         description: 'System & store settings',
         accent: '#94a3b8',
@@ -195,6 +214,25 @@ const TILE_GROUPS: TileGroup[] = [
 export default function HomePage() {
   const navigate = useNavigate()
   const { user, role, hasPermission } = useAuth()
+  const { data: stats } = useDashboard()
+  const { openDrawerQuery } = useCashDrawer()
+  const { stockQuery } = useInventory()
+  const drawer = openDrawerQuery.data
+
+  // Drawer open duration (live tick)
+  const [drawerDuration, setDrawerDuration] = useState('')
+  useEffect(() => {
+    if (!drawer?.openedAt) { setDrawerDuration(''); return }
+    function update() {
+      const diff = Math.floor((Date.now() - new Date(drawer!.openedAt).getTime()) / 1000)
+      const h = Math.floor(diff / 3600)
+      const m = Math.floor((diff % 3600) / 60)
+      setDrawerDuration(h > 0 ? `${h}h ${m}m open` : `${m}m open`)
+    }
+    update()
+    const id = setInterval(update, 60_000)
+    return () => clearInterval(id)
+  }, [drawer?.openedAt])
 
   const firstName = user?.name?.split(' ')[0] ?? 'there'
   const hour = new Date().getHours()
@@ -204,7 +242,6 @@ export default function HomePage() {
     hour < 17 ? 'Good afternoon' :
                 'Good evening'
 
-  // Filter tiles by permission, then filter out empty groups
   const groups = TILE_GROUPS.map((g) => ({
     ...g,
     tiles: g.tiles.filter((t) => {
@@ -214,11 +251,11 @@ export default function HomePage() {
     }),
   })).filter((g) => g.tiles.length > 0)
 
-  const [activeTab, setActiveTab] = useState(0)
+  const lowStockCount = stats?.lowStockItems?.length ?? 0
+  const drawerOpen = drawer?.status === 'open'
 
-  // Clamp activeTab if groups change (permission filtering)
-  const safeTab = Math.min(activeTab, groups.length - 1)
-  const activeGroup = groups[safeTab]
+  // Flat stagger index across all groups
+  let flatIndex = 0
 
   return (
     <div
@@ -249,147 +286,286 @@ export default function HomePage() {
         backgroundSize: '200px 200px',
       }} />
 
-      {/* ── Content (fills height, no scroll) ── */}
+      {/* ── Main layout ── */}
       <div style={{
         position: 'relative', zIndex: 1,
         flex: 1, display: 'flex', flexDirection: 'column',
-        padding: '44px 60px 48px',
+        padding: '32px 40px 32px',
         overflow: 'hidden',
       }}>
 
-        {/* ── Hero row ── */}
-        <div className="home-hero" style={{ marginBottom: '36px', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-
-            {/* Left: greeting */}
-            <div>
-              {/* Role pill */}
-              <div style={{
-                display: 'inline-flex', alignItems: 'center', gap: '6px',
-                background: 'rgba(251,191,36,0.10)',
-                border: '1px solid rgba(251,191,36,0.20)',
-                borderRadius: '999px',
-                padding: '4px 12px',
-                marginBottom: '16px',
-              }}>
-                <span style={{
-                  width: '6px', height: '6px', borderRadius: '50%',
-                  background: '#fbbf24',
-                  boxShadow: '0 0 8px rgba(251,191,36,0.8)',
-                  display: 'inline-block',
-                }} />
-                <span style={{
-                  fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em',
-                  textTransform: 'uppercase', color: '#fbbf24',
-                }}>
-                  {role?.name ?? 'Staff'}
-                </span>
-              </div>
-
-              <h1 style={{
-                fontSize: '40px', fontWeight: 800, lineHeight: 1.05,
-                letterSpacing: '-0.035em', color: '#ffffff', marginBottom: '0',
-              }}>
-                {greeting},{' '}
-                <span style={{
-                  background: 'linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.65) 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                }}>{firstName}.</span>
-              </h1>
+        {/* ── Hero: single compact line ── */}
+        <div
+          className="home-hero"
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            marginBottom: '24px', flexShrink: 0,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            {/* Role pill */}
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: '6px',
+              background: 'rgba(251,191,36,0.10)',
+              border: '1px solid rgba(251,191,36,0.20)',
+              borderRadius: '999px',
+              padding: '4px 12px',
+              flexShrink: 0,
+            }}>
+              <span style={{
+                width: '6px', height: '6px', borderRadius: '50%',
+                background: '#fbbf24', boxShadow: '0 0 8px rgba(251,191,36,0.8)',
+                display: 'inline-block',
+              }} />
+              <span style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#fbbf24' }}>
+                {role?.name ?? 'Staff'}
+              </span>
             </div>
-
-            {/* Right: clock */}
-            <Clock />
+            <h1 style={{ fontSize: '28px', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.03em', color: '#ffffff', margin: 0 }}>
+              {greeting},{' '}
+              <span style={{
+                background: 'linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.65) 100%)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              }}>{firstName}.</span>
+            </h1>
           </div>
-
-          {/* Separator */}
-          <div style={{
-            marginTop: '28px',
-            height: '1px',
-            background: 'linear-gradient(to right, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 60%, transparent 100%)',
-          }} />
+          <Clock />
         </div>
 
-        {/* ── Tab bar ── */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '6px',
-          marginBottom: '32px', flexShrink: 0,
-        }}>
-          {groups.map((group, i) => {
-            const isActive = i === safeTab
-            return (
-              <button
-                key={group.label}
-                onClick={() => setActiveTab(i)}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '7px',
-                  height: '36px', padding: '0 16px',
-                  borderRadius: '999px',
-                  border: isActive ? '1px solid rgba(255,255,255,0.18)' : '1px solid rgba(255,255,255,0.07)',
-                  background: isActive ? 'rgba(255,255,255,0.10)' : 'transparent',
-                  cursor: 'pointer', outline: 'none',
-                  transition: 'background 180ms ease-out, border-color 180ms ease-out',
-                }}
-                onMouseEnter={e => {
-                  if (!isActive) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.05)'
-                }}
-                onMouseLeave={e => {
-                  if (!isActive) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
-                }}
-              >
-                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', lineHeight: 1 }}>
-                  {group.icon}
-                </span>
-                <span style={{
-                  fontSize: '13px', fontWeight: isActive ? 600 : 500,
-                  letterSpacing: '-0.01em',
-                  color: isActive ? '#ffffff' : 'rgba(255,255,255,0.45)',
-                  transition: 'color 180ms ease-out',
-                }}>
-                  {group.label}
-                </span>
-                {isActive && (
+        {/* ── Body: left (bento groups) + right (info panel card) ── */}
+        <div style={{ flex: 1, display: 'flex', gap: '20px', overflow: 'hidden', minHeight: 0 }}>
+
+          {/* ── Left column: all groups ── */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px', minWidth: 0, overflowY: 'auto' }}>
+            {groups.map((group) => (
+              <div key={group.label}>
+                {/* Group label row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                   <span style={{
-                    fontSize: '11px', fontWeight: 600,
-                    background: 'rgba(255,255,255,0.12)',
-                    color: 'rgba(255,255,255,0.6)',
-                    borderRadius: '999px',
-                    padding: '1px 7px',
-                    lineHeight: 1.6,
+                    fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em',
+                    textTransform: 'uppercase', color: 'rgba(255,255,255,0.22)',
+                    flexShrink: 0,
                   }}>
-                    {group.tiles.length}
+                    {group.label}
                   </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
-
-        {/* ── Active group tile grid ── */}
-        {activeGroup && (
-          <div
-            key={activeGroup.label}
-            style={{
-              flex: 1,
-              display: 'grid',
-              gap: '14px',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
-              alignContent: 'start',
-              animation: 'fadeSlideUp 0.35s cubic-bezier(0.22,1,0.36,1) both',
-            }}
-          >
-            {activeGroup.tiles.map((tile, i) => (
-              <TileCard
-                key={tile.to}
-                tile={tile}
-                delay={i * 40}
-                onNavigate={() => navigate(tile.to)}
-              />
+                  <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.05)' }} />
+                </div>
+                {/* Tile grid */}
+                <div style={{
+                  display: 'grid',
+                  gap: '10px',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(165px, 1fr))',
+                  gridAutoRows: '130px',
+                }}>
+                  {group.tiles.map((tile) => {
+                    const delay = flatIndex++ * 35
+                    return (
+                      <TileCard
+                        key={tile.to}
+                        tile={tile}
+                        delay={delay}
+                        onNavigate={() => navigate(tile.to)}
+                      />
+                    )
+                  })}
+                </div>
+              </div>
             ))}
           </div>
-        )}
 
+          {/* ── Right info panel: solid card ── */}
+          <div style={{
+            width: '260px', flexShrink: 0,
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.07)',
+            borderRadius: '20px',
+            padding: '16px',
+            display: 'flex', flexDirection: 'column',
+            overflow: 'hidden',
+          }}>
+
+            {/* ── TODAY section ── */}
+            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.22)', marginBottom: '2px' }}>Today</p>
+
+            <InfoCard
+              icon={<ArrowTrendingUpIcon style={{ width: 15, height: 15 }} />}
+              iconColor="#4ade80"
+              iconBg="rgba(74,222,128,0.12)"
+              label="Revenue"
+              value={stats ? `₱${(stats.todayRevenue ?? 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}` : '—'}
+              sub={stats ? `${stats.todayTransactions ?? 0} transactions` : 'Loading...'}
+              subColor="rgba(74,222,128,0.65)"
+            />
+
+            <InfoCard
+              icon={<BoltIcon style={{ width: 15, height: 15 }} />}
+              iconColor="#60a5fa"
+              iconBg="rgba(96,165,250,0.12)"
+              label="Avg. Order Value"
+              value={stats ? `₱${(stats.averageOrderValue ?? 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}` : '—'}
+              sub={stats ? `${stats.todayItemsSold ?? 0} items sold` : 'Loading...'}
+              subColor="rgba(96,165,250,0.65)"
+            />
+
+            <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '6px 0' }} />
+
+            {/* ── STORE section ── */}
+            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.22)', marginBottom: '2px' }}>Store</p>
+
+            <InfoCard
+              icon={<BanknotesIcon style={{ width: 15, height: 15 }} />}
+              iconColor={drawerOpen ? '#4ade80' : '#f87171'}
+              iconBg={drawerOpen ? 'rgba(74,222,128,0.12)' : 'rgba(248,113,113,0.10)'}
+              label="Cash Drawer"
+              value={drawerOpen ? 'Open' : 'Closed'}
+              sub={drawerOpen ? (drawerDuration || 'Just opened') : 'No drawer open'}
+              subColor={drawerOpen ? 'rgba(74,222,128,0.65)' : 'rgba(248,113,113,0.55)'}
+              valueColor={drawerOpen ? '#4ade80' : '#f87171'}
+              onClick={() => navigate('/cash-drawer')}
+            />
+
+            <InfoCard
+              icon={<ExclamationTriangleIcon style={{ width: 15, height: 15 }} />}
+              iconColor={lowStockCount > 0 ? '#fbbf24' : '#4ade80'}
+              iconBg={lowStockCount > 0 ? 'rgba(251,191,36,0.12)' : 'rgba(74,222,128,0.10)'}
+              label="Low Stock"
+              value={lowStockCount > 0 ? `${lowStockCount} items` : 'All good'}
+              sub={lowStockCount > 0 ? 'Needs restocking' : 'Levels healthy'}
+              subColor={lowStockCount > 0 ? 'rgba(251,191,36,0.65)' : 'rgba(74,222,128,0.55)'}
+              valueColor={lowStockCount > 0 ? '#fbbf24' : '#4ade80'}
+              onClick={lowStockCount > 0 ? () => navigate('/inventory') : undefined}
+            />
+
+            {(() => {
+              const stockRows = stockQuery.data ?? []
+              const totalProducts = stockRows.length
+              const totalUnits = stockRows.reduce((sum, r) => sum + r.quantity, 0)
+              return (
+                <InfoCard
+                  icon={<Square3Stack3DIcon style={{ width: 15, height: 15 }} />}
+                  iconColor="#c084fc"
+                  iconBg="rgba(192,132,252,0.12)"
+                  label="Inventory"
+                  value={`${totalProducts} products`}
+                  sub={`${totalUnits.toLocaleString()} units total`}
+                  subColor="rgba(192,132,252,0.65)"
+                  onClick={() => navigate('/inventory')}
+                />
+              )
+            })()}
+
+            <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '6px 0' }} />
+
+            {/* ── TOP SELLERS section ── always visible ── */}
+            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.22)', marginBottom: '6px', flexShrink: 0 }}>
+              Top Sellers Today
+            </p>
+
+            {stats?.topSellers && stats.topSellers.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, overflow: 'hidden' }}>
+                {stats.topSellers.slice(0, 4).map((item, i) => (
+                  <div key={item.productId} style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+                    <span style={{
+                      width: '18px', height: '18px', borderRadius: '5px', flexShrink: 0,
+                      background: i === 0 ? 'rgba(251,191,36,0.15)' : i === 1 ? 'rgba(148,163,184,0.12)' : 'rgba(251,146,60,0.12)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '9px', fontWeight: 700,
+                      color: i === 0 ? '#fbbf24' : i === 1 ? '#94a3b8' : '#fb923c',
+                    }}>
+                      {i + 1}
+                    </span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: '12px', fontWeight: 500, color: 'rgba(255,255,255,0.72)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {item.name}
+                      </p>
+                      <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.28)' }}>{item.unitsSold} sold</p>
+                    </div>
+                    <p style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.50)', flexShrink: 0 }}>
+                      ₱{(item.revenue ?? 0).toLocaleString('en-PH', { minimumFractionDigits: 0 })}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{
+                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                gap: '8px', padding: '16px 0',
+              }}>
+                <div style={{
+                  width: '36px', height: '36px', borderRadius: '10px',
+                  background: 'rgba(255,255,255,0.04)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <ClockIcon style={{ width: 16, height: 16, color: 'rgba(255,255,255,0.18)' }} />
+                </div>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.28)', textAlign: 'center', lineHeight: 1.5 }}>
+                  No sales yet today
+                </p>
+                <button
+                  onClick={() => navigate('/orders')}
+                  style={{
+                    fontSize: '11px', fontWeight: 600,
+                    color: 'rgba(99,102,241,0.85)',
+                    background: 'rgba(99,102,241,0.10)',
+                    border: '1px solid rgba(99,102,241,0.20)',
+                    borderRadius: '8px', padding: '5px 12px',
+                    cursor: 'pointer',
+                    transition: 'background 150ms ease-out',
+                  }}
+                >
+                  Start a sale →
+                </button>
+              </div>
+            )}
+
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Info Card ──────────────────────────────────────────────────────────────────
+interface InfoCardProps {
+  icon: React.ReactNode
+  iconColor: string
+  iconBg: string
+  label: string
+  value: string
+  sub: string
+  subColor: string
+  valueColor?: string
+  onClick?: () => void
+}
+
+function InfoCard({ icon, iconColor, iconBg, label, value, sub, subColor, valueColor, onClick }: InfoCardProps) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        borderRadius: '10px',
+        padding: '10px 4px',
+        display: 'flex', alignItems: 'center', gap: '11px',
+        cursor: onClick ? 'pointer' : 'default',
+        background: hovered && onClick ? 'rgba(255,255,255,0.04)' : 'transparent',
+        transition: 'background 180ms ease-out',
+        flexShrink: 0,
+      }}
+    >
+      <div style={{
+        width: '32px', height: '32px', borderRadius: '9px',
+        background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: iconColor, flexShrink: 0,
+      }}>
+        {icon}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.28)', marginBottom: '1px', fontWeight: 500 }}>{label}</p>
+        <p style={{ fontSize: '14px', fontWeight: 700, color: valueColor ?? '#ffffff', letterSpacing: '-0.02em', lineHeight: 1.2 }}>{value}</p>
+        <p style={{ fontSize: '10px', color: subColor, marginTop: '1px' }}>{sub}</p>
       </div>
     </div>
   )
@@ -447,8 +623,11 @@ function TileCard({ tile, delay, onNavigate }: TileCardProps) {
         overflow: 'hidden',
         cursor: 'pointer',
         outline: 'none',
-        borderRadius: '20px',
-        padding: '22px',
+        borderRadius: '16px',
+        padding: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-start',
         background: hovered
           ? 'rgba(255,255,255,0.06)'
           : 'rgba(255,255,255,0.03)',
@@ -467,7 +646,7 @@ function TileCard({ tile, delay, onNavigate }: TileCardProps) {
     >
       {/* Inner glow on hover */}
       <div style={{
-        position: 'absolute', inset: 0, borderRadius: '20px',
+        position: 'absolute', inset: 0, borderRadius: '16px',
         background: hovered
           ? `radial-gradient(ellipse 120% 100% at 0% 0%, ${tile.glow.replace('0.3', '0.15')} 0%, transparent 60%)`
           : 'transparent',
@@ -477,7 +656,7 @@ function TileCard({ tile, delay, onNavigate }: TileCardProps) {
 
       {/* Top shimmer line */}
       <div style={{
-        position: 'absolute', top: 0, left: '20px', right: '20px',
+        position: 'absolute', top: 0, left: '16px', right: '16px',
         height: '1px',
         background: hovered
           ? `linear-gradient(to right, transparent, ${tile.accent}, transparent)`
@@ -487,37 +666,37 @@ function TileCard({ tile, delay, onNavigate }: TileCardProps) {
 
       {/* Icon */}
       <div style={{
-        width: '46px', height: '46px', borderRadius: '14px',
+        width: '38px', height: '38px', borderRadius: '11px',
         background: hovered ? tile.gradient : `${tile.accent}18`,
         border: `1px solid ${hovered ? 'transparent' : `${tile.accent}25`}`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        marginBottom: '18px',
-        boxShadow: hovered ? `0 8px 24px ${tile.glow}` : 'none',
+        marginBottom: '10px',
+        boxShadow: hovered ? `0 6px 18px ${tile.glow}` : 'none',
         transition: 'background 250ms ease-out, box-shadow 250ms ease-out, border-color 250ms ease-out',
         position: 'relative', zIndex: 1,
       }}>
         <Icon style={{
-          width: '20px', height: '20px',
+          width: '17px', height: '17px',
           color: hovered ? '#ffffff' : tile.accent,
           transition: 'color 200ms ease-out',
         }} />
       </div>
 
       {/* Label + chevron */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', position: 'relative', zIndex: 1 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px', position: 'relative', zIndex: 1 }}>
         <p style={{
-          fontSize: '14px', fontWeight: 600,
+          fontSize: '13px', fontWeight: 600,
           color: hovered ? '#ffffff' : 'rgba(255,255,255,0.85)',
           letterSpacing: '-0.01em',
           transition: 'color 200ms ease-out',
         }}>
           {tile.label}
         </p>
-        <ChevronRight style={{
-          width: '14px', height: '14px',
+        <ChevronRightIcon style={{
+          width: '13px', height: '13px',
           color: tile.accent,
           opacity: hovered ? 0.9 : 0,
-          transform: hovered ? 'translateX(0)' : 'translateX(-8px)',
+          transform: hovered ? 'translateX(0)' : 'translateX(-6px)',
           transition: 'opacity 200ms ease-out, transform 250ms cubic-bezier(0.22,1,0.36,1)',
           flexShrink: 0,
         }} />
@@ -525,8 +704,8 @@ function TileCard({ tile, delay, onNavigate }: TileCardProps) {
 
       {/* Description */}
       <p style={{
-        fontSize: '12px', lineHeight: 1.55,
-        color: hovered ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.28)',
+        fontSize: '11px', lineHeight: 1.5,
+        color: hovered ? 'rgba(255,255,255,0.42)' : 'rgba(255,255,255,0.26)',
         transition: 'color 200ms ease-out',
         position: 'relative', zIndex: 1,
       }}>

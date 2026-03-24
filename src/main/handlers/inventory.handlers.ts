@@ -26,9 +26,14 @@ export function registerInventoryHandlers(): void {
       if (!auth.role.permissions.includes('can_manage_inventory')) {
         return { success: false, error: 'Permission denied' }
       }
-      const r = req as { productId: string; type: string; quantity: number; reason: string; notes?: string }
+      const r = req as { productId: string; type: string; quantity: number; reason: string; notes?: string; reorderPoint?: number; lowStockThreshold?: number }
       if (!r?.productId || !r?.type || r?.quantity == null || !r?.reason) {
         return { success: false, error: 'productId, type, quantity, and reason are required' }
+      }
+      if (r.reorderPoint !== undefined && r.lowStockThreshold !== undefined) {
+        if (r.reorderPoint < r.lowStockThreshold) {
+          return { success: false, error: 'Reorder point must be greater than or equal to low stock threshold' }
+        }
       }
       if (!['in', 'out', 'adjustment'].includes(r.type)) {
         return { success: false, error: 'Invalid adjustment type' }
@@ -58,9 +63,11 @@ export function registerInventoryHandlers(): void {
       if (!auth.role.permissions.includes('can_manage_inventory')) {
         return { success: false, error: 'Permission denied' }
       }
-      const r = (req ?? {}) as { productId?: string }
-      const data = await getAdjustments(auth.user.branchId, r.productId)
-      return { success: true, data }
+      const r = (req ?? {}) as { productId?: string; limit?: number; skip?: number }
+      const limit = Math.min(Math.max(1, r.limit ?? 100), 500)
+      const skip = Math.max(0, r.skip ?? 0)
+      const { data, total } = await getAdjustments(auth.user.branchId, r.productId, { limit, skip })
+      return { success: true, data, total }
     } catch (err: any) {
       return { success: false, error: err.message ?? 'Failed to load adjustments' }
     }

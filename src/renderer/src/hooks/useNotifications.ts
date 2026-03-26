@@ -24,9 +24,7 @@ export function useNotifications({ statsResult, stockData, drawerStatus }: UseNo
     const stats = statsResult?.data
 
     // Low stock
-    const lowStockCount = (stockData ?? []).filter(
-      (item) => item.reorderPoint != null && item.quantity <= item.reorderPoint
-    ).length
+    const lowStockCount = (stockData ?? []).filter((item) => item.isLowStock).length
     if (lowStockCount > 0) {
       notifications.push({
         id: 'low-stock',
@@ -40,7 +38,7 @@ export function useNotifications({ statsResult, stockData, drawerStatus }: UseNo
     }
 
     // Cash drawer closed
-    if (drawerStatus !== 'open') {
+    if (drawerStatus === 'closed') {
       notifications.push({
         id: 'drawer-closed',
         title: 'Cash drawer is closed',

@@ -71,7 +71,7 @@ export function AppShell() {
           {/* Back button — shown on any non-home page */}
           {!isHome && (
             <>
-              <span style={{ fontSize: '13px', color: 'var(--text-disabled)', lineHeight: 1, userSelect: 'none' }}>·</span>
+              <span aria-hidden="true" style={{ fontSize: '13px', color: 'var(--text-disabled)', lineHeight: 1, userSelect: 'none' }}>·</span>
               <button
                 onClick={() => navigate('/home')}
                 aria-label="Go home"
@@ -92,7 +92,7 @@ export function AppShell() {
                   e.currentTarget.style.color = 'var(--text-muted)'
                 }}
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-4 h-4" aria-hidden={true} />
               </button>
             </>
           )}

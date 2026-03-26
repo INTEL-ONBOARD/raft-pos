@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { DashboardStatsResult } from '@shared/types/dashboard.types'
+import type { DashboardStats } from '@shared/types/dashboard.types'
 import type { StockLevelRow } from '@shared/types/inventory.types'
 
 export interface AppNotification {
@@ -13,15 +13,14 @@ export interface AppNotification {
 }
 
 interface UseNotificationsInput {
-  statsResult: DashboardStatsResult | undefined
+  stats: DashboardStats | undefined
   stockData: StockLevelRow[] | undefined
   drawerStatus: 'open' | 'closed' | undefined
 }
 
-export function useNotifications({ statsResult, stockData, drawerStatus }: UseNotificationsInput): AppNotification[] {
+export function useNotifications({ stats, stockData, drawerStatus }: UseNotificationsInput): AppNotification[] {
   return useMemo(() => {
     const notifications: AppNotification[] = []
-    const stats = statsResult?.data
 
     // Low stock
     const lowStockCount = (stockData ?? []).filter((item) => item.isLowStock).length
@@ -66,5 +65,5 @@ export function useNotifications({ statsResult, stockData, drawerStatus }: UseNo
     }
 
     return notifications
-  }, [statsResult, stockData, drawerStatus])
+  }, [stats, stockData, drawerStatus])
 }

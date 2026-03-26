@@ -59,7 +59,7 @@ export function AppShell() {
 
   const avatarColor = user?.name ? getAvatarColor(user.name) : AVATAR_COLORS[0]
   const initials = user?.name
-    ? user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
+    ? user.name.split(' ').filter(Boolean).map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
     : 'U'
 
   // Search
@@ -87,14 +87,11 @@ export function AppShell() {
 
   // Notifications data
   const { data: dashboardData } = useDashboard()
-  const statsResult = dashboardData !== undefined
-    ? { success: true as const, data: dashboardData }
-    : undefined
   const { stockQuery } = useInventory()
   const { openDrawerQuery } = useCashDrawer()
 
   const notifications = useNotifications({
-    statsResult,
+    stats: dashboardData,
     stockData: stockQuery.data ?? [],
     drawerStatus: openDrawerQuery.data?.status,
   })
@@ -127,6 +124,18 @@ export function AppShell() {
     document.addEventListener('mousedown', onMouseDown)
     return () => document.removeEventListener('mousedown', onMouseDown)
   }, [profileOpen])
+
+  useEffect(() => {
+    if (!notifOpen && !profileOpen) return
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setNotifOpen(false)
+        setProfileOpen(false)
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [notifOpen, profileOpen])
 
   async function handleLogout() {
     setProfileOpen(false)
@@ -176,7 +185,7 @@ export function AppShell() {
                 onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)' }}
               >
-                <ChevronLeft className="w-4 h-4" aria-hidden={true} />
+                <ChevronLeft className="w-4 h-4" aria-hidden="true" />
               </button>
             </>
           )}
@@ -189,7 +198,7 @@ export function AppShell() {
             pointerEvents: 'none', color: 'var(--text-muted)',
             display: 'flex', alignItems: 'center',
           }}>
-            <Search className="w-4 h-4" aria-hidden={true} />
+            <Search className="w-4 h-4" aria-hidden="true" />
           </div>
           <input
             ref={searchRef}
@@ -212,12 +221,14 @@ export function AppShell() {
             <button
               onClick={() => setNotifOpen(o => !o)}
               aria-label="Notifications"
+              aria-expanded={notifOpen}
+              aria-haspopup="true"
               className="flex items-center justify-center rounded-lg transition-colors"
               style={{ width: '28px', height: '28px', color: 'var(--text-muted)', background: 'transparent', position: 'relative' }}
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)' }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)' }}
             >
-              <Bell className="w-4 h-4" aria-hidden={true} />
+              <Bell className="w-4 h-4" aria-hidden="true" />
               {notifications.length > 0 && (
                 <span aria-hidden="true" style={{
                   position: 'absolute', top: '4px', right: '4px',
@@ -248,7 +259,7 @@ export function AppShell() {
 
                 {notifications.length === 0 ? (
                   <div style={{ padding: '24px 14px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                    <CheckCircle className="w-5 h-5" style={{ color: 'var(--text-disabled)' }} aria-hidden={true} />
+                    <CheckCircle className="w-5 h-5" style={{ color: 'var(--text-disabled)' }} aria-hidden="true" />
                     <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>All clear</p>
                   </div>
                 ) : (
@@ -274,7 +285,7 @@ export function AppShell() {
                             background: n.iconBg, color: n.iconColor,
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                           }}>
-                            <Icon className="w-4 h-4" aria-hidden={true} />
+                            <Icon className="w-4 h-4" aria-hidden="true" />
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3 }}>{n.title}</p>
@@ -294,6 +305,8 @@ export function AppShell() {
             <button
               onClick={() => setProfileOpen(o => !o)}
               aria-label="Profile menu"
+              aria-expanded={profileOpen}
+              aria-haspopup="true"
               className="flex items-center justify-center rounded-full transition-colors"
               style={{
                 width: '28px', height: '28px',
@@ -357,7 +370,7 @@ export function AppShell() {
                     onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)' }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)' }}
                   >
-                    <Settings className="w-3.5 h-3.5" aria-hidden={true} />
+                    <Settings className="w-3.5 h-3.5" aria-hidden="true" />
                     Settings
                   </button>
                 </div>
@@ -380,7 +393,7 @@ export function AppShell() {
                     onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-danger-bg)'; e.currentTarget.style.color = 'var(--color-danger)' }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)' }}
                   >
-                    <LogOut className="w-3.5 h-3.5" aria-hidden={true} />
+                    <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
                     Sign out
                   </button>
                 </div>

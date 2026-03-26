@@ -50,7 +50,7 @@ export function AppShell() {
         }}
       >
         {/* Left: logo + back */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {/* Brand */}
           <button
             onClick={() => navigate('/home')}
@@ -71,16 +71,28 @@ export function AppShell() {
           {/* Back button — shown on any non-home page */}
           {!isHome && (
             <>
-              <span style={{ color: 'var(--border-default)', fontSize: '18px', fontWeight: 300 }}>/</span>
+              <span style={{ fontSize: '13px', color: 'var(--text-disabled)', lineHeight: 1, userSelect: 'none' }}>·</span>
               <button
                 onClick={() => navigate('/home')}
-                className="flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-medium transition-colors"
-                style={{ color: 'var(--text-secondary)' }}
-                onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+                aria-label="Go home"
+                className="flex items-center justify-center rounded-lg transition-colors"
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  color: 'var(--text-muted)',
+                  background: 'transparent',
+                  flexShrink: 0,
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'var(--bg-hover)'
+                  e.currentTarget.style.color = 'var(--text-primary)'
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'transparent'
+                  e.currentTarget.style.color = 'var(--text-muted)'
+                }}
               >
-                <ChevronLeft className="w-3.5 h-3.5" />
-                Home
+                <ChevronLeft className="w-4 h-4" />
               </button>
             </>
           )}

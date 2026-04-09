@@ -19,7 +19,7 @@ interface AttemptRecord {
 }
 
 function getPinAttempts(): Record<string, AttemptRecord> {
-  return (store.get('pinAttempts') as Record<string, AttemptRecord> | undefined) ?? {}
+  return (store.get('pinAttempts') as unknown as Record<string, AttemptRecord>) ?? {}
 }
 
 function savePinAttempts(attempts: Record<string, AttemptRecord>): void {

@@ -66,7 +66,9 @@ export function registerInventoryHandlers(): void {
           type: r.type as any,
           quantity: r.quantity,
           reason: r.reason,
-          notes: r.notes
+          notes: r.notes,
+          reorderPoint: r.reorderPoint,
+          lowStockThreshold: r.lowStockThreshold
         },
         auth.user.branchId,
         auth.user._id

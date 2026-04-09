@@ -85,6 +85,15 @@ export function registerReportingHandlers(): void {
       if (!auth.role.permissions.includes('can_export_reports'))
         return { success: false, error: 'Permission denied' }
       const r = req as { filters: ReportFilters; rows: any[][]; headers: string[]; title: string }
+
+      // SEC-005 FIX: validate types and enforce row limit to prevent OOM
+      if (!Array.isArray(r?.rows)) return { success: false, error: 'rows must be an array' }
+      if (!Array.isArray(r?.headers)) return { success: false, error: 'headers must be an array' }
+      const MAX_ROWS = 50_000
+      if (r.rows.length > MAX_ROWS) {
+        return { success: false, error: `Export exceeds maximum row limit of ${MAX_ROWS.toLocaleString()} rows` }
+      }
+
       // Sanitize title: strip path separators to prevent path traversal in defaultPath
       const safeTitle = path
         .basename(String(r.title ?? 'Report').replace(/[/\\]/g, '_'))
@@ -92,8 +101,9 @@ export function registerReportingHandlers(): void {
 
       const wb = new ExcelJS.Workbook()
       const ws = wb.addWorksheet(safeTitle)
-      ws.addRow(r.headers)
+      ws.addRow(r.headers.map((h) => String(h ?? '')))
       r.rows.forEach((row: any[]) => {
+        if (!Array.isArray(row)) return
         // Force each cell value to String to prevent CSV/formula injection (=, +, -, @ prefixes)
         ws.addRow(
           row.map((cell) => {
@@ -121,6 +131,15 @@ export function registerReportingHandlers(): void {
       if (!auth.role.permissions.includes('can_export_reports'))
         return { success: false, error: 'Permission denied' }
       const r = req as { filters: ReportFilters; rows: any[][]; headers: string[]; title: string }
+
+      // SEC-005 FIX: validate types and enforce row limit
+      if (!Array.isArray(r?.rows)) return { success: false, error: 'rows must be an array' }
+      if (!Array.isArray(r?.headers)) return { success: false, error: 'headers must be an array' }
+      const MAX_ROWS = 50_000
+      if (r.rows.length > MAX_ROWS) {
+        return { success: false, error: `Export exceeds maximum row limit of ${MAX_ROWS.toLocaleString()} rows` }
+      }
+
       const safeTitle = path
         .basename(String(r.title ?? 'Report').replace(/[/\\]/g, '_'))
         .slice(0, 100)
@@ -136,10 +155,11 @@ export function registerReportingHandlers(): void {
       doc.pipe(stream)
       doc.fontSize(16).text(safeTitle, { align: 'center' })
       doc.moveDown(0.5)
-      doc.fontSize(9).text(r.headers.join('  |  '), { continued: false })
+      doc.fontSize(9).text(r.headers.map((h) => String(h ?? '')).join('  |  '), { continued: false })
       doc.moveDown(0.2)
       for (const row of r.rows) {
-        doc.fontSize(8).text((row as any[]).join('  |  '))
+        if (!Array.isArray(row)) continue
+        doc.fontSize(8).text((row as any[]).map((c) => String(c ?? '')).join('  |  '))
       }
       doc.end()
       await new Promise<void>((resolve, reject) => {

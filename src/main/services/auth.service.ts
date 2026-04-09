@@ -28,14 +28,10 @@ function getJwtSecret(): string {
 
 // SEC-003 FIX: Validate JWT secret at module initialization so a bad config
 // fails loudly at startup rather than silently at first login attempt.
-let _jwtSecret: string
 try {
-  _jwtSecret = getJwtSecret()
+  getJwtSecret()
 } catch (err) {
   console.error('[Auth] FATAL:', (err as Error).message)
-  // Allow app to start so connectivity issues are distinguishable from config issues.
-  // Any call that needs the secret will throw and the user will see a clear error.
-  _jwtSecret = ''
 }
 
 const JWT_EXPIRES_IN = '8h'

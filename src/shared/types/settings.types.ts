@@ -7,6 +7,10 @@ export interface ISettings {
   currencySymbol: string
   lowStockDefaultThreshold: number
   terminalId: string
+  requireShiftForSales: boolean
+  allowNegativeInventory: boolean
+  autoPrintReceipt: boolean
+  printerWidth: '58mm' | '80mm'
 }
 
 export interface UpdateSettingsInput {
@@ -16,6 +20,10 @@ export interface UpdateSettingsInput {
   globalTaxRate?: number
   currencySymbol?: string
   lowStockDefaultThreshold?: number
+  requireShiftForSales?: boolean
+  allowNegativeInventory?: boolean
+  autoPrintReceipt?: boolean
+  printerWidth?: '58mm' | '80mm'
 }
 
 export interface SettingsResult {

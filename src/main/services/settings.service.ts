@@ -18,6 +18,10 @@ export async function getSettings(): Promise<ISettings> {
     globalTaxRate: doc.globalTaxRate,
     currencySymbol: doc.currencySymbol,
     lowStockDefaultThreshold: doc.lowStockDefaultThreshold,
+    requireShiftForSales: doc.requireShiftForSales ?? true,
+    allowNegativeInventory: doc.allowNegativeInventory ?? false,
+    autoPrintReceipt: doc.autoPrintReceipt ?? false,
+    printerWidth: doc.printerWidth ?? '80mm',
     terminalId: store.get('terminalId') ?? ''
   }
 }
@@ -34,6 +38,10 @@ export async function updateSettings(
   if (input.currencySymbol !== undefined) doc.currencySymbol = input.currencySymbol.trim()
   if (input.lowStockDefaultThreshold !== undefined)
     doc.lowStockDefaultThreshold = input.lowStockDefaultThreshold
+  if (input.requireShiftForSales !== undefined) doc.requireShiftForSales = input.requireShiftForSales
+  if (input.allowNegativeInventory !== undefined) doc.allowNegativeInventory = input.allowNegativeInventory
+  if (input.autoPrintReceipt !== undefined) doc.autoPrintReceipt = input.autoPrintReceipt
+  if (input.printerWidth !== undefined) doc.printerWidth = input.printerWidth
   if (terminalId !== undefined) store.set('terminalId', terminalId)
   await doc.save()
   return getSettings()

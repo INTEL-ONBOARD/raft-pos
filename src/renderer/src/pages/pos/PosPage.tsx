@@ -6,6 +6,7 @@ import { ReceiptModal } from './ReceiptModal'
 import { DrawerPrompt } from './DrawerPrompt'
 import { useCashDrawer } from '../../hooks/useCashDrawer'
 import { usePOSKeyboard } from '../../hooks/usePOSKeyboard'
+import { useSettings } from '../../hooks/useSettings'
 import type { ITransaction } from '@shared/types/transaction.types'
 
 export default function PosPage() {
@@ -15,6 +16,12 @@ export default function PosPage() {
   // for Phase 4. Phase 6 will add receipt reprint via POS_REPRINT_RECEIPT for recovery.
   const [completedTxn, setCompletedTxn] = useState<ITransaction | null>(null)
   const { openDrawerQuery } = useCashDrawer()
+
+  // BUG-009 FIX: Load store branding from settings and pass to ReceiptModal
+  const { settingsQuery } = useSettings()
+  const storeName = settingsQuery.data?.storeName
+  const receiptHeader = settingsQuery.data?.receiptHeader
+  const receiptFooter = settingsQuery.data?.receiptFooter
 
   const handleFocusSearch = useCallback(() => {
     const searchInput = document.getElementById('pos-search') as HTMLInputElement | null
@@ -71,7 +78,13 @@ export default function PosPage() {
 
       {/* Receipt modal after sale */}
       {completedTxn && (
-        <ReceiptModal transaction={completedTxn} onClose={() => setCompletedTxn(null)} />
+        <ReceiptModal
+          transaction={completedTxn}
+          onClose={() => setCompletedTxn(null)}
+          storeName={storeName}
+          receiptHeader={receiptHeader}
+          receiptFooter={receiptFooter}
+        />
       )}
     </div>
   )

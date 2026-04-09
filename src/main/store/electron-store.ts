@@ -10,11 +10,18 @@ const StoreClass = (
     : (Store as unknown as { default: typeof Store }).default
 )
 
+interface AttemptRecord {
+  count: number
+  lockedUntil: number
+}
+
 export interface StoreSchema {
   terminalId: string | null
-  branchId: string | null
   jwt: string | null
   resumeTokens: Record<string, unknown> // collectionName → resume token object
+  // BUG-005 / BUG-006 FIX: persistent rate-limit storage so counters survive restarts
+  loginAttempts: Record<string, AttemptRecord>
+  pinAttempts: Record<string, AttemptRecord>
 }
 
 function getDerivedKey(): string {
@@ -33,9 +40,11 @@ const store = new StoreClass<StoreSchema>({
   encryptionKey: getDerivedKey(),
   defaults: {
     terminalId: null, // null = not yet provisioned; configure in Settings
-    branchId: null,
+    // ISSUE-010 FIX: removed dead 'branchId' field (was never read or written outside schema)
     jwt: null,
-    resumeTokens: {}
+    resumeTokens: {},
+    loginAttempts: {},
+    pinAttempts: {}
   }
 })
 

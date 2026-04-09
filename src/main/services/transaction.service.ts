@@ -23,6 +23,7 @@ function roundCents(n: number): number {
 
 function computeItemTotal(item: CompleteSaleInput['items'][number]): number {
   const base = item.unitPrice * item.quantity
+  if (!item.discountAmount || item.discountType === 'none') return roundCents(base)
   const disc =
     item.discountType === 'percent' ? base * (item.discountAmount / 100) : item.discountAmount
   return roundCents(Math.max(0, base - disc))
@@ -277,13 +278,20 @@ export async function voidTransaction(
 
       // 2. Reverse inventory for each item + create void_return adjustments
       for (const item of updated.items as any[]) {
+        // BUG-007 FIX: read previousStock BEFORE the $inc so the stock adjustment record is accurate
+        const prevInvVoid = await Inventory.findOne(
+          { productId: item.productId, branchId },
+          { quantity: 1 },
+          { session, lean: true }
+        )
+        const previousStockVoid: number = (prevInvVoid as any)?.quantity ?? 0
+
         const restoredInv = await Inventory.findOneAndUpdate(
           { productId: item.productId, branchId },
           { $inc: { quantity: item.quantity } },
           { session, new: true, upsert: true }
         )
         const newStock: number = (restoredInv as any).quantity
-        const previousStock = newStock - item.quantity
         await StockAdjustment.create(
           [
             {
@@ -291,7 +299,7 @@ export async function voidTransaction(
               productId: item.productId,
               type: 'void_return',
               quantity: item.quantity,
-              previousStock,
+              previousStock: previousStockVoid,
               newStock,
               reason: `Void ${updated.receiptNo}: ${input.reason}`,
               notes: '',
@@ -418,13 +426,20 @@ export async function refundTransaction(
       if (!updated) throw new BusinessError('Transaction not found or not eligible for refund')
 
       for (const ri of refundItems) {
+        // BUG-007 FIX: read previousStock BEFORE the $inc
+        const prevInvRefund = await Inventory.findOne(
+          { productId: ri.productId, branchId },
+          { quantity: 1 },
+          { session, lean: true }
+        )
+        const previousStockRefund: number = (prevInvRefund as any)?.quantity ?? 0
+
         const restoredInv = await Inventory.findOneAndUpdate(
           { productId: ri.productId, branchId },
           { $inc: { quantity: ri.quantity } },
           { session, new: true, upsert: true }
         )
         const newStock: number = (restoredInv as any).quantity
-        const previousStock = newStock - ri.quantity
         await StockAdjustment.create(
           [
             {
@@ -432,7 +447,7 @@ export async function refundTransaction(
               productId: ri.productId,
               type: 'refund_return',
               quantity: ri.quantity,
-              previousStock,
+              previousStock: previousStockRefund,
               newStock,
               reason: `Refund ${txn.receiptNo}: ${input.reason}`,
               notes: '',

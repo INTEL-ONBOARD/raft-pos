@@ -27,11 +27,19 @@ export const usePosStore = create<PosState>((set) => ({
 
   addItem: (item) =>
     set((state) => {
+      // BUG-002 FIX: Don't add out-of-stock products
+      if (item.availableStock <= 0) return state
+
       const existing = state.items.find((i) => i.productId === item.productId)
       if (existing) {
+        // BUG-002 FIX: Cap quantity at availableStock when incrementing
+        const newQty = Math.min(existing.quantity + 1, item.availableStock)
+        if (newQty === existing.quantity) return state // already at max stock
         return {
           items: state.items.map((i) =>
-            i.productId === item.productId ? { ...i, quantity: i.quantity + 1 } : i
+            i.productId === item.productId
+              ? { ...i, quantity: newQty, availableStock: item.availableStock }
+              : i
           )
         }
       }
@@ -44,12 +52,19 @@ export const usePosStore = create<PosState>((set) => ({
     }),
 
   updateQty: (productId, qty) =>
-    set((state) => ({
-      items:
-        qty <= 0
-          ? state.items.filter((i) => i.productId !== productId)
-          : state.items.map((i) => (i.productId === productId ? { ...i, quantity: qty } : i))
-    })),
+    set((state) => {
+      if (qty <= 0) {
+        return { items: state.items.filter((i) => i.productId !== productId) }
+      }
+      // BUG-002/ISSUE-006 FIX: Clamp to availableStock
+      return {
+        items: state.items.map((i) => {
+          if (i.productId !== productId) return i
+          const clamped = Math.min(qty, i.availableStock)
+          return { ...i, quantity: clamped }
+        })
+      }
+    }),
 
   removeItem: (productId) =>
     set((state) => ({
@@ -103,9 +118,7 @@ export function selectOrderDiscountAmount(
 
 export function selectTaxAmount(afterDiscount: number, taxRate: number): number {
   // taxRate is a percentage stored as a number (e.g. 12 for 12% VAT).
-  // Tax-inclusive: taxAmount = total * taxRate / (100 + taxRate)
   // Tax-exclusive: taxAmount = afterDiscount * (taxRate / 100)
-  // Phase 4 uses tax-exclusive — adjust in Phase 7 settings if needed.
   return Math.round(afterDiscount * (taxRate / 100) * 100) / 100
 }
 
@@ -119,4 +132,9 @@ export function selectTotalAmount(
 
 export function selectTotalPaid(state: Pick<PosState, 'payments'>): number {
   return state.payments.reduce((sum, p) => sum + p.amount, 0)
+}
+
+// BUG-003 FIX: Selector that returns true when any cart item exceeds available stock
+export function selectHasStockIssues(state: Pick<PosState, 'items'>): boolean {
+  return state.items.some((item) => item.quantity > item.availableStock)
 }

@@ -49,7 +49,7 @@ export async function getStockLevels(branchId: string | null): Promise<StockLeve
 }
 
 export async function manualAdjustment(
-  input: ManualAdjustmentInput,
+  input: ManualAdjustmentInput & { reorderPoint?: number; lowStockThreshold?: number },
   branchId: string,
   userId: string
 ): Promise<IStockAdjustment> {
@@ -69,26 +69,35 @@ export async function manualAdjustment(
       let updatedInventory: any
 
       if (type === 'in') {
+        const updateFields: any = { $inc: { quantity: quantity } }
+        if (input.lowStockThreshold !== undefined) updateFields.$set = { ...(updateFields.$set ?? {}), lowStockThreshold: input.lowStockThreshold }
+        if (input.reorderPoint !== undefined) updateFields.$set = { ...(updateFields.$set ?? {}), reorderPoint: input.reorderPoint }
         updatedInventory = await Inventory.findOneAndUpdate(
           { productId, branchId },
-          { $inc: { quantity: quantity } },
+          updateFields,
           { new: true, runValidators: true, session }
         )
         if (!updatedInventory) throw new Error('Inventory record not found')
         newStock = updatedInventory.quantity
       } else if (type === 'out') {
+        const updateFieldsOut: any = { $inc: { quantity: -quantity } }
+        if (input.lowStockThreshold !== undefined) updateFieldsOut.$set = { ...(updateFieldsOut.$set ?? {}), lowStockThreshold: input.lowStockThreshold }
+        if (input.reorderPoint !== undefined) updateFieldsOut.$set = { ...(updateFieldsOut.$set ?? {}), reorderPoint: input.reorderPoint }
         updatedInventory = await Inventory.findOneAndUpdate(
           { productId, branchId, quantity: { $gte: quantity } },
-          { $inc: { quantity: -quantity } },
+          updateFieldsOut,
           { new: true, runValidators: true, session }
         )
         if (!updatedInventory) throw new Error('Insufficient stock for this adjustment')
         newStock = updatedInventory.quantity
       } else {
         // adjustment = set exact quantity
+        const updateFieldsAdj: any = { $set: { quantity } }
+        if (input.lowStockThreshold !== undefined) updateFieldsAdj.$set.lowStockThreshold = input.lowStockThreshold
+        if (input.reorderPoint !== undefined) updateFieldsAdj.$set.reorderPoint = input.reorderPoint
         updatedInventory = await Inventory.findOneAndUpdate(
           { productId, branchId },
-          { $set: { quantity: quantity } },
+          updateFieldsAdj,
           { new: true, runValidators: true, session }
         )
         if (!updatedInventory) throw new Error('Inventory record not found')

@@ -11,15 +11,30 @@ import { Settings } from '../models/settings.model'
 import { ALL_PERMISSIONS } from '@shared/types/permissions'
 import type { SetupRequest } from '@shared/types/auth.types'
 
-// In-memory brute-force protection for login
-const loginAttempts = new Map<string, { count: number; lockedUntil: number }>()
+// ─── Persistent brute-force protection for login (BUG-006 FIX) ───────────────
+// Previously stored in-memory (Map reset on app restart). Now stored in
+// electron-store so lockouts survive process restarts.
 const MAX_LOGIN_ATTEMPTS = 10
 const LOCKOUT_MS = 5 * 60 * 1000 // 5 minutes
+
+interface AttemptRecord {
+  count: number
+  lockedUntil: number // ms epoch
+}
+
+function getLoginAttempts(): Record<string, AttemptRecord> {
+  return (store.get('loginAttempts') as Record<string, AttemptRecord> | undefined) ?? {}
+}
+
+function saveLoginAttempts(attempts: Record<string, AttemptRecord>): void {
+  store.set('loginAttempts', attempts)
+}
 
 function checkLoginRateLimit(email: string): void {
   const key = email.toLowerCase()
   const now = Date.now()
-  const entry = loginAttempts.get(key)
+  const attempts = getLoginAttempts()
+  const entry = attempts[key]
   if (entry && now < entry.lockedUntil) {
     const secs = Math.ceil((entry.lockedUntil - now) / 1000)
     throw new Error(`Too many failed login attempts. Try again in ${secs} seconds.`)
@@ -29,17 +44,24 @@ function checkLoginRateLimit(email: string): void {
 function recordLoginFailure(email: string): void {
   const key = email.toLowerCase()
   const now = Date.now()
-  const entry = loginAttempts.get(key) ?? { count: 0, lockedUntil: 0 }
+  const attempts = getLoginAttempts()
+  const entry = attempts[key] ?? { count: 0, lockedUntil: 0 }
   entry.count += 1
   if (entry.count >= MAX_LOGIN_ATTEMPTS) {
     entry.lockedUntil = now + LOCKOUT_MS
   }
-  loginAttempts.set(key, entry)
+  attempts[key] = entry
+  saveLoginAttempts(attempts)
 }
 
 function clearLoginAttempts(email: string): void {
-  loginAttempts.delete(email.toLowerCase())
+  const key = email.toLowerCase()
+  const attempts = getLoginAttempts()
+  delete attempts[key]
+  saveLoginAttempts(attempts)
 }
+
+// ─── Handlers ─────────────────────────────────────────────────────────────────
 
 export function registerAuthHandlers(): void {
   // Login

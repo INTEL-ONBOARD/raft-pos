@@ -14,7 +14,8 @@ import {
   selectOrderDiscountAmount,
   selectTaxAmount,
   selectTotalAmount,
-  selectTotalPaid
+  selectTotalPaid,
+  selectHasStockIssues
 } from '../../stores/pos.store'
 import { useCartTotals, usePOS } from '../../hooks/usePOS'
 import { useAuthStore } from '../../stores/auth.store'
@@ -30,6 +31,7 @@ void selectOrderDiscountAmount
 void selectTaxAmount
 void selectTotalAmount
 void selectTotalPaid
+void selectHasStockIssues
 
 interface CartPanelProps {
   onSaleComplete: (txn: ITransaction) => void
@@ -71,7 +73,8 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
   const [showSupervisorModal, setShowSupervisorModal] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const canPay = items.length > 0 && payments.length > 0 && totals.totalPaid >= totals.totalAmount
+  const hasStockIssues = usePosStore((s) => selectHasStockIssues(s))
+  const canPay = items.length > 0 && payments.length > 0 && totals.totalPaid >= totals.totalAmount && !hasStockIssues
 
   async function handlePay() {
     if (!canPay || completeSaleMutation.isPending) return
@@ -486,6 +489,20 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
               &#8369;{totals.remaining.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
             </span>
           </div>
+        )}
+
+        {/* Stock Issue Warning */}
+        {hasStockIssues && (
+          <p
+            className="text-xs px-3 py-2 rounded-lg"
+            style={{
+              background: 'var(--color-warning-bg)',
+              border: '1px solid var(--color-warning-border)',
+              color: 'var(--color-warning)'
+            }}
+          >
+            Some items exceed available stock. Adjust quantities before paying.
+          </p>
         )}
 
         {/* Error */}

@@ -1,6 +1,6 @@
 // src/shared/types/transaction.types.ts
 export type PaymentMethod = 'cash' | 'card' | 'gcash' | 'paymaya'
-export type DiscountType = 'percent' | 'fixed'
+export type DiscountType = 'none' | 'percent' | 'fixed'
 export type TransactionStatus = 'completed' | 'voided' | 'refunded' | 'partially_refunded'
 
 export interface IPayment {

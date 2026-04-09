@@ -7,10 +7,24 @@ import { User } from '../models/user.model'
 import { ActivityLog } from '../models/activity-log.model'
 import store from '../store/electron-store'
 
-// In-memory PIN attempt tracker: key = "email:terminalId", value = { count, resetAt }
-const pinAttempts = new Map<string, { count: number; resetAt: number }>()
+// ─── Persistent PIN rate limiter (BUG-005 FIX) ───────────────────────────────
+// Previously used an in-memory Map that reset on app restart. Now stored in
+// electron-store so lockouts survive process restarts.
 const PIN_MAX_ATTEMPTS = 5
 const PIN_WINDOW_MS = 5 * 60 * 1000 // 5 minutes
+
+interface AttemptRecord {
+  count: number
+  resetAt: number // ms epoch
+}
+
+function getPinAttempts(): Record<string, AttemptRecord> {
+  return (store.get('pinAttempts') as Record<string, AttemptRecord> | undefined) ?? {}
+}
+
+function savePinAttempts(attempts: Record<string, AttemptRecord>): void {
+  store.set('pinAttempts', attempts)
+}
 
 function checkPinRateLimit(
   email: string,
@@ -18,7 +32,8 @@ function checkPinRateLimit(
 ): { allowed: boolean; waitMs: number } {
   const key = `${email.toLowerCase()}:${terminalId}`
   const now = Date.now()
-  const entry = pinAttempts.get(key)
+  const attempts = getPinAttempts()
+  const entry = attempts[key]
   if (entry && now < entry.resetAt && entry.count >= PIN_MAX_ATTEMPTS) {
     return { allowed: false, waitMs: entry.resetAt - now }
   }
@@ -28,16 +43,21 @@ function checkPinRateLimit(
 function recordPinFailure(email: string, terminalId: string): void {
   const key = `${email.toLowerCase()}:${terminalId}`
   const now = Date.now()
-  const entry = pinAttempts.get(key)
+  const attempts = getPinAttempts()
+  const entry = attempts[key]
   if (!entry || now >= entry.resetAt) {
-    pinAttempts.set(key, { count: 1, resetAt: now + PIN_WINDOW_MS })
+    attempts[key] = { count: 1, resetAt: now + PIN_WINDOW_MS }
   } else {
     entry.count++
   }
+  savePinAttempts(attempts)
 }
 
 function clearPinAttempts(email: string, terminalId: string): void {
-  pinAttempts.delete(`${email.toLowerCase()}:${terminalId}`)
+  const key = `${email.toLowerCase()}:${terminalId}`
+  const attempts = getPinAttempts()
+  delete attempts[key]
+  savePinAttempts(attempts)
 }
 
 export function registerSupervisorHandlers(): void {

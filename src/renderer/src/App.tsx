@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { ipc } from './lib/ipc'
@@ -36,6 +36,8 @@ function AppRoutes() {
   const { setAuth, clearAuth } = useAuthStore()
   const queryClient = useQueryClient()
   const [sessionChecked, setSessionChecked] = useState(false)
+  // Guard so the startup check runs exactly once even under StrictMode double-invoke
+  const initializedRef = useRef(false)
 
   // Subscribe to connectivity events
   useEffect(() => {
@@ -83,8 +85,13 @@ function AppRoutes() {
     }
   }, [queryClient])
 
-  // Startup: validate session + check setup status in parallel
+  // Startup: validate session + check setup status in parallel.
+  // Runs once on mount only — must never re-run after login.
   useEffect(() => {
+    // Prevent double-execution under React StrictMode
+    if (initializedRef.current) return
+    initializedRef.current = true
+
     const timeout = new Promise<[SessionValidationResult, SetupCheckResult]>((resolve) =>
       setTimeout(
         () => resolve([{ valid: false, reason: 'system_error' }, { setupComplete: true }]),
@@ -120,7 +127,8 @@ function AppRoutes() {
       .catch(() => {
         setSessionChecked(true)
       })
-  }, [setAuth, clearAuth, navigate])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Show dark spinner while startup checks run
   if (!sessionChecked) {

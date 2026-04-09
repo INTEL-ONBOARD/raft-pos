@@ -1,4 +1,5 @@
 type PaymentMethod = 'cash' | 'card' | 'gcash' | 'paymaya'
+type DiscountType = 'none' | 'percent' | 'fixed'
 
 interface PaymentLike {
   method: PaymentMethod

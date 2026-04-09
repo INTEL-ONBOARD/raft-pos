@@ -113,10 +113,18 @@ export async function closeDrawer(
   const totalMobile = Math.round(totals.totalMobile * 100) / 100
   const totalTransactions = totals.totalTransactions
 
-  const approvedPayOutsTotal = ((openDrawer as any).payOuts ?? [])
+  const r2 = (n: number): number => Math.round(n * 100) / 100
+
+  // BUG-008 FIX: Re-fetch the drawer's payouts fresh (inside the findOneAndUpdate
+  // condition) so we pick up any approvals that happened after the initial read.
+  // We do this by fetching again with the same status guard right before writing.
+  const freshDrawer = await CashDrawer.findOne({ _id: openDrawer._id, status: 'open' }).lean()
+  if (!freshDrawer) throw new Error('Drawer was already closed')
+
+  const approvedPayOutsTotal = ((freshDrawer as any).payOuts ?? [])
     .filter((p: any) => p.status === 'approved')
     .reduce((sum: number, p: any) => sum + p.amount, 0)
-  const r2 = (n: number): number => Math.round(n * 100) / 100
+
   const expectedCash = r2(
     r2(openDrawer.openingCash as number) + r2(totalCash) - r2(approvedPayOutsTotal)
   )

@@ -20,7 +20,7 @@ const transactionItemSchema = new Schema(
     unitPrice: { type: Number, required: true },
     unitCost: { type: Number, required: true },
     discountAmount: { type: Number, default: 0 },
-    discountType: { type: String, enum: ['percent', 'fixed'], default: 'fixed' },
+    discountType: { type: String, enum: ['none', 'percent', 'fixed'], default: 'fixed' },
     totalPrice: { type: Number, required: true }
   },
   { _id: false }
@@ -35,7 +35,7 @@ export interface ITransactionItemDoc {
   unitPrice: number
   unitCost: number
   discountAmount: number
-  discountType: 'percent' | 'fixed'
+  discountType: 'none' | 'percent' | 'fixed'
   totalPrice: number
 }
 
@@ -53,7 +53,7 @@ export interface ITransaction extends Document {
   items: ITransactionItemDoc[]
   subtotal: number
   discountAmount: number
-  discountType: 'percent' | 'fixed'
+  discountType: 'none' | 'percent' | 'fixed'
   taxRate: number
   taxAmount: number
   totalAmount: number
@@ -80,7 +80,7 @@ const transactionSchema = new Schema<ITransaction>(
     items: [transactionItemSchema],
     subtotal: { type: Number, required: true },
     discountAmount: { type: Number, default: 0 },
-    discountType: { type: String, enum: ['percent', 'fixed'], default: 'fixed' },
+    discountType: { type: String, enum: ['none', 'percent', 'fixed'], default: 'fixed' },
     taxRate: { type: Number, default: 0 },
     taxAmount: { type: Number, default: 0 },
     totalAmount: { type: Number, required: true },

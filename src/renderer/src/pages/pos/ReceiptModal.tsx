@@ -7,9 +7,19 @@ import type { ITransaction } from '@shared/types/transaction.types'
 interface ReceiptModalProps {
   transaction: ITransaction
   onClose: () => void
+  // BUG-009 FIX: Accept dynamic store branding from Settings instead of hardcoding
+  storeName?: string
+  receiptHeader?: string
+  receiptFooter?: string
 }
 
-export function ReceiptModal({ transaction: txn, onClose }: ReceiptModalProps) {
+export function ReceiptModal({
+  transaction: txn,
+  onClose,
+  storeName = 'RAFT POS',
+  receiptHeader,
+  receiptFooter
+}: ReceiptModalProps) {
   function handlePrint() {
     window.print()
   }
@@ -64,10 +74,17 @@ export function ReceiptModal({ transaction: txn, onClose }: ReceiptModalProps) {
           id="receipt-content"
         >
           <div className="text-center mb-4">
+            {/* BUG-009 FIX: Use dynamic storeName from settings */}
             <p className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
-              RAFT POS
+              {storeName}
             </p>
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            {/* BUG-009 FIX: Show receipt header if configured */}
+            {receiptHeader && receiptHeader.trim() && (
+              <p className="text-xs mt-1 whitespace-pre-line" style={{ color: 'var(--text-muted)' }}>
+                {receiptHeader.trim()}
+              </p>
+            )}
+            <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
               Receipt No: {txn.receiptNo}
             </p>
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -161,9 +178,16 @@ export function ReceiptModal({ transaction: txn, onClose }: ReceiptModalProps) {
             </div>
           )}
 
-          <div className="text-center mt-4 text-xs" style={{ color: 'var(--text-muted)' }}>
-            Thank you for your purchase!
-          </div>
+          {/* BUG-009 FIX: Show receipt footer if configured */}
+          {receiptFooter && receiptFooter.trim() ? (
+            <div className="text-center mt-4 text-xs whitespace-pre-line" style={{ color: 'var(--text-muted)' }}>
+              {receiptFooter.trim()}
+            </div>
+          ) : (
+            <div className="text-center mt-4 text-xs" style={{ color: 'var(--text-muted)' }}>
+              Thank you for your purchase!
+            </div>
+          )}
         </div>
 
         {/* Footer */}

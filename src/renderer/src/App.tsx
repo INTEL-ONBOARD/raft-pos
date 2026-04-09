@@ -22,9 +22,8 @@ import PurchaseOrdersPage from './pages/purchase-orders/PurchaseOrdersPage'
 import PurchaseOrderFormPage from './pages/purchase-orders/PurchaseOrderFormPage'
 import TransactionsPage from './pages/transactions/TransactionsPage'
 import CashDrawerPage from './pages/cash-drawer/CashDrawerPage'
-import UsersPage from './pages/users/UsersPage'
-import RolesPage from './pages/roles/RolesPage'
 import SettingsPage from './pages/settings/SettingsPage'
+import StaffPage from './pages/staff/StaffPage'
 import ReportingPage from './pages/reporting/ReportingPage'
 import type { ConnectivityEvent } from '@shared/types/connectivity.types'
 import type { SessionValidationResult, SetupCheckResult } from '@shared/types/auth.types'
@@ -206,19 +205,13 @@ function AppRoutes() {
           />
           <Route path="transactions" element={<TransactionsPage />} />
           <Route path="cash-drawer" element={<CashDrawerPage />} />
+          <Route path="users" element={<Navigate to="/staff" replace />} />
+          <Route path="roles" element={<Navigate to="/staff" replace />} />
           <Route
-            path="users"
+            path="staff"
             element={
-              <ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_USERS}>
-                <UsersPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="roles"
-            element={
-              <ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_ROLES}>
-                <RolesPage />
+              <ProtectedRoute>
+                <StaffPage />
               </ProtectedRoute>
             }
           />

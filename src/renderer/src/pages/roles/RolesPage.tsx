@@ -652,23 +652,10 @@ export default function RolesPage() {
         display: 'flex',
         flexDirection: 'column',
         minHeight: '100%',
-        background: '#080810',
         position: 'relative',
         overflow: 'hidden'
       }}
     >
-      {/* Ambient */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          pointerEvents: 'none',
-          zIndex: 0,
-          background:
-            'radial-gradient(ellipse 800px 500px at 15% 0%, rgba(99,102,241,0.08) 0%, transparent 65%)'
-        }}
-      />
-
       <div
         style={{
           position: 'relative',
@@ -678,39 +665,22 @@ export default function RolesPage() {
           flex: 1
         }}
       >
-        {/* Header */}
+        {/* Action bar */}
         <div
           style={{
-            padding: '28px 36px 24px',
+            padding: '20px 36px 14px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div
-              style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '12px',
-                background: 'rgba(99,102,241,0.12)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              <ShieldCheckIcon style={{ width: '18px', height: '18px', color: '#6366f1' }} />
-            </div>
-            <div>
-              <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#fff', margin: 0 }}>
-                Roles & Permissions
-              </h1>
-              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', margin: '2px 0 0' }}>
+          <div>
+              <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0, color: '#fff' }}>Access Control Matrix</h2>
+              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
                 {rolesQuery.isLoading
                   ? 'Loading…'
                   : `${roles.length} roles · ${users.filter((u) => u.isActive).length} active users · ${TOTAL_PERMS} permissions`}
               </p>
-            </div>
           </div>
           <button
             onClick={() => setShowCreate(true)}

@@ -177,24 +177,14 @@ const TILE_GROUPS: TileGroup[] = [
     icon: '◆',
     tiles: [
       {
-        to: '/users',
+        to: '/staff',
         icon: UsersIcon,
-        label: 'Users',
-        description: 'Manage staff accounts',
+        label: 'Staff & Roles',
+        description: 'Manage accounts & policies',
         accent: '#a78bfa',
         glow: 'rgba(167,139,250,0.30)',
         gradient: 'linear-gradient(135deg, #6d28d9 0%, #a78bfa 100%)',
-        permission: PERMISSIONS.CAN_MANAGE_USERS
-      },
-      {
-        to: '/roles',
-        icon: ShieldCheckIcon,
-        label: 'Roles',
-        description: 'Permissions & access levels',
-        accent: '#2dd4bf',
-        glow: 'rgba(45,212,191,0.30)',
-        gradient: 'linear-gradient(135deg, #0d9488 0%, #2dd4bf 100%)',
-        permission: PERMISSIONS.CAN_MANAGE_ROLES
+        permissionAny: [PERMISSIONS.CAN_MANAGE_USERS, PERMISSIONS.CAN_MANAGE_ROLES]
       },
       {
         to: '/settings',

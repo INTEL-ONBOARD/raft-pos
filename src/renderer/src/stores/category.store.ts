@@ -3,9 +3,9 @@ import type { ICategory, CategoryTree } from '@shared/types/category.types'
 
 function buildTree(cats: ICategory[], parentId: string | null = null): CategoryTree[] {
   return cats
-    .filter(c => c.parentId === parentId && c.isActive)
+    .filter((c) => c.parentId === parentId && c.isActive)
     .sort((a, b) => a.order - b.order)
-    .map(c => ({ ...c, children: buildTree(cats, c._id) }))
+    .map((c) => ({ ...c, children: buildTree(cats, c._id) }))
 }
 
 interface CategoryState {

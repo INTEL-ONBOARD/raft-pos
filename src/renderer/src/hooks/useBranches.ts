@@ -12,8 +12,16 @@ export interface IBranch {
   isActive: boolean
 }
 
-interface BranchesResult { success: boolean; data?: IBranch[]; error?: string }
-interface BranchResult   { success: boolean; data?: IBranch;  error?: string }
+interface BranchesResult {
+  success: boolean
+  data?: IBranch[]
+  error?: string
+}
+interface BranchResult {
+  success: boolean
+  data?: IBranch
+  error?: string
+}
 
 export interface CreateBranchInput {
   name: string
@@ -42,7 +50,7 @@ export function useBranches() {
       return result.data ?? []
     },
     staleTime: 5 * 60_000,
-    retry: false,
+    retry: false
   })
 
   const createMutation = useMutation({
@@ -51,7 +59,7 @@ export function useBranches() {
       if (!result.success) throw new Error(result.error)
       return result.data!
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['branches'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['branches'] })
   })
 
   const updateMutation = useMutation({
@@ -60,7 +68,7 @@ export function useBranches() {
       if (!result.success) throw new Error(result.error)
       return result.data!
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['branches'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['branches'] })
   })
 
   const deactivateMutation = useMutation({
@@ -69,7 +77,7 @@ export function useBranches() {
       if (!result.success) throw new Error(result.error)
       return result.data!
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['branches'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['branches'] })
   })
 
   return { branchesQuery, createMutation, updateMutation, deactivateMutation }

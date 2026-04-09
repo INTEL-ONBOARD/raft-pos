@@ -10,9 +10,7 @@ export interface CategoryTree extends ICategory {
   children: CategoryTree[]
 }
 
-export type CategoryResult =
-  | { success: true; data: ICategory }
-  | { success: false; error: string }
+export type CategoryResult = { success: true; data: ICategory } | { success: false; error: string }
 
 export type CategoriesResult =
   | { success: true; data: ICategory[] }

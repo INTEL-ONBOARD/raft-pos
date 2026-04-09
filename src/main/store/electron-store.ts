@@ -1,6 +1,14 @@
 import Store from 'electron-store'
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { machineIdSync } = require('node-machine-id') as { machineIdSync: (original?: boolean) => string }
+
+const { machineIdSync } = require('node-machine-id') as {
+  machineIdSync: (original?: boolean) => string
+}
+
+const StoreClass = (
+  typeof Store === 'function'
+    ? Store
+    : (Store as unknown as { default: typeof Store }).default
+)
 
 export interface StoreSchema {
   terminalId: string | null
@@ -20,7 +28,7 @@ function getDerivedKey(): string {
   }
 }
 
-const store = new Store<StoreSchema>({
+const store = new StoreClass<StoreSchema>({
   name: 'raft-pos-config',
   encryptionKey: getDerivedKey(),
   defaults: {

@@ -4,7 +4,12 @@ import { User } from '../models/user.model'
 import { Session } from '../models/session.model'
 import { ActivityLog } from '../models/activity-log.model'
 import store from '../store/electron-store'
-import type { IPublicUser, CreateUserInput, UpdateUserInput, ActivityLogEntry } from '@shared/types/user.types'
+import type {
+  IPublicUser,
+  CreateUserInput,
+  UpdateUserInput,
+  ActivityLogEntry
+} from '@shared/types/user.types'
 
 function toShared(doc: any): IPublicUser {
   return {
@@ -19,7 +24,9 @@ function toShared(doc: any): IPublicUser {
   }
 }
 
-export async function getUsers(branchId: string | null): Promise<{ data: IPublicUser[]; total: number }> {
+export async function getUsers(
+  branchId: string | null
+): Promise<{ data: IPublicUser[]; total: number }> {
   const query: any = {}
   if (branchId) query.branchId = branchId
   const [docs, total] = await Promise.all([
@@ -34,7 +41,11 @@ export async function getUserById(id: string): Promise<IPublicUser | null> {
   return doc ? toShared(doc) : null
 }
 
-export async function createUser(input: CreateUserInput, createdById: string, branchId: string): Promise<IPublicUser> {
+export async function createUser(
+  input: CreateUserInput,
+  createdById: string,
+  branchId: string
+): Promise<IPublicUser> {
   const passwordHash = await bcrypt.hash(input.password, 12)
   let supervisorPin: string | null = null
   if (input.supervisorPin) {
@@ -66,18 +77,30 @@ export async function createUser(input: CreateUserInput, createdById: string, br
 
 export async function updateUser(id: string, input: UpdateUserInput): Promise<IPublicUser | null> {
   const updates: any = {}
+  let shouldRevokeSessions = false
   if (input.name !== undefined) updates.name = input.name.trim()
   if (input.email !== undefined) updates.email = input.email.toLowerCase().trim()
-  if (input.roleId !== undefined) updates.roleId = input.roleId
-  if (input.branchId !== undefined) updates.branchId = input.branchId
-  if (input.isActive !== undefined) updates.isActive = input.isActive
-  if (input.password) updates.passwordHash = await bcrypt.hash(input.password, 12)
+  if (input.roleId !== undefined) {
+    updates.roleId = input.roleId
+    shouldRevokeSessions = true
+  }
+  if (input.branchId !== undefined) {
+    updates.branchId = input.branchId
+    shouldRevokeSessions = true
+  }
+  if (input.isActive !== undefined) {
+    updates.isActive = input.isActive
+    if (!input.isActive) shouldRevokeSessions = true
+  }
+  if (input.password) {
+    updates.passwordHash = await bcrypt.hash(input.password, 12)
+    shouldRevokeSessions = true
+  }
   if (input.supervisorPin !== undefined) {
     updates.supervisorPin = input.supervisorPin ? await bcrypt.hash(input.supervisorPin, 12) : null
   }
   const doc = await User.findByIdAndUpdate(id, { $set: updates }, { new: true }).lean()
-  if (doc && input.roleId !== undefined) {
-    // Role changed — revoke existing sessions so the user re-authenticates with new permissions
+  if (doc && shouldRevokeSessions) {
     await forceLogout(id)
   }
   return doc ? toShared(doc) : null
@@ -99,7 +122,10 @@ export async function forceLogout(userId: string): Promise<void> {
   )
 }
 
-export async function getUserActivity(userId: string, opts?: { limit?: number; skip?: number }): Promise<{ data: ActivityLogEntry[]; total: number }> {
+export async function getUserActivity(
+  userId: string,
+  opts?: { limit?: number; skip?: number }
+): Promise<{ data: ActivityLogEntry[]; total: number }> {
   const query = { userId }
   const [docs, total] = await Promise.all([
     ActivityLog.find(query)

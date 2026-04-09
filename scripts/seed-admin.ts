@@ -44,7 +44,7 @@ async function seed() {
     if (!seedPassword || seedPassword.length < 12) {
       throw new Error(
         'Set SEED_ADMIN_PASSWORD env var (min 12 chars) before running this script.\n' +
-        'Example: SEED_ADMIN_PASSWORD="MySecurePass#1" npm run seed'
+          'Example: SEED_ADMIN_PASSWORD="MySecurePass#1" npm run seed'
       )
     }
     const passwordHash = await bcrypt.hash(seedPassword, 12)

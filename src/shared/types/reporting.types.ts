@@ -1,5 +1,9 @@
 // src/shared/types/reporting.types.ts
-export type ReportType = 'sales_summary' | 'sales_by_product' | 'inventory_valuation' | 'cash_drawer_report'
+export type ReportType =
+  | 'sales_summary'
+  | 'sales_by_product'
+  | 'inventory_valuation'
+  | 'cash_drawer_report'
 
 export interface ReportFilters {
   reportType: ReportType
@@ -21,7 +25,14 @@ export interface SalesSummaryRow {
 export interface SalesSummaryResult {
   success: boolean
   data?: SalesSummaryRow[]
-  totals?: { transactions: number; itemsSold: number; revenue: number; tax: number; discount: number; netRevenue: number }
+  totals?: {
+    transactions: number
+    itemsSold: number
+    revenue: number
+    tax: number
+    discount: number
+    netRevenue: number
+  }
   error?: string
 }
 

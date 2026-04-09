@@ -16,9 +16,9 @@ export interface ICashDrawer {
   totalCard: number
   totalMobile: number
   totalTransactions: number
-  openedAt: string       // ISO string
+  openedAt: string // ISO string
   closedAt: string | null
-  payOuts?: Array<{
+  payOuts: Array<{
     _id: string
     amount: number
     reason: string
@@ -35,6 +35,13 @@ export interface ICashDrawer {
 
 export interface OpenDrawerInput {
   openingCash: number
+}
+
+export interface PayOutInput {
+  amount: number
+  reason: string
+  category: 'supplies' | 'cod_delivery' | 'petty_cash' | 'other'
+  recipient: string
 }
 
 export interface CloseDrawerInput {

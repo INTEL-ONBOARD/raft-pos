@@ -22,14 +22,18 @@ export async function getSettings(): Promise<ISettings> {
   }
 }
 
-export async function updateSettings(input: UpdateSettingsInput, terminalId?: string): Promise<ISettings> {
+export async function updateSettings(
+  input: UpdateSettingsInput,
+  terminalId?: string
+): Promise<ISettings> {
   const doc = await getOrCreateSettings()
   if (input.storeName !== undefined) doc.storeName = input.storeName.trim()
   if (input.receiptHeader !== undefined) doc.receiptHeader = input.receiptHeader
   if (input.receiptFooter !== undefined) doc.receiptFooter = input.receiptFooter
   if (input.globalTaxRate !== undefined) doc.globalTaxRate = input.globalTaxRate
   if (input.currencySymbol !== undefined) doc.currencySymbol = input.currencySymbol.trim()
-  if (input.lowStockDefaultThreshold !== undefined) doc.lowStockDefaultThreshold = input.lowStockDefaultThreshold
+  if (input.lowStockDefaultThreshold !== undefined)
+    doc.lowStockDefaultThreshold = input.lowStockDefaultThreshold
   if (terminalId !== undefined) store.set('terminalId', terminalId)
   await doc.save()
   return getSettings()

@@ -18,7 +18,7 @@ function AuthInput({
   autoFocus,
   autoComplete,
   required,
-  suffix,
+  suffix
 }: {
   id: string
   type: string
@@ -52,7 +52,7 @@ function AuthInput({
           padding: suffix ? '0 2.5rem 0 0.75rem' : '0 0.75rem',
           outline: 'none',
           boxSizing: 'border-box',
-          fontFamily: 'inherit',
+          fontFamily: 'inherit'
         }}
         onFocus={(e) => {
           e.target.style.borderColor = 'rgba(99,102,241,0.6)'
@@ -69,7 +69,7 @@ function AuthInput({
             position: 'absolute',
             right: '0.625rem',
             top: '50%',
-            transform: 'translateY(-50%)',
+            transform: 'translateY(-50%)'
           }}
         >
           {suffix}
@@ -88,7 +88,7 @@ function FieldLabel({ htmlFor, children }: { htmlFor: string; children: ReactNod
         color: 'rgba(255,255,255,0.5)',
         fontSize: '0.75rem',
         fontWeight: 500,
-        marginBottom: '0.375rem',
+        marginBottom: '0.375rem'
       }}
     >
       {children}
@@ -96,7 +96,15 @@ function FieldLabel({ htmlFor, children }: { htmlFor: string; children: ReactNod
   )
 }
 
-function EyeToggle({ show, onToggle, label }: { show: boolean; onToggle: () => void; label: string }) {
+function EyeToggle({
+  show,
+  onToggle,
+  label
+}: {
+  show: boolean
+  onToggle: () => void
+  label: string
+}) {
   return (
     <button
       type="button"
@@ -109,7 +117,7 @@ function EyeToggle({ show, onToggle, label }: { show: boolean; onToggle: () => v
         color: 'rgba(255,255,255,0.3)',
         display: 'flex',
         alignItems: 'center',
-        padding: '0.25rem',
+        padding: '0.25rem'
       }}
     >
       {show ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -144,7 +152,7 @@ const initialState: SetupState = {
   showPassword: false,
   showConfirm: false,
   error: null,
-  loading: false,
+  loading: false
 }
 
 export default function SetupPage() {
@@ -206,7 +214,7 @@ export default function SetupPage() {
         branchName: state.branchName,
         name,
         email,
-        password,
+        password
       }
       const result = await ipc.invoke<SetupResult>(IPC.AUTH_COMPLETE_SETUP, req)
       if (result.success) {
@@ -228,7 +236,9 @@ export default function SetupPage() {
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2rem' }}>
       {/* Dot 1 */}
       {state.step === 1 ? (
-        <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#6366f1' }} />
+        <div
+          style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#6366f1' }}
+        />
       ) : (
         <div
           style={{
@@ -238,7 +248,7 @@ export default function SetupPage() {
             background: 'rgba(99,102,241,0.2)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
+            justifyContent: 'center'
           }}
         >
           <Check size={11} color="#818cf8" strokeWidth={3} />
@@ -250,7 +260,7 @@ export default function SetupPage() {
           width: '10px',
           height: '10px',
           borderRadius: '50%',
-          background: state.step === 2 ? '#6366f1' : 'rgba(255,255,255,0.15)',
+          background: state.step === 2 ? '#6366f1' : 'rgba(255,255,255,0.15)'
         }}
       />
     </div>
@@ -265,7 +275,7 @@ export default function SetupPage() {
         borderRadius: '8px',
         color: '#f87171',
         fontSize: '0.8125rem',
-        padding: '0.75rem 1rem',
+        padding: '0.75rem 1rem'
       }}
     >
       {state.error}
@@ -276,7 +286,14 @@ export default function SetupPage() {
     <AuthLayout>
       <div style={{ width: '100%', maxWidth: '420px' }}>
         {/* Logo mark */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '2.5rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            marginBottom: '2.5rem'
+          }}
+        >
           <div
             style={{
               width: '56px',
@@ -287,10 +304,12 @@ export default function SetupPage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              marginBottom: '1rem',
+              marginBottom: '1rem'
             }}
           >
-            <span style={{ color: '#fff', fontSize: '24px', fontWeight: 700, lineHeight: 1 }}>R</span>
+            <span style={{ color: '#fff', fontSize: '24px', fontWeight: 700, lineHeight: 1 }}>
+              R
+            </span>
           </div>
           <h1
             style={{
@@ -298,12 +317,19 @@ export default function SetupPage() {
               fontSize: '1.5rem',
               fontWeight: 700,
               margin: 0,
-              letterSpacing: '-0.02em',
+              letterSpacing: '-0.02em'
             }}
           >
             {state.step === 1 ? 'Welcome to Raft POS' : 'Create your admin account'}
           </h1>
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.875rem', marginTop: '0.375rem', textAlign: 'center' }}>
+          <p
+            style={{
+              color: 'rgba(255,255,255,0.4)',
+              fontSize: '0.875rem',
+              marginTop: '0.375rem',
+              textAlign: 'center'
+            }}
+          >
             {state.step === 1
               ? "Let's get your store set up"
               : 'This account will have full access to Raft POS'}
@@ -326,7 +352,7 @@ export default function SetupPage() {
               gap: '0.375rem',
               padding: '0',
               marginBottom: '1rem',
-              fontFamily: 'inherit',
+              fontFamily: 'inherit'
             }}
           >
             <ArrowLeft size={14} />
@@ -338,7 +364,10 @@ export default function SetupPage() {
 
         {/* Step 1 */}
         {state.step === 1 && (
-          <form onSubmit={handleContinue} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <form
+            onSubmit={handleContinue}
+            style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+          >
             <div>
               <FieldLabel htmlFor="setup-store">Store Name</FieldLabel>
               <AuthInput
@@ -381,10 +410,14 @@ export default function SetupPage() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontFamily: 'inherit',
-                marginTop: '0.5rem',
+                marginTop: '0.5rem'
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = '#4f46e5' }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = '#6366f1' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#4f46e5'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#6366f1'
+              }}
             >
               Continue
             </button>
@@ -393,7 +426,10 @@ export default function SetupPage() {
 
         {/* Step 2 */}
         {state.step === 2 && (
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <form
+            onSubmit={handleSubmit}
+            style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+          >
             <div>
               <FieldLabel htmlFor="setup-name">Full Name</FieldLabel>
               <AuthInput
@@ -477,10 +513,14 @@ export default function SetupPage() {
                 justifyContent: 'center',
                 gap: '0.5rem',
                 fontFamily: 'inherit',
-                marginTop: '0.5rem',
+                marginTop: '0.5rem'
               }}
-              onMouseEnter={(e) => { if (!state.loading) e.currentTarget.style.background = '#4f46e5' }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = '#6366f1' }}
+              onMouseEnter={(e) => {
+                if (!state.loading) e.currentTarget.style.background = '#4f46e5'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#6366f1'
+              }}
             >
               {state.loading && <Loader2 size={16} className="animate-spin" />}
               {state.loading ? 'Creating account…' : 'Create Account'}

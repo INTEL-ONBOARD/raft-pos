@@ -2,7 +2,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ipc } from '../lib/ipc'
 import { IPC } from '@shared/types/ipc.types'
-import type { DrawerResult, DrawersResult, OpenDrawerInput, CloseDrawerInput } from '@shared/types/cash-drawer.types'
+import type {
+  DrawerResult,
+  DrawersResult,
+  OpenDrawerInput,
+  CloseDrawerInput,
+  PayOutInput
+} from '@shared/types/cash-drawer.types'
 
 export function useCashDrawer() {
   const queryClient = useQueryClient()
@@ -52,5 +58,41 @@ export function useCashDrawer() {
     }
   })
 
-  return { openDrawerQuery, drawersQuery, openMutation, closeMutation }
+  const payOutMutation = useMutation({
+    mutationFn: async (input: PayOutInput & { drawerId: string }) => {
+      const result = await ipc.invoke<DrawerResult>(IPC.DRAWER_PAY_OUT, input)
+      if (!result.success) throw new Error(result.error ?? 'Failed to record pay-out')
+      return result
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['drawer-open'] })
+      queryClient.invalidateQueries({ queryKey: ['drawers'] })
+    }
+  })
+
+  const reviewPayOutMutation = useMutation({
+    mutationFn: async (input: {
+      drawerId: string
+      payOutId: string
+      decision: 'approved' | 'rejected'
+      reviewNote?: string
+    }) => {
+      const result = await ipc.invoke<DrawerResult>(IPC.DRAWER_REVIEW_PAY_OUT, input)
+      if (!result.success) throw new Error(result.error ?? 'Failed to review pay-out')
+      return result
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['drawer-open'] })
+      queryClient.invalidateQueries({ queryKey: ['drawers'] })
+    }
+  })
+
+  return {
+    openDrawerQuery,
+    drawersQuery,
+    openMutation,
+    closeMutation,
+    payOutMutation,
+    reviewPayOutMutation
+  }
 }

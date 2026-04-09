@@ -3,7 +3,10 @@ import { IPC } from '@shared/types/ipc.types'
 import { requireAuth } from '../services/auth.service'
 import store from '../store/electron-store'
 import {
-  getAllCategories, createCategory, updateCategory, deleteCategory
+  getAllCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory
 } from '../services/category.service'
 
 export function registerCategoryHandlers(): void {

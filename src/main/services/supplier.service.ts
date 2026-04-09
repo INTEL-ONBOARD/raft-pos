@@ -1,7 +1,11 @@
 // src/main/services/supplier.service.ts
 import { Supplier } from '../models/supplier.model'
 import { PurchaseOrder } from '../models/purchase-order.model'
-import type { ISupplier as ISupplierShared, CreateSupplierInput, UpdateSupplierInput } from '@shared/types/supplier.types'
+import type {
+  ISupplier as ISupplierShared,
+  CreateSupplierInput,
+  UpdateSupplierInput
+} from '@shared/types/supplier.types'
 
 function toShared(doc: any): ISupplierShared {
   return {
@@ -40,7 +44,10 @@ export async function createSupplier(input: CreateSupplierInput): Promise<ISuppl
   return toShared(doc)
 }
 
-export async function updateSupplier(id: string, input: UpdateSupplierInput): Promise<ISupplierShared | null> {
+export async function updateSupplier(
+  id: string,
+  input: UpdateSupplierInput
+): Promise<ISupplierShared | null> {
   const updates: any = {}
   if (input.name !== undefined) updates.name = input.name.trim()
   if (input.contactPerson !== undefined) updates.contactPerson = input.contactPerson
@@ -55,7 +62,11 @@ export async function updateSupplier(id: string, input: UpdateSupplierInput): Pr
 }
 
 export async function deactivateSupplier(id: string): Promise<ISupplierShared | null> {
-  const doc = await Supplier.findByIdAndUpdate(id, { $set: { isActive: false } }, { new: true }).lean()
+  const doc = await Supplier.findByIdAndUpdate(
+    id,
+    { $set: { isActive: false } },
+    { new: true }
+  ).lean()
   return doc ? toShared(doc) : null
 }
 

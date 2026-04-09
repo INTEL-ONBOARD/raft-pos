@@ -1,5 +1,6 @@
 // src/main/services/transaction.service.ts
 import mongoose from 'mongoose'
+import { BusinessError } from './errors'
 import { Transaction } from '../models/transaction.model'
 import { Counter } from '../models/counter.model'
 import { Inventory } from '../models/inventory.model'
@@ -23,17 +24,12 @@ function roundCents(n: number): number {
 function computeItemTotal(item: CompleteSaleInput['items'][number]): number {
   const base = item.unitPrice * item.quantity
   const disc =
-    item.discountType === 'percent'
-      ? base * (item.discountAmount / 100)
-      : item.discountAmount
+    item.discountType === 'percent' ? base * (item.discountAmount / 100) : item.discountAmount
   return roundCents(Math.max(0, base - disc))
 }
 
 function computeTotal(input: CompleteSaleInput): number {
-  const itemsTotal = input.items.reduce(
-    (sum, it) => sum + computeItemTotal(it),
-    0
-  )
+  const itemsTotal = input.items.reduce((sum, it) => sum + computeItemTotal(it), 0)
   const orderDisc =
     input.discountType === 'percent'
       ? itemsTotal * (input.discountAmount / 100)
@@ -91,7 +87,10 @@ function toShared(doc: any): ITransaction {
 
 // ─── receipt numbering ───────────────────────────────────────────────────────
 
-export async function generateReceiptNo(branchCode: string, session?: mongoose.ClientSession): Promise<string> {
+export async function generateReceiptNo(
+  branchCode: string,
+  session?: mongoose.ClientSession
+): Promise<string> {
   const date = new Date()
   const ymd = date.toISOString().slice(0, 10).replace(/-/g, '')
   const key = `receipt_${branchCode}_${ymd}`
@@ -119,14 +118,20 @@ export async function completeSale(
   // Validate renderer-computed total (guard against tampering or rounding bugs)
   const recomputed = computeTotal(input)
   if (Math.abs(recomputed - input.totalAmount) > 0.01) {
-    throw new Error(
+    throw new BusinessError(
       `Total mismatch: renderer sent ${input.totalAmount}, server computed ${recomputed}`
     )
   }
 
   const totalPaid = input.payments.reduce((s, p) => s + p.amount, 0)
   if (totalPaid < input.totalAmount - 0.001) {
-    throw new Error('Total payment is less than the order total')
+    throw new BusinessError('Total payment is less than the order total')
+  }
+  const nonCashPaid = input.payments
+    .filter((payment) => payment.method !== 'cash')
+    .reduce((sum, payment) => sum + payment.amount, 0)
+  if (nonCashPaid > input.totalAmount + 0.001) {
+    throw new BusinessError('Non-cash payments cannot exceed the order total')
   }
   const change = roundCents(Math.max(0, totalPaid - input.totalAmount))
 
@@ -137,9 +142,11 @@ export async function completeSale(
       // Validate prices against DB to prevent renderer-side price tampering
       for (const item of input.items) {
         const product = await Product.findById(item.productId, 'sellingPrice costPrice').lean()
-        if (!product) throw new Error(`Product ${item.sku} not found`)
+        if (!product) throw new BusinessError(`Product ${item.sku} not found`)
         if (Math.abs(item.unitPrice - (product as any).sellingPrice) > 0.001) {
-          throw new Error(`Price mismatch for product ${item.sku}: expected ${(product as any).sellingPrice}`)
+          throw new BusinessError(
+            `Price mismatch for product ${item.sku}: expected ${(product as any).sellingPrice}`
+          )
         }
       }
 
@@ -193,7 +200,7 @@ export async function completeSale(
           { session, new: true, runValidators: true }
         )
         if (!updatedInv) {
-          throw new Error(`Insufficient stock for product ${item.sku}`)
+          throw new BusinessError(`Insufficient stock for product ${item.sku}`)
         }
         const newStock: number = (updatedInv as any).quantity
 
@@ -245,9 +252,11 @@ export async function voidTransaction(
   terminalId: string
 ): Promise<ITransaction> {
   const txn = await Transaction.findById(input.transactionId)
-  if (!txn) throw new Error('Transaction not found')
-  if (txn.status !== 'completed') throw new Error('Only completed transactions can be voided')
-  if (txn.branchId.toString() !== branchId) throw new Error('Transaction belongs to a different branch')
+  if (!txn) throw new BusinessError('Transaction not found')
+  if (txn.status !== 'completed')
+    throw new BusinessError('Only completed transactions can be voided')
+  if (txn.branchId.toString() !== branchId)
+    throw new BusinessError('Transaction belongs to a different branch')
 
   const session = await mongoose.startSession()
   let updated: any
@@ -264,37 +273,34 @@ export async function voidTransaction(
         },
         { session, new: true }
       )
-      if (!updated) throw new Error('Transaction not found or already voided/refunded')
+      if (!updated) throw new BusinessError('Transaction not found or already voided/refunded')
 
       // 2. Reverse inventory for each item + create void_return adjustments
       for (const item of updated.items as any[]) {
         const restoredInv = await Inventory.findOneAndUpdate(
           { productId: item.productId, branchId },
           { $inc: { quantity: item.quantity } },
-          { session, new: true }
+          { session, new: true, upsert: true }
         )
-        if (restoredInv) {
-          const newStock: number = (restoredInv as any).quantity
-          const previousStock = newStock - item.quantity
-          // Only create adjustment if inventory record existed
-          await StockAdjustment.create(
-            [
-              {
-                branchId,
-                productId: item.productId,
-                type: 'void_return',
-                quantity: item.quantity,
-                previousStock,
-                newStock,
-                reason: `Void ${updated.receiptNo}: ${input.reason}`,
-                notes: '',
-                createdBy: userId,
-                transactionId: updated._id
-              }
-            ],
-            { session }
-          )
-        }
+        const newStock: number = (restoredInv as any).quantity
+        const previousStock = newStock - item.quantity
+        await StockAdjustment.create(
+          [
+            {
+              branchId,
+              productId: item.productId,
+              type: 'void_return',
+              quantity: item.quantity,
+              previousStock,
+              newStock,
+              reason: `Void ${updated.receiptNo}: ${input.reason}`,
+              notes: '',
+              createdBy: userId,
+              transactionId: updated._id
+            }
+          ],
+          { session }
+        )
       }
     })
   } finally {
@@ -331,16 +337,20 @@ export async function refundTransaction(
     const pid = ri.productId.toString()
     mergedMap.set(pid, (mergedMap.get(pid) ?? 0) + ri.quantity)
   }
-  const deduped = Array.from(mergedMap.entries()).map(([productId, quantity]) => ({ productId, quantity }))
+  const deduped = Array.from(mergedMap.entries()).map(([productId, quantity]) => ({
+    productId,
+    quantity
+  }))
   // Replace input.refundedItems for all downstream use
   const refundItems = deduped
 
   const txn = await Transaction.findById(input.transactionId)
-  if (!txn) throw new Error('Transaction not found')
+  if (!txn) throw new BusinessError('Transaction not found')
   if (!['completed', 'partially_refunded'].includes(txn.status)) {
-    throw new Error('Only completed or partially-refunded transactions can be refunded')
+    throw new BusinessError('Only completed or partially-refunded transactions can be refunded')
   }
-  if (txn.branchId.toString() !== branchId) throw new Error('Transaction belongs to a different branch')
+  if (txn.branchId.toString() !== branchId)
+    throw new BusinessError('Transaction belongs to a different branch')
 
   const now = new Date()
   const session = await mongoose.startSession()
@@ -350,21 +360,25 @@ export async function refundTransaction(
       // Re-read inside session to get authoritative state (prevents TOCTOU)
       const txnFresh = await Transaction.findById(input.transactionId).session(session)
       if (!txnFresh || !['completed', 'partially_refunded'].includes(txnFresh.status)) {
-        throw new Error('Transaction not found or not eligible for refund')
+        throw new BusinessError('Transaction not found or not eligible for refund')
       }
-      if (txnFresh.branchId.toString() !== branchId) throw new Error('Transaction belongs to a different branch')
+      if (txnFresh.branchId.toString() !== branchId)
+        throw new BusinessError('Transaction belongs to a different branch')
 
       // Validate per-item remaining quantities using the fresh in-session snapshot
       const txnItems = txnFresh.items as any[]
       for (const ri of refundItems) {
         const original = txnItems.find((i: any) => i.productId.toString() === ri.productId)
-        if (!original) throw new Error(`Product ${ri.productId} not in original transaction`)
+        if (!original)
+          throw new BusinessError(`Product ${ri.productId} not in original transaction`)
         const alreadyRefunded = (txnFresh.refundedItems ?? [])
           .filter((r: any) => r.productId.toString() === ri.productId)
           .reduce((sum: number, r: any) => sum + r.quantity, 0)
         const remaining = original.quantity - alreadyRefunded
         if (ri.quantity > remaining) {
-          throw new Error(`Refund quantity exceeds remaining refundable quantity (${remaining}) for product ${ri.productId}`)
+          throw new BusinessError(
+            `Refund quantity exceeds remaining refundable quantity (${remaining}) for product ${ri.productId}`
+          )
         }
       }
 
@@ -373,8 +387,8 @@ export async function refundTransaction(
         const totalRefunded = [
           ...(txnFresh.refundedItems ?? []),
           ...refundItems
-            .filter(ri => ri.productId === original.productId.toString())
-            .map(ri => ({ productId: original.productId, quantity: ri.quantity }))
+            .filter((ri) => ri.productId === original.productId.toString())
+            .map((ri) => ({ productId: original.productId, quantity: ri.quantity }))
         ]
           .filter((r: any) => r.productId.toString() === original.productId.toString())
           .reduce((sum: number, r: any) => sum + r.quantity, 0)
@@ -401,35 +415,33 @@ export async function refundTransaction(
         },
         { session, new: true }
       )
-      if (!updated) throw new Error('Transaction not found or not eligible for refund')
+      if (!updated) throw new BusinessError('Transaction not found or not eligible for refund')
 
       for (const ri of refundItems) {
         const restoredInv = await Inventory.findOneAndUpdate(
           { productId: ri.productId, branchId },
           { $inc: { quantity: ri.quantity } },
-          { session, new: true }
+          { session, new: true, upsert: true }
         )
-        if (restoredInv) {
-          const newStock: number = (restoredInv as any).quantity
-          const previousStock = newStock - ri.quantity
-          await StockAdjustment.create(
-            [
-              {
-                branchId,
-                productId: ri.productId,
-                type: 'refund_return',
-                quantity: ri.quantity,
-                previousStock,
-                newStock,
-                reason: `Refund ${txn.receiptNo}: ${input.reason}`,
-                notes: '',
-                createdBy: userId,
-                transactionId: txn._id
-              }
-            ],
-            { session }
-          )
-        }
+        const newStock: number = (restoredInv as any).quantity
+        const previousStock = newStock - ri.quantity
+        await StockAdjustment.create(
+          [
+            {
+              branchId,
+              productId: ri.productId,
+              type: 'refund_return',
+              quantity: ri.quantity,
+              previousStock,
+              newStock,
+              reason: `Refund ${txn.receiptNo}: ${input.reason}`,
+              notes: '',
+              createdBy: userId,
+              transactionId: txn._id
+            }
+          ],
+          { session }
+        )
       }
     })
   } finally {

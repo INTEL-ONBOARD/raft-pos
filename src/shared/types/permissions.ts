@@ -20,7 +20,8 @@ export const PERMISSIONS = {
   CAN_VIEW_ALL_BRANCHES: 'can_view_all_branches',
   CAN_APPROVE_STOCK_TRANSFER: 'can_approve_stock_transfer',
   CAN_RECEIVE_STOCK_TRANSFER: 'can_receive_stock_transfer',
+  CAN_APPROVE_PAYOUTS: 'can_approve_payouts'
 } as const
 
-export type Permission = typeof PERMISSIONS[keyof typeof PERMISSIONS]
+export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS]
 export const ALL_PERMISSIONS = Object.values(PERMISSIONS) as Permission[]

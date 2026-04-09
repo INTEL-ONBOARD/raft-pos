@@ -4,9 +4,13 @@ import { Transaction } from '../models/transaction.model'
 import { Inventory } from '../models/inventory.model'
 import { CashDrawer } from '../models/cash-drawer.model'
 import { User } from '../models/user.model'
+import { getNetProductMetrics, getNetTransactionMetrics } from './transaction-accounting'
 import type {
-  ReportFilters, SalesSummaryRow, SalesByProductRow,
-  InventoryValuationRow, CashDrawerReportRow
+  ReportFilters,
+  SalesSummaryRow,
+  SalesByProductRow,
+  InventoryValuationRow,
+  CashDrawerReportRow
 } from '@shared/types/reporting.types'
 
 function dateRange(dateFrom: string, dateTo: string) {
@@ -20,44 +24,55 @@ function dateRange(dateFrom: string, dateTo: string) {
 export async function getSalesSummary(filters: ReportFilters) {
   const { start, end } = dateRange(filters.dateFrom, filters.dateTo)
   const match: any = {
-    status: { $in: ['completed', 'partially_refunded', 'refunded'] },
     createdAt: { $gte: start, $lte: end }
   }
   if (filters.branchId) match.branchId = new mongoose.Types.ObjectId(filters.branchId)
 
-  const rows = await Transaction.aggregate([
-    { $match: match },
-    {
-      $group: {
-        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-        transactions: { $sum: 1 },
-        itemsSold: { $sum: { $sum: '$items.quantity' } },
-        revenue: { $sum: '$totalAmount' },
-        tax: { $sum: '$taxAmount' },
-        discount: { $sum: '$discountAmount' }
-      }
-    },
-    { $sort: { _id: 1 } }
-  ])
+  const transactions = await Transaction.find(match).sort({ createdAt: 1 }).lean()
+  const rows = transactions.reduce((map, txn) => {
+    const date = new Date(txn.createdAt).toISOString().slice(0, 10)
+    const metrics = getNetTransactionMetrics(txn as any)
+    const current = map.get(date) ?? {
+      date,
+      transactions: 0,
+      itemsSold: 0,
+      revenue: 0,
+      tax: 0,
+      discount: 0,
+      netRevenue: 0
+    }
 
-  const data: SalesSummaryRow[] = rows.map(r => ({
-    date: r._id,
-    transactions: r.transactions,
-    itemsSold: r.itemsSold,
-    revenue: r.revenue,
-    tax: r.tax,
-    discount: r.discount,
-    netRevenue: r.revenue - r.tax - r.discount
-  }))
+    current.transactions += metrics.transactions
+    current.itemsSold += metrics.itemsSold
+    current.revenue += metrics.revenue
+    current.tax += metrics.tax
+    current.discount += metrics.discount
+    current.netRevenue += metrics.netRevenue
+    map.set(date, current)
+    return map
+  }, new Map<string, SalesSummaryRow>())
 
-  const totals = data.reduce((acc, r) => ({
-    transactions: acc.transactions + r.transactions,
-    itemsSold: acc.itemsSold + r.itemsSold,
-    revenue: acc.revenue + r.revenue,
-    tax: acc.tax + r.tax,
-    discount: acc.discount + r.discount,
-    netRevenue: acc.netRevenue + r.netRevenue
-  }), { transactions: 0, itemsSold: 0, revenue: 0, tax: 0, discount: 0, netRevenue: 0 })
+  const data: SalesSummaryRow[] = Array.from(rows.values())
+    .map((row) => ({
+      ...row,
+      revenue: Math.round(row.revenue * 100) / 100,
+      tax: Math.round(row.tax * 100) / 100,
+      discount: Math.round(row.discount * 100) / 100,
+      netRevenue: Math.round(row.netRevenue * 100) / 100
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date))
+
+  const totals = data.reduce(
+    (acc, r) => ({
+      transactions: acc.transactions + r.transactions,
+      itemsSold: acc.itemsSold + r.itemsSold,
+      revenue: acc.revenue + r.revenue,
+      tax: acc.tax + r.tax,
+      discount: acc.discount + r.discount,
+      netRevenue: acc.netRevenue + r.netRevenue
+    }),
+    { transactions: 0, itemsSold: 0, revenue: 0, tax: 0, discount: 0, netRevenue: 0 }
+  )
 
   return { data, totals }
 }
@@ -65,39 +80,47 @@ export async function getSalesSummary(filters: ReportFilters) {
 export async function getSalesByProduct(filters: ReportFilters): Promise<SalesByProductRow[]> {
   const { start, end } = dateRange(filters.dateFrom, filters.dateTo)
   const match: any = {
-    status: { $in: ['completed', 'partially_refunded', 'refunded'] },
     createdAt: { $gte: start, $lte: end }
   }
   if (filters.branchId) match.branchId = new mongoose.Types.ObjectId(filters.branchId)
 
-  const rows = await Transaction.aggregate([
-    { $match: match },
-    { $unwind: '$items' },
-    {
-      $group: {
-        _id: '$items.productId',
-        sku: { $first: '$items.sku' },
-        name: { $first: '$items.name' },
-        unitsSold: { $sum: '$items.quantity' },
-        revenue: { $sum: '$items.totalPrice' },
-        cogs: { $sum: { $multiply: ['$items.unitCost', '$items.quantity'] } }
-      }
-    },
-    { $sort: { revenue: -1 } }
-  ])
+  const transactions = await Transaction.find(match).lean()
+  const productMap = new Map<string, SalesByProductRow>()
 
-  return rows.map(r => ({
-    productId: r._id.toString(),
-    sku: r.sku,
-    name: r.name,
-    unitsSold: r.unitsSold,
-    revenue: r.revenue,
-    cogs: r.cogs,
-    grossProfit: r.revenue - r.cogs
-  }))
+  for (const txn of transactions) {
+    for (const metric of getNetProductMetrics(txn as any)) {
+      const current = productMap.get(metric.productId) ?? {
+        productId: metric.productId,
+        sku: metric.sku,
+        name: metric.name,
+        unitsSold: 0,
+        revenue: 0,
+        cogs: 0,
+        grossProfit: 0
+      }
+
+      current.unitsSold += metric.unitsSold
+      current.revenue += metric.revenue
+      current.cogs += metric.cogs
+      current.grossProfit = current.revenue - current.cogs
+      productMap.set(metric.productId, current)
+    }
+  }
+
+  return Array.from(productMap.values())
+    .filter((row) => row.unitsSold > 0 || row.revenue > 0 || row.cogs > 0)
+    .map((row) => ({
+      ...row,
+      revenue: Math.round(row.revenue * 100) / 100,
+      cogs: Math.round(row.cogs * 100) / 100,
+      grossProfit: Math.round(row.grossProfit * 100) / 100
+    }))
+    .sort((a, b) => b.revenue - a.revenue)
 }
 
-export async function getInventoryValuation(filters: ReportFilters): Promise<{ data: InventoryValuationRow[]; totalValue: number }> {
+export async function getInventoryValuation(
+  filters: ReportFilters
+): Promise<{ data: InventoryValuationRow[]; totalValue: number }> {
   const match: any = {}
   if (filters.branchId) match.branchId = new mongoose.Types.ObjectId(filters.branchId)
 
@@ -134,7 +157,7 @@ export async function getInventoryValuation(filters: ReportFilters): Promise<{ d
     { $sort: { name: 1 } }
   ])
 
-  const data: InventoryValuationRow[] = rows.map(r => ({
+  const data: InventoryValuationRow[] = rows.map((r) => ({
     productId: r.productId.toString(),
     sku: r.sku,
     name: r.name,

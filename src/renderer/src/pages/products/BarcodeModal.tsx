@@ -50,7 +50,7 @@ export function BarcodeModal({ product, onClose }: Props) {
         <p><strong>${escapeHtml(product.name)}</strong></p>
         <p>SKU: ${escapeHtml(product.sku)}</p>
         ${svg.outerHTML}
-        <script>window.onload = () => { window.print(); window.close(); }<\/script>
+        <script>window.onload = () => { window.print(); window.close(); }</script>
       </body></html>
     `)
     printWindow.document.close()
@@ -59,44 +59,62 @@ export function BarcodeModal({ product, onClose }: Props) {
   return (
     <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="modal-panel w-full max-w-[384px] overflow-hidden">
-
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5"
-          style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+        <div
+          className="flex items-center justify-between px-6 py-5"
+          style={{ borderBottom: '1px solid var(--border-subtle)' }}
+        >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-              style={{ background: 'rgba(79,70,229,0.10)' }}>
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: 'rgba(79,70,229,0.10)' }}
+            >
               <Scan className="w-4 h-4" style={{ color: 'var(--accent)' }} />
             </div>
             <div>
-              <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>Barcode</h2>
+              <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                Barcode
+              </h2>
             </div>
           </div>
-          <button onClick={onClose} style={{ color: 'var(--text-muted)' }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
+          <button
+            onClick={onClose}
+            style={{ color: 'var(--text-muted)' }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Body */}
         <div className="px-6 py-5 text-center">
-          <p className="text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>{product.name}</p>
-          <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>SKU: {product.sku}</p>
-          <div className="flex justify-center rounded-xl p-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
+          <p className="text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>
+            {product.name}
+          </p>
+          <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
+            SKU: {product.sku}
+          </p>
+          <div
+            className="flex justify-center rounded-xl p-3"
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
+          >
             <svg ref={svgRef} />
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 px-6 py-4"
-          style={{ borderTop: '1px solid var(--border-subtle)' }}>
-          <button type="button" onClick={onClose} className="btn-secondary px-5 py-2">Close</button>
+        <div
+          className="flex justify-end gap-2 px-6 py-4"
+          style={{ borderTop: '1px solid var(--border-subtle)' }}
+        >
+          <button type="button" onClick={onClose} className="btn-secondary px-5 py-2">
+            Close
+          </button>
           <button onClick={handlePrint} className="btn-primary flex items-center gap-2 px-5 py-2">
             <Printer className="w-4 h-4" /> Print
           </button>
         </div>
-
       </div>
     </div>
   )

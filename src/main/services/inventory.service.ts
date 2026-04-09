@@ -4,14 +4,24 @@ import { StockAdjustment } from '../models/stock-adjustment.model'
 import { ActivityLog } from '../models/activity-log.model'
 import store from '../store/electron-store'
 import type {
-  StockLevelRow, ManualAdjustmentInput, IStockAdjustment
+  StockLevelRow,
+  ManualAdjustmentInput,
+  IStockAdjustment
 } from '@shared/types/inventory.types'
 
 // branchId = null means "all branches" (for users with can_view_all_branches)
 export async function getStockLevels(branchId: string | null): Promise<StockLevelRow[]> {
   const filter = branchId ? { branchId } : {}
   const inventories = await Inventory.find(filter)
-    .populate<{ productId: { _id: mongoose.Types.ObjectId; name: string; sku: string; unit: string; isActive: boolean } }>({
+    .populate<{
+      productId: {
+        _id: mongoose.Types.ObjectId
+        name: string
+        sku: string
+        unit: string
+        isActive: boolean
+      }
+    }>({
       path: 'productId',
       select: 'name sku unit isActive',
       match: { isActive: true }
@@ -20,8 +30,8 @@ export async function getStockLevels(branchId: string | null): Promise<StockLeve
 
   // After populate with match, inactive products come back as null — filter them out
   return inventories
-    .filter(inv => inv.productId != null)
-    .map(inv => {
+    .filter((inv) => inv.productId != null)
+    .map((inv) => {
       const product = inv.productId as any
       return {
         _id: inv._id.toString(),
@@ -85,17 +95,22 @@ export async function manualAdjustment(
         newStock = updatedInventory.quantity
       }
 
-      const created = await StockAdjustment.create([{
-        branchId,
-        productId,
-        type,
-        quantity,
-        previousStock,
-        newStock,
-        reason,
-        notes: notes ?? '',
-        createdBy: userId
-      }], { session })
+      const created = await StockAdjustment.create(
+        [
+          {
+            branchId,
+            productId,
+            type,
+            quantity,
+            previousStock,
+            newStock,
+            reason,
+            notes: notes ?? '',
+            createdBy: userId
+          }
+        ],
+        { session }
+      )
       adj = created[0]
     })
   } finally {
@@ -156,7 +171,7 @@ export async function getAdjustments(
   ])
 
   return {
-    data: adjs.map(a => ({
+    data: adjs.map((a) => ({
       _id: a._id.toString(),
       branchId: a.branchId.toString(),
       productId: a.productId.toString(),

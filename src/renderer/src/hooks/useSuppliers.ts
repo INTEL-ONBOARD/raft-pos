@@ -4,8 +4,10 @@ import { ipc } from '../lib/ipc'
 import { IPC } from '@shared/types/ipc.types'
 import { useSupplierStore } from '../stores/supplier.store'
 import type {
-  SuppliersResult, SupplierResult,
-  CreateSupplierInput, UpdateSupplierInput
+  SuppliersResult,
+  SupplierResult,
+  CreateSupplierInput,
+  UpdateSupplierInput
 } from '@shared/types/supplier.types'
 
 export function useSuppliers(opts?: { includeInactive?: boolean }) {

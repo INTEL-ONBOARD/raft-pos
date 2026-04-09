@@ -2,7 +2,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ipc } from '../lib/ipc'
 import { IPC } from '@shared/types/ipc.types'
-import type { RolesResult, RoleResult, CreateRoleInput, UpdateRoleInput } from '@shared/types/role.types'
+import type {
+  RolesResult,
+  RoleResult,
+  CreateRoleInput,
+  UpdateRoleInput
+} from '@shared/types/role.types'
 
 export function useRoles() {
   const queryClient = useQueryClient()
@@ -37,7 +42,9 @@ export function useRoles() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const result = await ipc.invoke<{ success: boolean; error?: string }>(IPC.ROLES_DELETE, { id })
+      const result = await ipc.invoke<{ success: boolean; error?: string }>(IPC.ROLES_DELETE, {
+        id
+      })
       if (!result.success) throw new Error(result.error)
       return result
     },

@@ -43,7 +43,9 @@ export async function createCategory(data: {
   if (data.parentId) {
     const parentDepth = await getCategoryDepth(data.parentId)
     if (parentDepth >= 2) {
-      throw new Error('Categories support a maximum of 3 levels. This parent is already at the maximum depth.')
+      throw new Error(
+        'Categories support a maximum of 3 levels. This parent is already at the maximum depth.'
+      )
     }
   }
   const cat = await Category.create({
@@ -65,7 +67,9 @@ export async function updateCategory(
     }
     const parentDepth = await getCategoryDepth(data.parentId)
     if (parentDepth >= 2) {
-      throw new Error('Categories support a maximum of 3 levels. This parent is already at the maximum depth.')
+      throw new Error(
+        'Categories support a maximum of 3 levels. This parent is already at the maximum depth.'
+      )
     }
   }
   const cat = await Category.findByIdAndUpdate(id, { $set: data }, { new: true }).lean()

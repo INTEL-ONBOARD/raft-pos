@@ -12,10 +12,9 @@ interface SupplierState {
 export const useSupplierStore = create<SupplierState>((set) => ({
   suppliers: [],
   setSuppliers: (suppliers) => set({ suppliers }),
-  addSupplier: (supplier) =>
-    set(state => ({ suppliers: [supplier, ...state.suppliers] })),
+  addSupplier: (supplier) => set((state) => ({ suppliers: [supplier, ...state.suppliers] })),
   updateSupplier: (supplier) =>
-    set(state => ({
-      suppliers: state.suppliers.map(s => s._id === supplier._id ? supplier : s)
+    set((state) => ({
+      suppliers: state.suppliers.map((s) => (s._id === supplier._id ? supplier : s))
     }))
 }))

@@ -11,11 +11,11 @@ export interface CartItem {
   unitCost: number
   discountAmount: number
   discountType: DiscountType
-  availableStock: number   // for real-time stock warning
+  availableStock: number // for real-time stock warning
 }
 
 export interface PaymentEntry {
-  id: string  // local UUID for list key
+  id: string // local UUID for list key
   method: PaymentMethod
   amount: number
   reference: string

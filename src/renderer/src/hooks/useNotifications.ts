@@ -18,7 +18,11 @@ interface UseNotificationsInput {
   drawerStatus: 'open' | 'closed' | undefined
 }
 
-export function useNotifications({ stats, stockData, drawerStatus }: UseNotificationsInput): AppNotification[] {
+export function useNotifications({
+  stats,
+  stockData,
+  drawerStatus
+}: UseNotificationsInput): AppNotification[] {
   return useMemo(() => {
     const notifications: AppNotification[] = []
 
@@ -32,7 +36,7 @@ export function useNotifications({ stats, stockData, drawerStatus }: UseNotifica
         iconColor: 'var(--color-warning)',
         iconBg: 'var(--color-warning-bg)',
         icon: 'warning',
-        href: '/inventory',
+        href: '/inventory'
       })
     }
 
@@ -45,7 +49,7 @@ export function useNotifications({ stats, stockData, drawerStatus }: UseNotifica
         iconColor: 'var(--color-danger)',
         iconBg: 'var(--color-danger-bg)',
         icon: 'cash',
-        href: '/cash-drawer',
+        href: '/cash-drawer'
       })
     }
 
@@ -60,7 +64,7 @@ export function useNotifications({ stats, stockData, drawerStatus }: UseNotifica
         iconColor: 'var(--color-success)',
         iconBg: 'var(--color-success-bg)',
         icon: 'transaction',
-        href: '/transactions',
+        href: '/transactions'
       })
     }
 

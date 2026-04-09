@@ -1,10 +1,6 @@
 // src/renderer/src/pages/pos/ProductSearchPanel.tsx
 import { useState } from 'react'
-import {
-  MagnifyingGlassIcon,
-  QrCodeIcon,
-  ShoppingBagIcon
-} from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon, QrCodeIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
 import { useProducts } from '../../hooks/useProducts'
 import { useCategories } from '../../hooks/useCategories'
 import { usePosStore } from '../../stores/pos.store'
@@ -25,9 +21,7 @@ export function ProductSearchPanel() {
 
   const products = productsQuery.data?.data ?? []
   const categories = categoriesQuery.data ?? []
-  const stockMap = new Map(
-    (stockQuery.data ?? []).map((s: any) => [s.productId, s.quantity])
-  )
+  const stockMap = new Map((stockQuery.data ?? []).map((s: any) => [s.productId, s.quantity]))
 
   function handleAddProduct(product: any) {
     const availableStock = stockMap.get(product._id) ?? 0
@@ -55,7 +49,8 @@ export function ProductSearchPanel() {
           inset: 0,
           pointerEvents: 'none',
           zIndex: 0,
-          background: 'radial-gradient(ellipse 700px 500px at 10% 0%, rgba(124,58,237,0.08) 0%, transparent 65%)'
+          background:
+            'radial-gradient(ellipse 700px 500px at 10% 0%, rgba(124,58,237,0.08) 0%, transparent 65%)'
         }}
       />
 
@@ -82,7 +77,10 @@ export function ProductSearchPanel() {
                 <h1 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
                   Point of Sale
                 </h1>
-                <p className="text-xs mt-0.5" style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                <p
+                  className="text-xs mt-0.5"
+                  style={{ fontSize: '12px', color: 'var(--text-muted)' }}
+                >
                   {productsQuery.isLoading
                     ? 'Loading products…'
                     : `${products.length} product${products.length !== 1 ? 's' : ''} shown`}
@@ -241,7 +239,10 @@ export function ProductSearchPanel() {
                   >
                     {/* SKU + stock dot */}
                     <div className="flex items-center justify-between mb-1.5">
-                      <p className="text-xs font-mono truncate" style={{ color: 'var(--text-muted)' }}>
+                      <p
+                        className="text-xs font-mono truncate"
+                        style={{ color: 'var(--text-muted)' }}
+                      >
                         {product.sku}
                       </p>
                       <span
@@ -260,8 +261,12 @@ export function ProductSearchPanel() {
                     >
                       {product.name}
                     </p>
-                    <p className="font-bold mt-2" style={{ fontSize: '18px', color: 'var(--accent)' }}>
-                      &#8369;{product.sellingPrice.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                    <p
+                      className="font-bold mt-2"
+                      style={{ fontSize: '18px', color: 'var(--accent)' }}
+                    >
+                      &#8369;
+                      {product.sellingPrice.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
                     </p>
                     <p
                       className="text-xs mt-1.5"

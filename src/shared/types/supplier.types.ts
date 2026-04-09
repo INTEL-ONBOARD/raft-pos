@@ -24,9 +24,7 @@ export interface UpdateSupplierInput extends Partial<CreateSupplierInput> {
   isActive?: boolean
 }
 
-export type SupplierResult =
-  | { success: true; data: ISupplier }
-  | { success: false; error: string }
+export type SupplierResult = { success: true; data: ISupplier } | { success: false; error: string }
 
 export type SuppliersResult =
   | { success: true; data: ISupplier[] }

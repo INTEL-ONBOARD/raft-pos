@@ -7,7 +7,7 @@ export interface IProduct extends Document {
   name: string
   description: string
   categoryId: Types.ObjectId | null
-  unit: typeof UNITS[number]
+  unit: (typeof UNITS)[number]
   costPrice: number
   sellingPrice: number
   barcode: string

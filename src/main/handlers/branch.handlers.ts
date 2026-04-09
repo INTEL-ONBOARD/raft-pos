@@ -3,8 +3,12 @@ import { IPC } from '@shared/types/ipc.types'
 import { requireAuth } from '../services/auth.service'
 import store from '../store/electron-store'
 import {
-  getBranches, createBranch, updateBranch, deactivateBranch,
-  type CreateBranchInput, type UpdateBranchInput,
+  getBranches,
+  createBranch,
+  updateBranch,
+  deactivateBranch,
+  type CreateBranchInput,
+  type UpdateBranchInput
 } from '../services/branch.service'
 
 export function registerBranchHandlers(): void {
@@ -30,7 +34,8 @@ export function registerBranchHandlers(): void {
       const data = await createBranch(r)
       return { success: true, data }
     } catch (err: any) {
-      if (err.code === 11000) return { success: false, error: 'A branch with this code already exists' }
+      if (err.code === 11000)
+        return { success: false, error: 'A branch with this code already exists' }
       return { success: false, error: err.message ?? 'Failed to create branch' }
     }
   })
@@ -47,7 +52,8 @@ export function registerBranchHandlers(): void {
       if (!data) return { success: false, error: 'Branch not found' }
       return { success: true, data }
     } catch (err: any) {
-      if (err.code === 11000) return { success: false, error: 'A branch with this code already exists' }
+      if (err.code === 11000)
+        return { success: false, error: 'A branch with this code already exists' }
       return { success: false, error: err.message ?? 'Failed to update branch' }
     }
   })

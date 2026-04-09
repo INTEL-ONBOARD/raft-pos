@@ -4,7 +4,12 @@ import { PurchaseOrder } from '../models/purchase-order.model'
 import { Inventory } from '../models/inventory.model'
 import { StockAdjustment } from '../models/stock-adjustment.model'
 import { Counter } from '../models/counter.model'
-import type { CreatePOInput, UpdatePOInput, ReceivePOInput, IPurchaseOrder } from '@shared/types/purchase-order.types'
+import type {
+  CreatePOInput,
+  UpdatePOInput,
+  ReceivePOInput,
+  IPurchaseOrder
+} from '@shared/types/purchase-order.types'
 
 function toShared(doc: any): IPurchaseOrder {
   return {
@@ -14,7 +19,9 @@ function toShared(doc: any): IPurchaseOrder {
     branchId: doc.branchId.toString(),
     items: doc.items.map((it: any) => ({
       productId: it.productId.toString(),
-      sku: it.sku, name: it.name, unit: it.unit,
+      sku: it.sku,
+      name: it.name,
+      unit: it.unit,
       orderedQty: it.orderedQty,
       receivedQty: it.receivedQty,
       receiveHistory: it.receiveHistory.map((h: any) => ({
@@ -51,8 +58,12 @@ async function generatePoNumber(session: mongoose.ClientSession): Promise<string
   return `PO-${ymd}-${String(counter.seq).padStart(4, '0')}`
 }
 
-export async function createPO(input: CreatePOInput, userId: string, branchId: string): Promise<IPurchaseOrder> {
-  const items = input.items.map(it => ({
+export async function createPO(
+  input: CreatePOInput,
+  userId: string,
+  branchId: string
+): Promise<IPurchaseOrder> {
+  const items = input.items.map((it) => ({
     ...it,
     receivedQty: 0,
     receiveHistory: [],
@@ -65,17 +76,22 @@ export async function createPO(input: CreatePOInput, userId: string, branchId: s
   try {
     await session.withTransaction(async () => {
       const poNumber = await generatePoNumber(session)
-      const created = await PurchaseOrder.create([{
-        poNumber,
-        supplierId: input.supplierId,
-        branchId,
-        items,
-        status: 'draft',
-        subtotal,
-        totalAmount: subtotal,
-        notes: input.notes ?? '',
-        createdBy: userId
-      }], { session })
+      const created = await PurchaseOrder.create(
+        [
+          {
+            poNumber,
+            supplierId: input.supplierId,
+            branchId,
+            items,
+            status: 'draft',
+            subtotal,
+            totalAmount: subtotal,
+            notes: input.notes ?? '',
+            createdBy: userId
+          }
+        ],
+        { session }
+      )
       po = created[0]
     })
   } finally {
@@ -84,7 +100,12 @@ export async function createPO(input: CreatePOInput, userId: string, branchId: s
   return toShared(po)
 }
 
-export async function updatePO(id: string, input: UpdatePOInput, branchId: string, canViewAll: boolean): Promise<IPurchaseOrder | null> {
+export async function updatePO(
+  id: string,
+  input: UpdatePOInput,
+  branchId: string,
+  canViewAll: boolean
+): Promise<IPurchaseOrder | null> {
   const branchFilter = canViewAll ? {} : { branchId }
   const po = await PurchaseOrder.findOne({ _id: id, ...branchFilter })
   if (!po) return null
@@ -94,7 +115,7 @@ export async function updatePO(id: string, input: UpdatePOInput, branchId: strin
   if (input.supplierId) updates.supplierId = input.supplierId
   if (input.notes !== undefined) updates.notes = input.notes
   if (input.items) {
-    const items = input.items.map(it => ({
+    const items = input.items.map((it) => ({
       ...it,
       receivedQty: 0,
       receiveHistory: [],
@@ -104,11 +125,19 @@ export async function updatePO(id: string, input: UpdatePOInput, branchId: strin
     updates.subtotal = items.reduce((s, it) => s + it.totalCost, 0)
     updates.totalAmount = updates.subtotal
   }
-  const updated = await PurchaseOrder.findOneAndUpdate({ _id: id, ...branchFilter }, { $set: updates }, { new: true })
+  const updated = await PurchaseOrder.findOneAndUpdate(
+    { _id: id, ...branchFilter },
+    { $set: updates },
+    { new: true }
+  )
   return updated ? toShared(updated) : null
 }
 
-export async function sendPO(id: string, branchId: string, canViewAll: boolean): Promise<IPurchaseOrder | null> {
+export async function sendPO(
+  id: string,
+  branchId: string,
+  canViewAll: boolean
+): Promise<IPurchaseOrder | null> {
   const branchFilter = canViewAll ? {} : { branchId }
   const po = await PurchaseOrder.findOne({ _id: id, status: 'draft', ...branchFilter })
   if (!po) return null
@@ -123,7 +152,11 @@ export async function sendPO(id: string, branchId: string, canViewAll: boolean):
   return updated ? toShared(updated) : null
 }
 
-export async function cancelPO(id: string, branchId: string, canViewAll: boolean): Promise<IPurchaseOrder | null> {
+export async function cancelPO(
+  id: string,
+  branchId: string,
+  canViewAll: boolean
+): Promise<IPurchaseOrder | null> {
   const branchFilter = canViewAll ? {} : { branchId }
   const updated = await PurchaseOrder.findOneAndUpdate(
     { _id: id, status: { $in: ['draft', 'sent'] }, ...branchFilter },
@@ -133,20 +166,48 @@ export async function cancelPO(id: string, branchId: string, canViewAll: boolean
   return updated ? toShared(updated) : null
 }
 
-export async function receivePO(input: ReceivePOInput, userId: string, branchId: string): Promise<IPurchaseOrder> {
+export async function receivePO(
+  input: ReceivePOInput,
+  userId: string,
+  branchId: string
+): Promise<IPurchaseOrder> {
+  const mergedReceiveItems = Array.from(
+    input.items
+      .reduce((map, item) => {
+        const existing = map.get(item.productId)
+        if (existing) {
+          existing.qty += item.qty
+          if (item.notes?.trim()) {
+            existing.notes = existing.notes
+              ? `${existing.notes}; ${item.notes.trim()}`
+              : item.notes.trim()
+          }
+        } else {
+          map.set(item.productId, {
+            productId: item.productId,
+            qty: item.qty,
+            notes: item.notes?.trim() ?? ''
+          })
+        }
+        return map
+      }, new Map<string, { productId: string; qty: number; notes: string }>())
+      .values()
+  )
+
   const session = await mongoose.startSession()
   let result: IPurchaseOrder | undefined
 
   await session.withTransaction(async () => {
     const po = await PurchaseOrder.findById(input.poId).session(session)
     if (!po) throw new Error('Purchase order not found')
-    if (!['sent', 'partial'].includes(po.status)) throw new Error('PO must be in sent or partial status to receive')
+    if (!['sent', 'partial'].includes(po.status))
+      throw new Error('PO must be in sent or partial status to receive')
     if (po.branchId.toString() !== branchId) throw new Error('PO belongs to a different branch')
 
     const now = new Date()
 
     // Validate all items first (before any writes) to fail fast
-    for (const receiveItem of input.items) {
+    for (const receiveItem of mergedReceiveItems) {
       const poItem = (po.items as any[]).find(
         (it: any) => it.productId.toString() === receiveItem.productId
       )
@@ -156,11 +217,13 @@ export async function receivePO(input: ReceivePOInput, userId: string, branchId:
       }
       const remaining = poItem.orderedQty - poItem.receivedQty
       if (receiveItem.qty > remaining) {
-        throw new Error(`Cannot receive ${receiveItem.qty} of "${poItem.name}" — only ${remaining} remaining`)
+        throw new Error(
+          `Cannot receive ${receiveItem.qty} of "${poItem.name}" — only ${remaining} remaining`
+        )
       }
     }
 
-    for (const receiveItem of input.items) {
+    for (const receiveItem of mergedReceiveItems) {
       const poItem = (po.items as any[]).find(
         (it: any) => it.productId.toString() === receiveItem.productId
       )!
@@ -183,7 +246,9 @@ export async function receivePO(input: ReceivePOInput, userId: string, branchId:
       )
 
       // Upsert inventory record for this branch atomically
-      const prevInv = await Inventory.findOne({ productId: receiveItem.productId, branchId }).session(session).lean()
+      const prevInv = await Inventory.findOne({ productId: receiveItem.productId, branchId })
+        .session(session)
+        .lean()
       const previousStock = prevInv?.quantity ?? 0
       await Inventory.findOneAndUpdate(
         { productId: receiveItem.productId, branchId },
@@ -192,18 +257,23 @@ export async function receivePO(input: ReceivePOInput, userId: string, branchId:
       )
       const newStock = previousStock + receiveItem.qty
 
-      await StockAdjustment.create([{
-        branchId,
-        productId: receiveItem.productId,
-        type: 'purchase_received',
-        quantity: receiveItem.qty,
-        previousStock,
-        newStock,
-        reason: `PO Receive: ${po.poNumber}`,
-        notes: receiveItem.notes ?? '',
-        createdBy: userId,
-        purchaseOrderId: po._id
-      }], { session })
+      await StockAdjustment.create(
+        [
+          {
+            branchId,
+            productId: receiveItem.productId,
+            type: 'purchase_received',
+            quantity: receiveItem.qty,
+            previousStock,
+            newStock,
+            reason: `PO Receive: ${po.poNumber}`,
+            notes: receiveItem.notes ?? '',
+            createdBy: userId,
+            purchaseOrderId: po._id
+          }
+        ],
+        { session }
+      )
     }
 
     // Re-read updated PO to compute status from authoritative receivedQty values

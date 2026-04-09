@@ -1,24 +1,30 @@
 // src/main/models/transaction.model.ts
 import { Schema, model, Document, Types } from 'mongoose'
 
-const paymentSchema = new Schema({
-  method: { type: String, enum: ['cash', 'card', 'gcash', 'paymaya'], required: true },
-  amount: { type: Number, required: true },
-  reference: { type: String, default: null }
-}, { _id: false })
+const paymentSchema = new Schema(
+  {
+    method: { type: String, enum: ['cash', 'card', 'gcash', 'paymaya'], required: true },
+    amount: { type: Number, required: true },
+    reference: { type: String, default: null }
+  },
+  { _id: false }
+)
 
-const transactionItemSchema = new Schema({
-  productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
-  sku: { type: String, required: true },
-  name: { type: String, required: true },
-  unit: { type: String, required: true },
-  quantity: { type: Number, required: true, min: 0.001 },
-  unitPrice: { type: Number, required: true },
-  unitCost: { type: Number, required: true },
-  discountAmount: { type: Number, default: 0 },
-  discountType: { type: String, enum: ['percent', 'fixed'], default: 'fixed' },
-  totalPrice: { type: Number, required: true }
-}, { _id: false })
+const transactionItemSchema = new Schema(
+  {
+    productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
+    sku: { type: String, required: true },
+    name: { type: String, required: true },
+    unit: { type: String, required: true },
+    quantity: { type: Number, required: true, min: 0.001 },
+    unitPrice: { type: Number, required: true },
+    unitCost: { type: Number, required: true },
+    discountAmount: { type: Number, default: 0 },
+    discountType: { type: String, enum: ['percent', 'fixed'], default: 'fixed' },
+    totalPrice: { type: Number, required: true }
+  },
+  { _id: false }
+)
 
 export interface ITransactionItemDoc {
   productId: Types.ObjectId
@@ -81,18 +87,24 @@ const transactionSchema = new Schema<ITransaction>(
     payments: [paymentSchema],
     isSplit: { type: Boolean, default: false },
     change: { type: Number, default: 0 },
-    status: { type: String, enum: ['completed', 'voided', 'refunded', 'partially_refunded'], default: 'completed' },
+    status: {
+      type: String,
+      enum: ['completed', 'voided', 'refunded', 'partially_refunded'],
+      default: 'completed'
+    },
     voidedBy: { type: Schema.Types.ObjectId, default: null },
     voidedAt: { type: Date, default: null },
     voidReason: { type: String, default: null },
     refundedBy: { type: Schema.Types.ObjectId, default: null },
     refundedAt: { type: Date, default: null },
     refundReason: { type: String, default: null },
-    refundedItems: [{
-      productId: { type: Schema.Types.ObjectId, required: true },
-      quantity: { type: Number, required: true },
-      refundedAt: { type: Date, required: true }
-    }]
+    refundedItems: [
+      {
+        productId: { type: Schema.Types.ObjectId, required: true },
+        quantity: { type: Number, required: true },
+        refundedAt: { type: Date, required: true }
+      }
+    ]
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 )

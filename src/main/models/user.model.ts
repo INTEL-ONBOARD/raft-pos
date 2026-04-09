@@ -4,7 +4,7 @@ export interface IUser extends Document {
   name: string
   email: string
   passwordHash: string
-  supervisorPin: string | null  // bcrypt-hashed 4-digit PIN, nullable
+  supervisorPin: string | null // bcrypt-hashed 4-digit PIN, nullable
   roleId: Types.ObjectId
   branchId: Types.ObjectId
   isActive: boolean

@@ -8,15 +8,13 @@ export interface IInventory extends Document {
   reorderPoint: number
 }
 
-const inventorySchema = new Schema<IInventory>(
-  {
-    productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
-    branchId: { type: Schema.Types.ObjectId, ref: 'Branch', required: true },
-    quantity: { type: Number, required: true, default: 0, min: 0 },
-    lowStockThreshold: { type: Number, default: 5, min: 0 },
-    reorderPoint: { type: Number, default: 10, min: 0 }
-  }
-)
+const inventorySchema = new Schema<IInventory>({
+  productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
+  branchId: { type: Schema.Types.ObjectId, ref: 'Branch', required: true },
+  quantity: { type: Number, required: true, default: 0, min: 0 },
+  lowStockThreshold: { type: Number, default: 5, min: 0 },
+  reorderPoint: { type: Number, default: 10, min: 0 }
+})
 
 // One inventory doc per {productId, branchId}
 inventorySchema.index({ productId: 1, branchId: 1 }, { unique: true })

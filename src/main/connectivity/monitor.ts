@@ -1,5 +1,10 @@
 import { BrowserWindow } from 'electron'
-import { pingDB } from '../db/connection'
+import { connectDB, isDBConnected, pingDB } from '../db/connection'
+import {
+  areChangeStreamsRunning,
+  startChangeStreams,
+  stopChangeStreams
+} from '../db/change-streams'
 import { IPC } from '../../shared/types/ipc.types'
 import type { ConnectivityEvent } from '../../shared/types/connectivity.types'
 
@@ -8,11 +13,25 @@ let intervalId: NodeJS.Timeout | null = null
 let lastStatus: 'online' | 'offline' | null = null
 
 export function startConnectivityMonitor(win: BrowserWindow): void {
-  intervalId = setInterval(async () => {
+  const tick = async () => {
+    if (!isDBConnected() && process.env.MONGODB_URI) {
+      try {
+        await connectDB(process.env.MONGODB_URI)
+      } catch {
+        // Connectivity status is emitted below; keep retrying on the next interval.
+      }
+    }
+
     const isAlive = await pingDB()
     const status = isAlive ? 'online' : 'offline'
 
-    // Only emit when status changes to avoid flooding renderer
+    if (isAlive && !areChangeStreamsRunning()) {
+      startChangeStreams(win)
+    }
+    if (!isAlive && areChangeStreamsRunning()) {
+      stopChangeStreams()
+    }
+
     if (status !== lastStatus) {
       lastStatus = status
       const event: ConnectivityEvent = { status }
@@ -21,6 +40,11 @@ export function startConnectivityMonitor(win: BrowserWindow): void {
       }
       console.log(`[Connectivity] Status changed: ${status}`)
     }
+  }
+
+  void tick()
+  intervalId = setInterval(() => {
+    void tick()
   }, PING_INTERVAL_MS)
 }
 
@@ -29,4 +53,5 @@ export function stopConnectivityMonitor(): void {
     clearInterval(intervalId)
     intervalId = null
   }
+  lastStatus = null
 }

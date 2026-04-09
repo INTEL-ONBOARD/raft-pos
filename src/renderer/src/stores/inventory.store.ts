@@ -11,8 +11,8 @@ export const useInventoryStore = create<InventoryState>((set) => ({
   stockLevels: [],
   setStockLevels: (rows) => set({ stockLevels: rows }),
   updateStockLevel: (productId, quantity) =>
-    set(state => ({
-      stockLevels: state.stockLevels.map(r =>
+    set((state) => ({
+      stockLevels: state.stockLevels.map((r) =>
         r.productId === productId
           ? { ...r, quantity, isLowStock: quantity <= r.lowStockThreshold }
           : r

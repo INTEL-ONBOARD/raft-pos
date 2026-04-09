@@ -9,7 +9,7 @@ import {
   DocumentTextIcon,
   PercentBadgeIcon,
   Cog6ToothIcon,
-  BuildingOffice2Icon,
+  BuildingOffice2Icon
 } from '@heroicons/react/24/outline'
 import { useSettings } from '../../hooks/useSettings'
 import { BranchesTab } from './BranchesTab'
@@ -45,11 +45,16 @@ export default function SettingsPage() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
-    setError(''); setSaved(false)
+    setError('')
+    setSaved(false)
     try {
       await updateMutation.mutateAsync({
-        storeName, receiptHeader, receiptFooter,
-        globalTaxRate, currencySymbol, lowStockDefaultThreshold,
+        storeName,
+        receiptHeader,
+        receiptFooter,
+        globalTaxRate,
+        currencySymbol,
+        lowStockDefaultThreshold,
         terminalId
       })
       setSaved(true)
@@ -67,7 +72,7 @@ export default function SettingsPage() {
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        minHeight: '100%',
+        minHeight: '100%'
       }}
     >
       {/* Ambient glow */}
@@ -78,7 +83,7 @@ export default function SettingsPage() {
           pointerEvents: 'none',
           zIndex: 0,
           background:
-            'radial-gradient(ellipse 900px 600px at 20% 0%, rgba(124,58,237,0.10) 0%, transparent 70%)',
+            'radial-gradient(ellipse 900px 600px at 20% 0%, rgba(124,58,237,0.10) 0%, transparent 70%)'
         }}
       />
 
@@ -89,7 +94,7 @@ export default function SettingsPage() {
           zIndex: 1,
           display: 'flex',
           flexDirection: 'column',
-          flex: 1,
+          flex: 1
         }}
       >
         {/* Page header */}
@@ -99,7 +104,7 @@ export default function SettingsPage() {
             flexShrink: 0,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: 'space-between'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -112,7 +117,7 @@ export default function SettingsPage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                flexShrink: 0,
+                flexShrink: 0
               }}
             >
               <Cog6ToothIcon style={{ width: 20, height: 20, color: '#818cf8' }} />
@@ -125,7 +130,7 @@ export default function SettingsPage() {
                 style={{
                   fontSize: 13,
                   color: 'rgba(255,255,255,0.40)',
-                  margin: '2px 0 0 0',
+                  margin: '2px 0 0 0'
                 }}
               >
                 Configure your store, tax rules, and terminal identity
@@ -140,7 +145,15 @@ export default function SettingsPage() {
               form="settings-form"
               disabled={updateMutation.isPending}
               className="btn-primary"
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 18px', fontSize: 14, fontWeight: 600, opacity: updateMutation.isPending ? 0.5 : 1 }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '8px 18px',
+                fontSize: 14,
+                fontWeight: 600,
+                opacity: updateMutation.isPending ? 0.5 : 1
+              }}
             >
               <CheckIcon style={{ width: 16, height: 16 }} />
               {updateMutation.isPending ? 'Saving…' : 'Save Settings'}
@@ -150,26 +163,46 @@ export default function SettingsPage() {
 
         {/* Tab bar */}
         <div style={{ padding: '0 36px', marginBottom: '4px', flexShrink: 0 }}>
-          <div style={{ display: 'flex', gap: '4px', borderBottom: '1px solid rgba(255,255,255,0.07)', paddingBottom: '0' }}>
-            {([
-              { key: 'general',  label: 'General',  Icon: Cog6ToothIcon },
-              { key: 'branches', label: 'Branches', Icon: BuildingOffice2Icon },
-            ] as { key: Tab; label: string; Icon: React.ElementType }[]).map(({ key, label, Icon }) => {
+          <div
+            style={{
+              display: 'flex',
+              gap: '4px',
+              borderBottom: '1px solid rgba(255,255,255,0.07)',
+              paddingBottom: '0'
+            }}
+          >
+            {(
+              [
+                { key: 'general', label: 'General', Icon: Cog6ToothIcon },
+                { key: 'branches', label: 'Branches', Icon: BuildingOffice2Icon }
+              ] as { key: Tab; label: string; Icon: React.ElementType }[]
+            ).map(({ key, label, Icon }) => {
               const active = activeTab === key
               return (
                 <button
                   key={key}
                   onClick={() => setActiveTab(key)}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: '7px',
-                    padding: '9px 14px', fontSize: '13px', fontWeight: active ? 600 : 500,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '7px',
+                    padding: '9px 14px',
+                    fontSize: '13px',
+                    fontWeight: active ? 600 : 500,
                     color: active ? '#ffffff' : 'rgba(255,255,255,0.40)',
-                    background: 'none', border: 'none', cursor: 'pointer',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
                     borderBottom: active ? '2px solid #6366f1' : '2px solid transparent',
-                    marginBottom: '-1px', transition: 'color 0.15s',
+                    marginBottom: '-1px',
+                    transition: 'color 0.15s'
                   }}
-                  onMouseEnter={e => { if (!active) e.currentTarget.style.color = 'rgba(255,255,255,0.70)' }}
-                  onMouseLeave={e => { if (!active) e.currentTarget.style.color = 'rgba(255,255,255,0.40)' }}
+                  onMouseEnter={(e) => {
+                    if (!active) e.currentTarget.style.color = 'rgba(255,255,255,0.70)'
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!active) e.currentTarget.style.color = 'rgba(255,255,255,0.40)'
+                  }}
                 >
                   <Icon style={{ width: '15px', height: '15px' }} />
                   {label}
@@ -190,7 +223,7 @@ export default function SettingsPage() {
                 alignItems: 'center',
                 gap: 12,
                 fontSize: 14,
-                color: 'rgba(255,255,255,0.40)',
+                color: 'rgba(255,255,255,0.40)'
               }}
             >
               <div
@@ -200,14 +233,13 @@ export default function SettingsPage() {
                   borderRadius: '50%',
                   border: '2px solid rgba(255,255,255,0.12)',
                   borderTopColor: '#4F46E5',
-                  animation: 'spin 0.8s linear infinite',
+                  animation: 'spin 0.8s linear infinite'
                 }}
               />
               Loading settings…
             </div>
           ) : (
             <form id="settings-form" onSubmit={handleSave}>
-
               {/* Store Information */}
               <div
                 style={{
@@ -215,7 +247,7 @@ export default function SettingsPage() {
                   border: '1px solid rgba(255,255,255,0.07)',
                   borderRadius: 20,
                   padding: 24,
-                  marginBottom: 16,
+                  marginBottom: 16
                 }}
               >
                 {/* Section title row */}
@@ -229,7 +261,7 @@ export default function SettingsPage() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      flexShrink: 0,
+                      flexShrink: 0
                     }}
                   >
                     <BuildingStorefrontIcon style={{ width: 18, height: 18, color: '#818cf8' }} />
@@ -240,7 +272,7 @@ export default function SettingsPage() {
                         fontSize: 15,
                         fontWeight: 600,
                         color: 'rgba(255,255,255,0.88)',
-                        margin: 0,
+                        margin: 0
                       }}
                     >
                       Store Information
@@ -249,7 +281,7 @@ export default function SettingsPage() {
                       style={{
                         fontSize: 12,
                         color: 'rgba(255,255,255,0.38)',
-                        margin: '2px 0 0 0',
+                        margin: '2px 0 0 0'
                       }}
                     >
                       Basic details displayed on receipts and the POS interface
@@ -262,7 +294,7 @@ export default function SettingsPage() {
                   style={{
                     height: 1,
                     background: 'rgba(255,255,255,0.06)',
-                    margin: '16px 0',
+                    margin: '16px 0'
                   }}
                 />
 
@@ -276,7 +308,7 @@ export default function SettingsPage() {
                         fontSize: 13,
                         fontWeight: 500,
                         color: 'rgba(255,255,255,0.55)',
-                        marginBottom: 6,
+                        marginBottom: 6
                       }}
                     >
                       Store Name
@@ -284,7 +316,7 @@ export default function SettingsPage() {
                     <input
                       id="settings-store-name"
                       value={storeName}
-                      onChange={e => setStoreName(e.target.value)}
+                      onChange={(e) => setStoreName(e.target.value)}
                       placeholder="e.g. Raft Flagship Store"
                       className="dark-input w-full px-3 py-2.5 text-sm"
                     />
@@ -292,7 +324,7 @@ export default function SettingsPage() {
                       style={{
                         fontSize: 11,
                         color: 'rgba(255,255,255,0.28)',
-                        marginTop: 4,
+                        marginTop: 4
                       }}
                     >
                       Printed at the top of every receipt and shown in reports.
@@ -309,7 +341,7 @@ export default function SettingsPage() {
                         fontSize: 13,
                         fontWeight: 500,
                         color: 'rgba(255,255,255,0.55)',
-                        marginBottom: 6,
+                        marginBottom: 6
                       }}
                     >
                       <DocumentTextIcon style={{ width: 14, height: 14 }} />
@@ -319,7 +351,7 @@ export default function SettingsPage() {
                       id="settings-receipt-header"
                       rows={2}
                       value={receiptHeader}
-                      onChange={e => setReceiptHeader(e.target.value)}
+                      onChange={(e) => setReceiptHeader(e.target.value)}
                       placeholder="e.g. Thank you for visiting!"
                       className="dark-input w-full px-3 py-2.5 text-sm"
                     />
@@ -327,7 +359,7 @@ export default function SettingsPage() {
                       style={{
                         fontSize: 11,
                         color: 'rgba(255,255,255,0.28)',
-                        marginTop: 4,
+                        marginTop: 4
                       }}
                     >
                       Appears at the top of the printed receipt, below the store name.
@@ -344,7 +376,7 @@ export default function SettingsPage() {
                         fontSize: 13,
                         fontWeight: 500,
                         color: 'rgba(255,255,255,0.55)',
-                        marginBottom: 6,
+                        marginBottom: 6
                       }}
                     >
                       <DocumentTextIcon style={{ width: 14, height: 14 }} />
@@ -354,7 +386,7 @@ export default function SettingsPage() {
                       id="settings-receipt-footer"
                       rows={2}
                       value={receiptFooter}
-                      onChange={e => setReceiptFooter(e.target.value)}
+                      onChange={(e) => setReceiptFooter(e.target.value)}
                       placeholder="e.g. No returns without receipt."
                       className="dark-input w-full px-3 py-2.5 text-sm"
                     />
@@ -362,7 +394,7 @@ export default function SettingsPage() {
                       style={{
                         fontSize: 11,
                         color: 'rgba(255,255,255,0.28)',
-                        marginTop: 4,
+                        marginTop: 4
                       }}
                     >
                       Closing message or policy text printed at the bottom of each receipt.
@@ -378,7 +410,7 @@ export default function SettingsPage() {
                   border: '1px solid rgba(255,255,255,0.07)',
                   borderRadius: 20,
                   padding: 24,
-                  marginBottom: 16,
+                  marginBottom: 16
                 }}
               >
                 {/* Section title row */}
@@ -392,7 +424,7 @@ export default function SettingsPage() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      flexShrink: 0,
+                      flexShrink: 0
                     }}
                   >
                     <CalculatorIcon style={{ width: 18, height: 18, color: '#818cf8' }} />
@@ -403,7 +435,7 @@ export default function SettingsPage() {
                         fontSize: 15,
                         fontWeight: 600,
                         color: 'rgba(255,255,255,0.88)',
-                        margin: 0,
+                        margin: 0
                       }}
                     >
                       Tax &amp; Currency
@@ -412,7 +444,7 @@ export default function SettingsPage() {
                       style={{
                         fontSize: 12,
                         color: 'rgba(255,255,255,0.38)',
-                        margin: '2px 0 0 0',
+                        margin: '2px 0 0 0'
                       }}
                     >
                       Applied to all sales unless overridden per product
@@ -425,7 +457,7 @@ export default function SettingsPage() {
                   style={{
                     height: 1,
                     background: 'rgba(255,255,255,0.06)',
-                    margin: '16px 0',
+                    margin: '16px 0'
                   }}
                 />
 
@@ -442,7 +474,7 @@ export default function SettingsPage() {
                           fontSize: 13,
                           fontWeight: 500,
                           color: 'rgba(255,255,255,0.55)',
-                          marginBottom: 6,
+                          marginBottom: 6
                         }}
                       >
                         <PercentBadgeIcon style={{ width: 14, height: 14 }} />
@@ -456,14 +488,14 @@ export default function SettingsPage() {
                         step="0.01"
                         inputMode="decimal"
                         value={globalTaxRate}
-                        onChange={e => setGlobalTaxRate(Number(e.target.value))}
+                        onChange={(e) => setGlobalTaxRate(Number(e.target.value))}
                         className="dark-input w-full px-3 py-2.5 text-sm tabular-nums"
                       />
                       <p
                         style={{
                           fontSize: 11,
                           color: 'rgba(255,255,255,0.28)',
-                          marginTop: 4,
+                          marginTop: 4
                         }}
                       >
                         Global VAT applied to taxable items (e.g. 12 for 12%).
@@ -477,7 +509,7 @@ export default function SettingsPage() {
                           fontSize: 13,
                           fontWeight: 500,
                           color: 'rgba(255,255,255,0.55)',
-                          marginBottom: 6,
+                          marginBottom: 6
                         }}
                       >
                         Currency Symbol
@@ -485,7 +517,7 @@ export default function SettingsPage() {
                       <input
                         id="settings-currency"
                         value={currencySymbol}
-                        onChange={e => setCurrencySymbol(e.target.value)}
+                        onChange={(e) => setCurrencySymbol(e.target.value)}
                         maxLength={3}
                         placeholder="₱"
                         className="dark-input w-full px-3 py-2.5 text-sm"
@@ -494,7 +526,7 @@ export default function SettingsPage() {
                         style={{
                           fontSize: 11,
                           color: 'rgba(255,255,255,0.28)',
-                          marginTop: 4,
+                          marginTop: 4
                         }}
                       >
                         Shown before all monetary values (max 3 chars).
@@ -512,7 +544,7 @@ export default function SettingsPage() {
                         fontSize: 13,
                         fontWeight: 500,
                         color: 'rgba(255,255,255,0.55)',
-                        marginBottom: 6,
+                        marginBottom: 6
                       }}
                     >
                       <ExclamationTriangleIcon style={{ width: 14, height: 14 }} />
@@ -524,17 +556,18 @@ export default function SettingsPage() {
                       min="0"
                       inputMode="decimal"
                       value={lowStockDefaultThreshold}
-                      onChange={e => setLowStockDefaultThreshold(Number(e.target.value))}
+                      onChange={(e) => setLowStockDefaultThreshold(Number(e.target.value))}
                       className="dark-input w-full px-3 py-2.5 text-sm tabular-nums"
                     />
                     <p
                       style={{
                         fontSize: 11,
                         color: 'rgba(255,255,255,0.28)',
-                        marginTop: 4,
+                        marginTop: 4
                       }}
                     >
-                      Products at or below this quantity will appear in low stock alerts on the dashboard.
+                      Products at or below this quantity will appear in low stock alerts on the
+                      dashboard.
                     </p>
                   </div>
                 </div>
@@ -547,7 +580,7 @@ export default function SettingsPage() {
                   border: '1px solid rgba(255,255,255,0.07)',
                   borderRadius: 20,
                   padding: 24,
-                  marginBottom: 16,
+                  marginBottom: 16
                 }}
               >
                 {/* Section title row */}
@@ -561,7 +594,7 @@ export default function SettingsPage() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      flexShrink: 0,
+                      flexShrink: 0
                     }}
                   >
                     <ComputerDesktopIcon style={{ width: 18, height: 18, color: '#818cf8' }} />
@@ -572,7 +605,7 @@ export default function SettingsPage() {
                         fontSize: 15,
                         fontWeight: 600,
                         color: 'rgba(255,255,255,0.88)',
-                        margin: 0,
+                        margin: 0
                       }}
                     >
                       Terminal Identity
@@ -581,7 +614,7 @@ export default function SettingsPage() {
                       style={{
                         fontSize: 12,
                         color: 'rgba(255,255,255,0.38)',
-                        margin: '2px 0 0 0',
+                        margin: '2px 0 0 0'
                       }}
                     >
                       Identifies this machine in transaction logs and reports
@@ -594,7 +627,7 @@ export default function SettingsPage() {
                   style={{
                     height: 1,
                     background: 'rgba(255,255,255,0.06)',
-                    margin: '16px 0',
+                    margin: '16px 0'
                   }}
                 />
 
@@ -607,7 +640,7 @@ export default function SettingsPage() {
                       fontSize: 13,
                       fontWeight: 500,
                       color: 'rgba(255,255,255,0.55)',
-                      marginBottom: 6,
+                      marginBottom: 6
                     }}
                   >
                     Terminal ID
@@ -615,7 +648,7 @@ export default function SettingsPage() {
                   <input
                     id="settings-terminal-id"
                     value={terminalId}
-                    onChange={e => setTerminalId(e.target.value)}
+                    onChange={(e) => setTerminalId(e.target.value)}
                     placeholder="e.g. T01"
                     className="dark-input w-full px-3 py-2.5 text-sm font-mono"
                   />
@@ -623,10 +656,11 @@ export default function SettingsPage() {
                     style={{
                       fontSize: 11,
                       color: 'rgba(255,255,255,0.28)',
-                      marginTop: 4,
+                      marginTop: 4
                     }}
                   >
-                    A short, unique identifier for this POS terminal. Changes take effect immediately on save.
+                    A short, unique identifier for this POS terminal. Changes take effect
+                    immediately on save.
                   </p>
                 </div>
               </div>
@@ -644,7 +678,7 @@ export default function SettingsPage() {
                     background: 'rgba(220,38,38,0.06)',
                     border: '1px solid rgba(220,38,38,0.15)',
                     color: '#dc2626',
-                    marginBottom: 16,
+                    marginBottom: 16
                   }}
                 >
                   <ExclamationTriangleIcon style={{ width: 16, height: 16, flexShrink: 0 }} />
@@ -663,7 +697,7 @@ export default function SettingsPage() {
                     background: 'rgba(22,163,74,0.08)',
                     border: '1px solid rgba(22,163,74,0.20)',
                     color: '#16a34a',
-                    marginBottom: 16,
+                    marginBottom: 16
                   }}
                 >
                   <CheckIcon style={{ width: 16, height: 16, flexShrink: 0 }} />
@@ -677,7 +711,7 @@ export default function SettingsPage() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  paddingTop: 4,
+                  paddingTop: 4
                 }}
               >
                 <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.28)' }}>
@@ -694,14 +728,13 @@ export default function SettingsPage() {
                     padding: '10px 24px',
                     fontSize: 14,
                     fontWeight: 600,
-                    opacity: updateMutation.isPending ? 0.5 : 1,
+                    opacity: updateMutation.isPending ? 0.5 : 1
                   }}
                 >
                   <CheckIcon style={{ width: 16, height: 16 }} />
                   {updateMutation.isPending ? 'Saving…' : 'Save Settings'}
                 </button>
               </div>
-
             </form>
           )}
         </div>

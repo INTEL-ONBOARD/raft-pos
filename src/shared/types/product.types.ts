@@ -11,7 +11,7 @@ export interface IProduct {
   sellingPrice: number
   barcode: string | null
   imageUrl: string | null
-  taxRate: number | null   // null = use global tax rate
+  taxRate: number | null // null = use global tax rate
   isActive: boolean
   createdAt: string
   updatedAt: string
@@ -34,9 +34,7 @@ export interface UpdateProductInput extends Partial<CreateProductInput> {
   isActive?: boolean
 }
 
-export type ProductResult =
-  | { success: true; data: IProduct }
-  | { success: false; error: string }
+export type ProductResult = { success: true; data: IProduct } | { success: false; error: string }
 
 export type ProductsResult =
   | { success: true; data: IProduct[]; total: number }

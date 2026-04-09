@@ -9,7 +9,7 @@ import {
   useInventoryValuation,
   useCashDrawerReport,
   useExportExcel,
-  useExportPdf,
+  useExportPdf
 } from '../../hooks/useReporting'
 import { useSettings } from '../../hooks/useSettings'
 import type { ReportFilters, ReportType } from '@shared/types/reporting.types'
@@ -22,11 +22,11 @@ const REPORT_TYPES: { value: ReportType; label: string }[] = [
   { value: 'sales_summary', label: 'Sales Summary' },
   { value: 'sales_by_product', label: 'Sales by Product' },
   { value: 'inventory_valuation', label: 'Inventory Valuation' },
-  { value: 'cash_drawer_report', label: 'Cash Drawer Report' },
+  { value: 'cash_drawer_report', label: 'Cash Drawer Report' }
 ]
 
 export default function ReportingPage() {
-  const role = useAuthStore(s => s.role)
+  const role = useAuthStore((s) => s.role)
   const canExport = role?.permissions.includes(PERMISSIONS.CAN_EXPORT_REPORTS) ?? false
   const canViewAll = role?.permissions.includes(PERMISSIONS.CAN_VIEW_ALL_BRANCHES) ?? false
   const { settingsQuery } = useSettings()
@@ -41,10 +41,18 @@ export default function ReportingPage() {
   const [activeFilters, setActiveFilters] = useState<ReportFilters | null>(null)
   const [exportError, setExportError] = useState('')
 
-  const salesSummaryQuery = useSalesSummary(activeFilters?.reportType === 'sales_summary' ? activeFilters : null)
-  const salesByProductQuery = useSalesByProduct(activeFilters?.reportType === 'sales_by_product' ? activeFilters : null)
-  const inventoryQuery = useInventoryValuation(activeFilters?.reportType === 'inventory_valuation' ? activeFilters : null)
-  const drawerReportQuery = useCashDrawerReport(activeFilters?.reportType === 'cash_drawer_report' ? activeFilters : null)
+  const salesSummaryQuery = useSalesSummary(
+    activeFilters?.reportType === 'sales_summary' ? activeFilters : null
+  )
+  const salesByProductQuery = useSalesByProduct(
+    activeFilters?.reportType === 'sales_by_product' ? activeFilters : null
+  )
+  const inventoryQuery = useInventoryValuation(
+    activeFilters?.reportType === 'inventory_valuation' ? activeFilters : null
+  )
+  const drawerReportQuery = useCashDrawerReport(
+    activeFilters?.reportType === 'cash_drawer_report' ? activeFilters : null
+  )
 
   const exportExcel = useExportExcel()
   const exportPdf = useExportPdf()
@@ -54,7 +62,7 @@ export default function ReportingPage() {
       reportType,
       dateFrom,
       dateTo,
-      ...(canViewAll && branchId ? { branchId } : {}),
+      ...(canViewAll && branchId ? { branchId } : {})
     })
   }
 
@@ -64,8 +72,24 @@ export default function ReportingPage() {
       return {
         filters,
         title: 'Sales Summary',
-        headers: ['Date', 'Transactions', 'Items Sold', 'Revenue', 'Tax', 'Discount', 'Net Revenue'],
-        rows: rows.map(r => [r.date, r.transactions, r.itemsSold, r.revenue, r.tax, r.discount, r.netRevenue]),
+        headers: [
+          'Date',
+          'Transactions',
+          'Items Sold',
+          'Revenue',
+          'Tax',
+          'Discount',
+          'Net Revenue'
+        ],
+        rows: rows.map((r) => [
+          r.date,
+          r.transactions,
+          r.itemsSold,
+          r.revenue,
+          r.tax,
+          r.discount,
+          r.netRevenue
+        ])
       }
     }
     if (filters.reportType === 'sales_by_product') {
@@ -74,7 +98,7 @@ export default function ReportingPage() {
         filters,
         title: 'Sales by Product',
         headers: ['SKU', 'Name', 'Units Sold', 'Revenue', 'COGS', 'Gross Profit'],
-        rows: rows.map(r => [r.sku, r.name, r.unitsSold, r.revenue, r.cogs, r.grossProfit]),
+        rows: rows.map((r) => [r.sku, r.name, r.unitsSold, r.revenue, r.cogs, r.grossProfit])
       }
     }
     if (filters.reportType === 'inventory_valuation') {
@@ -83,19 +107,35 @@ export default function ReportingPage() {
         filters,
         title: 'Inventory Valuation',
         headers: ['SKU', 'Name', 'Category', 'Qty', 'Cost Price', 'Total Value'],
-        rows: rows.map(r => [r.sku, r.name, r.category, r.quantity, r.costPrice, r.totalValue]),
+        rows: rows.map((r) => [r.sku, r.name, r.category, r.quantity, r.costPrice, r.totalValue])
       }
     }
     const rows = drawerReportQuery.data?.data ?? []
     return {
       filters,
       title: 'Cash Drawer Report',
-      headers: ['Opened At', 'Closed At', 'Cashier', 'Opening', 'Total Sales', 'Expected', 'Closing', 'Variance', 'Status'],
-      rows: rows.map(r => [
-        r.openedAt, r.closedAt ?? '', r.cashierName,
-        r.openingCash, r.totalSales, r.expectedCash ?? '',
-        r.closingCash ?? '', r.variance ?? '', r.status,
-      ]),
+      headers: [
+        'Opened At',
+        'Closed At',
+        'Cashier',
+        'Opening',
+        'Total Sales',
+        'Expected',
+        'Closing',
+        'Variance',
+        'Status'
+      ],
+      rows: rows.map((r) => [
+        r.openedAt,
+        r.closedAt ?? '',
+        r.cashierName,
+        r.openingCash,
+        r.totalSales,
+        r.expectedCash ?? '',
+        r.closingCash ?? '',
+        r.variance ?? '',
+        r.status
+      ])
     }
   }
 
@@ -134,42 +174,126 @@ export default function ReportingPage() {
     textTransform: 'uppercase',
     padding: '10px 16px',
     textAlign: 'left',
-    borderBottom: '1px solid rgba(255,255,255,0.06)',
+    borderBottom: '1px solid rgba(255,255,255,0.06)'
   }
 
   return (
-    <div style={{ background: '#080810', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+    <div
+      style={{
+        background: '#080810',
+        position: 'relative',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100%'
+      }}
+    >
       {/* Ambient glow */}
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, background: 'radial-gradient(ellipse 900px 600px at 20% 0%, rgba(124,58,237,0.10) 0%, transparent 70%)' }} />
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          pointerEvents: 'none',
+          zIndex: 0,
+          background:
+            'radial-gradient(ellipse 900px 600px at 20% 0%, rgba(124,58,237,0.10) 0%, transparent 70%)'
+        }}
+      />
 
       {/* Content wrapper */}
-      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', flex: 1 }}>
-
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1
+        }}
+      >
         {/* Page header */}
-        <div style={{ padding: '28px 36px 20px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div
+          style={{
+            padding: '28px 36px 20px',
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '38px', height: '38px', background: 'rgba(99,102,241,0.12)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div
+              style={{
+                width: '38px',
+                height: '38px',
+                background: 'rgba(99,102,241,0.12)',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}
+            >
               <ChartBarSquareIcon style={{ width: '18px', height: '18px', color: '#a5b4fc' }} />
             </div>
             <div>
-              <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', margin: 0 }}>Reports</h1>
-              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.40)', marginTop: '2px', marginBottom: 0 }}>Generate and export business reports</p>
+              <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', margin: 0 }}>
+                Reports
+              </h1>
+              <p
+                style={{
+                  fontSize: '13px',
+                  color: 'rgba(255,255,255,0.40)',
+                  marginTop: '2px',
+                  marginBottom: 0
+                }}
+              >
+                Generate and export business reports
+              </p>
             </div>
           </div>
         </div>
 
         {/* Content area */}
-        <div style={{ padding: '0 36px 36px', flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
-
+        <div
+          style={{
+            padding: '0 36px 36px',
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px'
+          }}
+        >
           {/* Report type tabs */}
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            {REPORT_TYPES.map(rt => (
+            {REPORT_TYPES.map((rt) => (
               <button
                 key={rt.value}
                 onClick={() => setReportType(rt.value as ReportType)}
-                style={reportType === rt.value
-                  ? { height: '32px', borderRadius: '999px', padding: '0 14px', fontSize: '12px', fontWeight: 500, background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.30)', color: '#a5b4fc', cursor: 'pointer' }
-                  : { height: '32px', borderRadius: '999px', padding: '0 14px', fontSize: '12px', fontWeight: 500, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.45)', cursor: 'pointer' }}
+                style={
+                  reportType === rt.value
+                    ? {
+                        height: '32px',
+                        borderRadius: '999px',
+                        padding: '0 14px',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        background: 'rgba(99,102,241,0.15)',
+                        border: '1px solid rgba(99,102,241,0.30)',
+                        color: '#a5b4fc',
+                        cursor: 'pointer'
+                      }
+                    : {
+                        height: '32px',
+                        borderRadius: '999px',
+                        padding: '0 14px',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        color: 'rgba(255,255,255,0.45)',
+                        cursor: 'pointer'
+                      }
+                }
               >
                 {rt.label}
               </button>
@@ -177,26 +301,53 @@ export default function ReportingPage() {
           </div>
 
           {/* Filter controls card */}
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '20px' }}>
+          <div
+            style={{
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.07)',
+              borderRadius: '16px',
+              padding: '20px'
+            }}
+          >
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'flex-end' }}>
               {reportType !== 'inventory_valuation' && (
                 <>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 500, marginBottom: '4px', color: 'rgba(255,255,255,0.50)' }}>From</label>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        marginBottom: '4px',
+                        color: 'rgba(255,255,255,0.50)'
+                      }}
+                    >
+                      From
+                    </label>
                     <input
                       type="date"
                       value={dateFrom}
-                      onChange={e => setDateFrom(e.target.value)}
+                      onChange={(e) => setDateFrom(e.target.value)}
                       className="dark-input"
                       style={{ padding: '8px 12px', fontSize: '13px' }}
                     />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 500, marginBottom: '4px', color: 'rgba(255,255,255,0.50)' }}>To</label>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        marginBottom: '4px',
+                        color: 'rgba(255,255,255,0.50)'
+                      }}
+                    >
+                      To
+                    </label>
                     <input
                       type="date"
                       value={dateTo}
-                      onChange={e => setDateTo(e.target.value)}
+                      onChange={(e) => setDateTo(e.target.value)}
                       className="dark-input"
                       style={{ padding: '8px 12px', fontSize: '13px' }}
                     />
@@ -206,11 +357,21 @@ export default function ReportingPage() {
 
               {canViewAll && (
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 500, marginBottom: '4px', color: 'rgba(255,255,255,0.50)' }}>Branch ID (optional)</label>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                      marginBottom: '4px',
+                      color: 'rgba(255,255,255,0.50)'
+                    }}
+                  >
+                    Branch ID (optional)
+                  </label>
                   <input
                     type="text"
                     value={branchId}
-                    onChange={e => setBranchId(e.target.value)}
+                    onChange={(e) => setBranchId(e.target.value)}
                     placeholder="All branches"
                     inputMode="search"
                     className="dark-input"
@@ -234,7 +395,13 @@ export default function ReportingPage() {
                     disabled={exportExcel.isPending || isLoading}
                     aria-label="Export report as Excel spreadsheet"
                     className="btn-secondary"
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 12px', fontSize: '13px' }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '8px 12px',
+                      fontSize: '13px'
+                    }}
                   >
                     <TableCellsIcon style={{ width: '16px', height: '16px', color: '#16a34a' }} />
                     Excel
@@ -244,9 +411,17 @@ export default function ReportingPage() {
                     disabled={exportPdf.isPending || isLoading}
                     aria-label="Export report as PDF"
                     className="btn-secondary"
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 12px', fontSize: '13px' }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '8px 12px',
+                      fontSize: '13px'
+                    }}
                   >
-                    <ArrowDownTrayIcon style={{ width: '16px', height: '16px', color: '#dc2626' }} />
+                    <ArrowDownTrayIcon
+                      style={{ width: '16px', height: '16px', color: '#dc2626' }}
+                    />
                     PDF
                   </button>
                 </>
@@ -259,17 +434,43 @@ export default function ReportingPage() {
           </div>
 
           {activeFilters && (
-            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', overflow: 'hidden', overflowX: 'auto' }}>
+            <div
+              style={{
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.07)',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                overflowX: 'auto'
+              }}
+            >
               {isLoading ? (
-                <div style={{ padding: '24px', fontSize: '13px', color: 'rgba(255,255,255,0.35)' }}>Loading report…</div>
+                <div style={{ padding: '24px', fontSize: '13px', color: 'rgba(255,255,255,0.35)' }}>
+                  Loading report…
+                </div>
               ) : activeFilters.reportType === 'sales_summary' ? (
-                <SalesSummaryTable data={salesSummaryQuery.data} currency={currencySymbol} thStyle={thStyle} />
+                <SalesSummaryTable
+                  data={salesSummaryQuery.data}
+                  currency={currencySymbol}
+                  thStyle={thStyle}
+                />
               ) : activeFilters.reportType === 'sales_by_product' ? (
-                <SalesByProductTable data={salesByProductQuery.data?.data ?? []} currency={currencySymbol} thStyle={thStyle} />
+                <SalesByProductTable
+                  data={salesByProductQuery.data?.data ?? []}
+                  currency={currencySymbol}
+                  thStyle={thStyle}
+                />
               ) : activeFilters.reportType === 'inventory_valuation' ? (
-                <InventoryValuationTable data={inventoryQuery.data} currency={currencySymbol} thStyle={thStyle} />
+                <InventoryValuationTable
+                  data={inventoryQuery.data}
+                  currency={currencySymbol}
+                  thStyle={thStyle}
+                />
               ) : (
-                <CashDrawerTable data={drawerReportQuery.data?.data ?? []} currency={currencySymbol} thStyle={thStyle} />
+                <CashDrawerTable
+                  data={drawerReportQuery.data?.data ?? []}
+                  currency={currencySymbol}
+                  thStyle={thStyle}
+                />
               )}
             </div>
           )}
@@ -283,16 +484,24 @@ const tdBase: React.CSSProperties = {
   padding: '12px 16px',
   borderBottom: '1px solid rgba(255,255,255,0.05)',
   fontSize: '13px',
-  color: 'rgba(255,255,255,0.65)',
+  color: 'rgba(255,255,255,0.65)'
 }
 
 const tdLast: React.CSSProperties = {
   padding: '12px 16px',
   fontSize: '13px',
-  color: 'rgba(255,255,255,0.65)',
+  color: 'rgba(255,255,255,0.65)'
 }
 
-function SalesSummaryTable({ data, currency, thStyle }: { data: any; currency: string; thStyle: React.CSSProperties }) {
+function SalesSummaryTable({
+  data,
+  currency,
+  thStyle
+}: {
+  data: any
+  currency: string
+  thStyle: React.CSSProperties
+}) {
   const rows = data?.data ?? []
   const totals = data?.totals
   return (
@@ -310,31 +519,83 @@ function SalesSummaryTable({ data, currency, thStyle }: { data: any; currency: s
       </thead>
       <tbody>
         {rows.length === 0 ? (
-          <tr><td colSpan={7} style={{ padding: '24px 16px', textAlign: 'center', fontSize: '13px', color: 'rgba(255,255,255,0.35)' }}>No data for the selected period.</td></tr>
-        ) : rows.map((r: any, i: number) => {
-          const isLast = i === rows.length - 1 && !totals
-          const td = isLast ? tdLast : tdBase
-          return (
-            <tr key={i}>
-              <td style={{ ...td, color: 'rgba(255,255,255,0.55)' }}>{r.date}</td>
-              <td style={{ ...td, textAlign: 'right' }}>{r.transactions}</td>
-              <td style={{ ...td, textAlign: 'right' }}>{r.itemsSold}</td>
-              <td style={{ ...td, textAlign: 'right' }}>{currency}{fmt(r.revenue)}</td>
-              <td style={{ ...td, textAlign: 'right' }}>{currency}{fmt(r.tax)}</td>
-              <td style={{ ...td, textAlign: 'right' }}>{currency}{fmt(r.discount)}</td>
-              <td style={{ ...td, textAlign: 'right', fontWeight: 500, color: 'rgba(255,255,255,0.88)' }}>{currency}{fmt(r.netRevenue)}</td>
-            </tr>
-          )
-        })}
+          <tr>
+            <td
+              colSpan={7}
+              style={{
+                padding: '24px 16px',
+                textAlign: 'center',
+                fontSize: '13px',
+                color: 'rgba(255,255,255,0.35)'
+              }}
+            >
+              No data for the selected period.
+            </td>
+          </tr>
+        ) : (
+          rows.map((r: any, i: number) => {
+            const isLast = i === rows.length - 1 && !totals
+            const td = isLast ? tdLast : tdBase
+            return (
+              <tr key={i}>
+                <td style={{ ...td, color: 'rgba(255,255,255,0.55)' }}>{r.date}</td>
+                <td style={{ ...td, textAlign: 'right' }}>{r.transactions}</td>
+                <td style={{ ...td, textAlign: 'right' }}>{r.itemsSold}</td>
+                <td style={{ ...td, textAlign: 'right' }}>
+                  {currency}
+                  {fmt(r.revenue)}
+                </td>
+                <td style={{ ...td, textAlign: 'right' }}>
+                  {currency}
+                  {fmt(r.tax)}
+                </td>
+                <td style={{ ...td, textAlign: 'right' }}>
+                  {currency}
+                  {fmt(r.discount)}
+                </td>
+                <td
+                  style={{
+                    ...td,
+                    textAlign: 'right',
+                    fontWeight: 500,
+                    color: 'rgba(255,255,255,0.88)'
+                  }}
+                >
+                  {currency}
+                  {fmt(r.netRevenue)}
+                </td>
+              </tr>
+            )
+          })
+        )}
         {totals && (
-          <tr style={{ background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.88)', fontWeight: 600, fontSize: '12px' }}>
+          <tr
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              color: 'rgba(255,255,255,0.88)',
+              fontWeight: 600,
+              fontSize: '12px'
+            }}
+          >
             <td style={{ padding: '10px 16px' }}>Total</td>
             <td style={{ padding: '10px 16px', textAlign: 'right' }}>{totals.transactions}</td>
             <td style={{ padding: '10px 16px', textAlign: 'right' }}>{totals.itemsSold}</td>
-            <td style={{ padding: '10px 16px', textAlign: 'right' }}>{currency}{fmt(totals.revenue)}</td>
-            <td style={{ padding: '10px 16px', textAlign: 'right' }}>{currency}{fmt(totals.tax)}</td>
-            <td style={{ padding: '10px 16px', textAlign: 'right' }}>{currency}{fmt(totals.discount)}</td>
-            <td style={{ padding: '10px 16px', textAlign: 'right' }}>{currency}{fmt(totals.netRevenue)}</td>
+            <td style={{ padding: '10px 16px', textAlign: 'right' }}>
+              {currency}
+              {fmt(totals.revenue)}
+            </td>
+            <td style={{ padding: '10px 16px', textAlign: 'right' }}>
+              {currency}
+              {fmt(totals.tax)}
+            </td>
+            <td style={{ padding: '10px 16px', textAlign: 'right' }}>
+              {currency}
+              {fmt(totals.discount)}
+            </td>
+            <td style={{ padding: '10px 16px', textAlign: 'right' }}>
+              {currency}
+              {fmt(totals.netRevenue)}
+            </td>
           </tr>
         )}
       </tbody>
@@ -342,7 +603,15 @@ function SalesSummaryTable({ data, currency, thStyle }: { data: any; currency: s
   )
 }
 
-function SalesByProductTable({ data, currency, thStyle }: { data: any[]; currency: string; thStyle: React.CSSProperties }) {
+function SalesByProductTable({
+  data,
+  currency,
+  thStyle
+}: {
+  data: any[]
+  currency: string
+  thStyle: React.CSSProperties
+}) {
   return (
     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
       <thead>
@@ -357,29 +626,76 @@ function SalesByProductTable({ data, currency, thStyle }: { data: any[]; currenc
       </thead>
       <tbody>
         {data.length === 0 ? (
-          <tr><td colSpan={6} style={{ padding: '24px 16px', textAlign: 'center', fontSize: '13px', color: 'rgba(255,255,255,0.35)' }}>No data for the selected period.</td></tr>
-        ) : data.map((r, i) => {
-          const isLast = i === data.length - 1
-          const td = isLast ? tdLast : tdBase
-          return (
-            <tr key={i}>
-              <td style={{ ...td, fontFamily: 'monospace', fontSize: '12px', color: 'rgba(255,255,255,0.40)' }}>{r.sku}</td>
-              <td style={{ ...td, color: 'rgba(255,255,255,0.88)', fontWeight: 500 }}>{r.name}</td>
-              <td style={{ ...td, textAlign: 'right' }}>{r.unitsSold}</td>
-              <td style={{ ...td, textAlign: 'right' }}>{currency}{fmt(r.revenue)}</td>
-              <td style={{ ...td, textAlign: 'right' }}>{currency}{fmt(r.cogs)}</td>
-              <td style={{ ...td, textAlign: 'right', fontWeight: 500, color: r.grossProfit < 0 ? '#dc2626' : '#16a34a' }}>
-                {currency}{fmt(r.grossProfit)}
-              </td>
-            </tr>
-          )
-        })}
+          <tr>
+            <td
+              colSpan={6}
+              style={{
+                padding: '24px 16px',
+                textAlign: 'center',
+                fontSize: '13px',
+                color: 'rgba(255,255,255,0.35)'
+              }}
+            >
+              No data for the selected period.
+            </td>
+          </tr>
+        ) : (
+          data.map((r, i) => {
+            const isLast = i === data.length - 1
+            const td = isLast ? tdLast : tdBase
+            return (
+              <tr key={i}>
+                <td
+                  style={{
+                    ...td,
+                    fontFamily: 'monospace',
+                    fontSize: '12px',
+                    color: 'rgba(255,255,255,0.40)'
+                  }}
+                >
+                  {r.sku}
+                </td>
+                <td style={{ ...td, color: 'rgba(255,255,255,0.88)', fontWeight: 500 }}>
+                  {r.name}
+                </td>
+                <td style={{ ...td, textAlign: 'right' }}>{r.unitsSold}</td>
+                <td style={{ ...td, textAlign: 'right' }}>
+                  {currency}
+                  {fmt(r.revenue)}
+                </td>
+                <td style={{ ...td, textAlign: 'right' }}>
+                  {currency}
+                  {fmt(r.cogs)}
+                </td>
+                <td
+                  style={{
+                    ...td,
+                    textAlign: 'right',
+                    fontWeight: 500,
+                    color: r.grossProfit < 0 ? '#dc2626' : '#16a34a'
+                  }}
+                >
+                  {currency}
+                  {fmt(r.grossProfit)}
+                </td>
+              </tr>
+            )
+          })
+        )}
       </tbody>
     </table>
   )
 }
 
-function InventoryValuationTable({ data, currency, thStyle }: { data: any; currency: string; thStyle: React.CSSProperties }) {
+function InventoryValuationTable({
+  data,
+  currency,
+  thStyle
+}: {
+  data: any
+  currency: string
+  thStyle: React.CSSProperties
+}) {
   const rows = data?.data ?? []
   const totalValue = data?.totalValue ?? 0
   return (
@@ -396,25 +712,75 @@ function InventoryValuationTable({ data, currency, thStyle }: { data: any; curre
       </thead>
       <tbody>
         {rows.length === 0 ? (
-          <tr><td colSpan={6} style={{ padding: '24px 16px', textAlign: 'center', fontSize: '13px', color: 'rgba(255,255,255,0.35)' }}>No data.</td></tr>
-        ) : rows.map((r: any, i: number) => {
-          const isLast = i === rows.length - 1 && rows.length === 0
-          const td = isLast ? tdLast : tdBase
-          return (
-            <tr key={i}>
-              <td style={{ ...td, fontFamily: 'monospace', fontSize: '12px', color: 'rgba(255,255,255,0.40)' }}>{r.sku}</td>
-              <td style={{ ...td, color: 'rgba(255,255,255,0.88)', fontWeight: 500 }}>{r.name}</td>
-              <td style={{ ...td, color: 'rgba(255,255,255,0.55)' }}>{r.category}</td>
-              <td style={{ ...td, textAlign: 'right' }}>{r.quantity}</td>
-              <td style={{ ...td, textAlign: 'right' }}>{currency}{fmt(r.costPrice)}</td>
-              <td style={{ ...td, textAlign: 'right', fontWeight: 500, color: 'rgba(255,255,255,0.88)' }}>{currency}{fmt(r.totalValue)}</td>
-            </tr>
-          )
-        })}
+          <tr>
+            <td
+              colSpan={6}
+              style={{
+                padding: '24px 16px',
+                textAlign: 'center',
+                fontSize: '13px',
+                color: 'rgba(255,255,255,0.35)'
+              }}
+            >
+              No data.
+            </td>
+          </tr>
+        ) : (
+          rows.map((r: any, i: number) => {
+            const isLast = i === rows.length - 1 && rows.length === 0
+            const td = isLast ? tdLast : tdBase
+            return (
+              <tr key={i}>
+                <td
+                  style={{
+                    ...td,
+                    fontFamily: 'monospace',
+                    fontSize: '12px',
+                    color: 'rgba(255,255,255,0.40)'
+                  }}
+                >
+                  {r.sku}
+                </td>
+                <td style={{ ...td, color: 'rgba(255,255,255,0.88)', fontWeight: 500 }}>
+                  {r.name}
+                </td>
+                <td style={{ ...td, color: 'rgba(255,255,255,0.55)' }}>{r.category}</td>
+                <td style={{ ...td, textAlign: 'right' }}>{r.quantity}</td>
+                <td style={{ ...td, textAlign: 'right' }}>
+                  {currency}
+                  {fmt(r.costPrice)}
+                </td>
+                <td
+                  style={{
+                    ...td,
+                    textAlign: 'right',
+                    fontWeight: 500,
+                    color: 'rgba(255,255,255,0.88)'
+                  }}
+                >
+                  {currency}
+                  {fmt(r.totalValue)}
+                </td>
+              </tr>
+            )
+          })
+        )}
         {rows.length > 0 && (
-          <tr style={{ background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.88)', fontWeight: 600, fontSize: '12px' }}>
-            <td colSpan={5} style={{ padding: '10px 16px' }}>Total Inventory Value</td>
-            <td style={{ padding: '10px 16px', textAlign: 'right' }}>{currency}{fmt(totalValue)}</td>
+          <tr
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              color: 'rgba(255,255,255,0.88)',
+              fontWeight: 600,
+              fontSize: '12px'
+            }}
+          >
+            <td colSpan={5} style={{ padding: '10px 16px' }}>
+              Total Inventory Value
+            </td>
+            <td style={{ padding: '10px 16px', textAlign: 'right' }}>
+              {currency}
+              {fmt(totalValue)}
+            </td>
           </tr>
         )}
       </tbody>
@@ -422,7 +788,15 @@ function InventoryValuationTable({ data, currency, thStyle }: { data: any; curre
   )
 }
 
-function CashDrawerTable({ data, currency, thStyle }: { data: any[]; currency: string; thStyle: React.CSSProperties }) {
+function CashDrawerTable({
+  data,
+  currency,
+  thStyle
+}: {
+  data: any[]
+  currency: string
+  thStyle: React.CSSProperties
+}) {
   return (
     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
       <thead>
@@ -440,37 +814,76 @@ function CashDrawerTable({ data, currency, thStyle }: { data: any[]; currency: s
       </thead>
       <tbody>
         {data.length === 0 ? (
-          <tr><td colSpan={9} style={{ padding: '24px 16px', textAlign: 'center', fontSize: '13px', color: 'rgba(255,255,255,0.35)' }}>No data for the selected period.</td></tr>
-        ) : data.map((r, i) => {
-          const isLast = i === data.length - 1
-          const td = isLast ? tdLast : tdBase
-          return (
-            <tr key={i}>
-              <td style={{ ...td, fontSize: '12px', color: 'rgba(255,255,255,0.55)' }}>{new Date(r.openedAt).toLocaleString()}</td>
-              <td style={{ ...td, fontSize: '12px', color: 'rgba(255,255,255,0.55)' }}>{r.closedAt ? new Date(r.closedAt).toLocaleString() : '—'}</td>
-              <td style={{ ...td, color: 'rgba(255,255,255,0.88)', fontWeight: 500 }}>{r.cashierName}</td>
-              <td style={{ ...td, textAlign: 'right' }}>{currency}{fmt(r.openingCash)}</td>
-              <td style={{ ...td, textAlign: 'right' }}>{currency}{fmt(r.totalSales)}</td>
-              <td style={{ ...td, textAlign: 'right' }}>{r.expectedCash !== null ? `${currency}${fmt(r.expectedCash)}` : '—'}</td>
-              <td style={{ ...td, textAlign: 'right' }}>{r.closingCash !== null ? `${currency}${fmt(r.closingCash)}` : '—'}</td>
-              <td style={{
-                ...td,
-                textAlign: 'right',
-                fontWeight: 500,
-                color: r.variance === null
-                  ? 'rgba(255,255,255,0.35)'
-                  : r.variance < 0 ? '#dc2626'
-                  : r.variance > 0 ? '#b45309'
-                  : '#16a34a'
-              }}>
-                {r.variance !== null ? `${currency}${fmt(r.variance)}` : '—'}
-              </td>
-              <td style={td}>
-                {r.status === 'open' ? <span className="badge-green">Open</span> : <span className="badge-gray">Closed</span>}
-              </td>
-            </tr>
-          )
-        })}
+          <tr>
+            <td
+              colSpan={9}
+              style={{
+                padding: '24px 16px',
+                textAlign: 'center',
+                fontSize: '13px',
+                color: 'rgba(255,255,255,0.35)'
+              }}
+            >
+              No data for the selected period.
+            </td>
+          </tr>
+        ) : (
+          data.map((r, i) => {
+            const isLast = i === data.length - 1
+            const td = isLast ? tdLast : tdBase
+            return (
+              <tr key={i}>
+                <td style={{ ...td, fontSize: '12px', color: 'rgba(255,255,255,0.55)' }}>
+                  {new Date(r.openedAt).toLocaleString()}
+                </td>
+                <td style={{ ...td, fontSize: '12px', color: 'rgba(255,255,255,0.55)' }}>
+                  {r.closedAt ? new Date(r.closedAt).toLocaleString() : '—'}
+                </td>
+                <td style={{ ...td, color: 'rgba(255,255,255,0.88)', fontWeight: 500 }}>
+                  {r.cashierName}
+                </td>
+                <td style={{ ...td, textAlign: 'right' }}>
+                  {currency}
+                  {fmt(r.openingCash)}
+                </td>
+                <td style={{ ...td, textAlign: 'right' }}>
+                  {currency}
+                  {fmt(r.totalSales)}
+                </td>
+                <td style={{ ...td, textAlign: 'right' }}>
+                  {r.expectedCash !== null ? `${currency}${fmt(r.expectedCash)}` : '—'}
+                </td>
+                <td style={{ ...td, textAlign: 'right' }}>
+                  {r.closingCash !== null ? `${currency}${fmt(r.closingCash)}` : '—'}
+                </td>
+                <td
+                  style={{
+                    ...td,
+                    textAlign: 'right',
+                    fontWeight: 500,
+                    color:
+                      r.variance === null
+                        ? 'rgba(255,255,255,0.35)'
+                        : r.variance < 0
+                          ? '#dc2626'
+                          : r.variance > 0
+                            ? '#b45309'
+                            : '#16a34a'
+                  }}
+                >
+                  {r.variance !== null ? `${currency}${fmt(r.variance)}` : '—'}
+                </td>
+                <td style={td}>
+                  {r.status === 'open' ? (
+                    <span className="badge-green">Open</span>
+                  ) : (
+                    <span className="badge-gray">Closed</span>
+                  )}
+                </td>
+              </tr>
+            )
+          })
+        )}
       </tbody>
     </table>
   )

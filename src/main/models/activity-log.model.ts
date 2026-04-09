@@ -1,12 +1,21 @@
 import { Schema, model, Document, Types } from 'mongoose'
 
 const ACTIONS = [
-  'login', 'logout', 'force_logout',
+  'login',
+  'logout',
+  'force_logout',
   'sale_completed',
-  'void_transaction', 'refund_transaction',
-  'stock_adjustment', 'stock_transfer', 'discount_override',
-  'user_created', 'user_deactivated', 'role_changed',
-  'settings_changed', 'drawer_opened', 'drawer_closed',
+  'void_transaction',
+  'refund_transaction',
+  'stock_adjustment',
+  'stock_transfer',
+  'discount_override',
+  'user_created',
+  'user_deactivated',
+  'role_changed',
+  'settings_changed',
+  'drawer_opened',
+  'drawer_closed',
   'purchase_order_created'
 ] as const
 
@@ -14,7 +23,7 @@ export interface IActivityLog extends Document {
   userId: Types.ObjectId
   branchId: Types.ObjectId
   terminalId: string
-  action: typeof ACTIONS[number]
+  action: (typeof ACTIONS)[number]
   targetId: Types.ObjectId | null
   targetCollection: string | null
   metadata: Record<string, unknown>

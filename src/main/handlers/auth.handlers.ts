@@ -33,7 +33,6 @@ function recordLoginFailure(email: string): void {
   entry.count += 1
   if (entry.count >= MAX_LOGIN_ATTEMPTS) {
     entry.lockedUntil = now + LOCKOUT_MS
-    entry.count = 0
   }
   loginAttempts.set(key, entry)
 }
@@ -72,7 +71,10 @@ export function registerAuthHandlers(): void {
       return JSON.parse(JSON.stringify(result))
     } catch (err) {
       console.error('[IPC] AUTH_LOGIN error:', err)
-      return { success: false, error: err instanceof Error ? err.message : 'An internal error occurred. Please try again.' }
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : 'An internal error occurred. Please try again.'
+      }
     }
   })
 
@@ -97,7 +99,11 @@ export function registerAuthHandlers(): void {
       return JSON.parse(JSON.stringify(result))
     } catch (err) {
       console.error('[IPC] AUTH_VALIDATE_SESSION error:', err)
-      return { valid: false, reason: 'not_found' }
+      return {
+        valid: false,
+        reason: 'system_error',
+        error: err instanceof Error ? err.message : 'Session validation failed'
+      }
     }
   })
 
@@ -110,7 +116,11 @@ export function registerAuthHandlers(): void {
       return JSON.parse(JSON.stringify(result))
     } catch (err) {
       console.error('[IPC] AUTH_ME error:', err)
-      return { valid: false, reason: 'not_found' }
+      return {
+        valid: false,
+        reason: 'system_error',
+        error: err instanceof Error ? err.message : 'Session validation failed'
+      }
     }
   })
 
@@ -121,7 +131,7 @@ export function registerAuthHandlers(): void {
       return { setupComplete: count > 0 }
     } catch (err) {
       console.error('[IPC] AUTH_CHECK_SETUP error:', err)
-      return { setupComplete: false }
+      return { setupComplete: true }
     }
   })
 
@@ -156,30 +166,45 @@ export function registerAuthHandlers(): void {
         }
 
         const branchCode = r.branchName.trim().toUpperCase().replace(/\s+/g, '-').slice(0, 10)
-        const [branch] = await Branch.create([{
-          name: r.branchName.trim(),
-          code: branchCode,
-          isActive: true,
-        }], { session })
+        const [branch] = await Branch.create(
+          [
+            {
+              name: r.branchName.trim(),
+              code: branchCode,
+              isActive: true
+            }
+          ],
+          { session }
+        )
 
         await Settings.create([{ storeName: r.storeName.trim() }], { session })
 
-        const [adminRole] = await Role.create([{
-          name: 'Administrator',
-          permissions: ALL_PERMISSIONS,
-          maxDiscountPercent: 100,
-          requiresSupervisorOverride: false,
-        }], { session })
+        const [adminRole] = await Role.create(
+          [
+            {
+              name: 'Administrator',
+              permissions: ALL_PERMISSIONS,
+              maxDiscountPercent: 100,
+              requiresSupervisorOverride: false
+            }
+          ],
+          { session }
+        )
 
         const passwordHash = await bcrypt.hash(r.password, 12)
-        await User.create([{
-          name: r.name.trim(),
-          email: r.email.trim().toLowerCase(),
-          passwordHash,
-          roleId: adminRole._id,
-          branchId: branch._id,
-          isActive: true,
-        }], { session })
+        await User.create(
+          [
+            {
+              name: r.name.trim(),
+              email: r.email.trim().toLowerCase(),
+              passwordHash,
+              roleId: adminRole._id,
+              branchId: branch._id,
+              isActive: true
+            }
+          ],
+          { session }
+        )
       })
 
       if (alreadyDone) return { success: false, error: 'Setup has already been completed.' }

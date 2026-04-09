@@ -14,9 +14,9 @@ export const useProductStore = create<ProductState>((set) => ({
   total: 0,
   setProducts: (products, total) => set({ products, total }),
   updateProduct: (product) =>
-    set(state => ({
-      products: state.products.map(p => p._id === product._id ? product : p)
+    set((state) => ({
+      products: state.products.map((p) => (p._id === product._id ? product : p))
     })),
   addProduct: (product) =>
-    set(state => ({ products: [product, ...state.products], total: state.total + 1 }))
+    set((state) => ({ products: [product, ...state.products], total: state.total + 1 }))
 }))

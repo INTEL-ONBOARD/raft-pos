@@ -39,7 +39,8 @@ export async function updateRole(id: string, input: UpdateRoleInput): Promise<IP
   if (input.name !== undefined) updates.name = input.name.trim()
   if (input.permissions !== undefined) updates.permissions = input.permissions
   if (input.maxDiscountPercent !== undefined) updates.maxDiscountPercent = input.maxDiscountPercent
-  if (input.requiresSupervisorOverride !== undefined) updates.requiresSupervisorOverride = input.requiresSupervisorOverride
+  if (input.requiresSupervisorOverride !== undefined)
+    updates.requiresSupervisorOverride = input.requiresSupervisorOverride
   const doc = await Role.findByIdAndUpdate(id, { $set: updates }, { new: true }).lean()
   return doc ? toShared(doc) : null
 }
@@ -47,7 +48,10 @@ export async function updateRole(id: string, input: UpdateRoleInput): Promise<IP
 export async function deleteRole(id: string): Promise<{ deleted: boolean; reason?: string }> {
   const activeUsers = await User.countDocuments({ roleId: id, isActive: true })
   if (activeUsers > 0) {
-    return { deleted: false, reason: `Cannot delete: ${activeUsers} active user(s) assigned to this role` }
+    return {
+      deleted: false,
+      reason: `Cannot delete: ${activeUsers} active user(s) assigned to this role`
+    }
   }
   await Role.findByIdAndDelete(id)
   return { deleted: true }

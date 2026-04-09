@@ -10,7 +10,8 @@ export function registerRoleHandlers(): void {
   ipcMain.handle(IPC.ROLES_GET_ALL, async () => {
     try {
       const auth = await requireAuth(store.get('jwt') ?? null)
-      if (!auth.role.permissions.includes('can_manage_roles')) return { success: false, error: 'Permission denied' }
+      if (!auth.role.permissions.includes('can_manage_roles'))
+        return { success: false, error: 'Permission denied' }
       const data = await getRoles()
       return { success: true, data }
     } catch (err: any) {
@@ -21,7 +22,8 @@ export function registerRoleHandlers(): void {
   ipcMain.handle(IPC.ROLES_GET_BY_ID, async (_e, req: unknown) => {
     try {
       const auth = await requireAuth(store.get('jwt') ?? null)
-      if (!auth.role.permissions.includes('can_manage_roles')) return { success: false, error: 'Permission denied' }
+      if (!auth.role.permissions.includes('can_manage_roles'))
+        return { success: false, error: 'Permission denied' }
       const r = req as { id: string }
       const data = await getRoleById(r.id)
       if (!data) return { success: false, error: 'Role not found' }
@@ -34,12 +36,18 @@ export function registerRoleHandlers(): void {
   ipcMain.handle(IPC.ROLES_CREATE, async (_e, req: unknown) => {
     try {
       const auth = await requireAuth(store.get('jwt') ?? null)
-      if (!auth.role.permissions.includes('can_manage_roles')) return { success: false, error: 'Permission denied' }
+      if (!auth.role.permissions.includes('can_manage_roles'))
+        return { success: false, error: 'Permission denied' }
       const r = req as any
       if (!r?.name?.trim()) return { success: false, error: 'Role name is required' }
       // Validate maxDiscountPercent if provided
       if (r.maxDiscountPercent !== undefined) {
-        if (typeof r.maxDiscountPercent !== 'number' || !Number.isFinite(r.maxDiscountPercent) || r.maxDiscountPercent < 0 || r.maxDiscountPercent > 100) {
+        if (
+          typeof r.maxDiscountPercent !== 'number' ||
+          !Number.isFinite(r.maxDiscountPercent) ||
+          r.maxDiscountPercent < 0 ||
+          r.maxDiscountPercent > 100
+        ) {
           return { success: false, error: 'maxDiscountPercent must be a number between 0 and 100' }
         }
       }
@@ -57,7 +65,8 @@ export function registerRoleHandlers(): void {
       const data = await createRole(r)
       return { success: true, data }
     } catch (err: any) {
-      if ((err as any).code === 11000) return { success: false, error: 'A role with this name already exists' }
+      if ((err as any).code === 11000)
+        return { success: false, error: 'A role with this name already exists' }
       return { success: false, error: err.message ?? 'Failed to create role' }
     }
   })
@@ -65,12 +74,18 @@ export function registerRoleHandlers(): void {
   ipcMain.handle(IPC.ROLES_UPDATE, async (_e, req: unknown) => {
     try {
       const auth = await requireAuth(store.get('jwt') ?? null)
-      if (!auth.role.permissions.includes('can_manage_roles')) return { success: false, error: 'Permission denied' }
+      if (!auth.role.permissions.includes('can_manage_roles'))
+        return { success: false, error: 'Permission denied' }
       const r = req as { id: string; input: any }
       if (!r?.id) return { success: false, error: 'ID is required' }
       // Validate maxDiscountPercent if provided
       if (r.input?.maxDiscountPercent !== undefined) {
-        if (typeof r.input.maxDiscountPercent !== 'number' || !Number.isFinite(r.input.maxDiscountPercent) || r.input.maxDiscountPercent < 0 || r.input.maxDiscountPercent > 100) {
+        if (
+          typeof r.input.maxDiscountPercent !== 'number' ||
+          !Number.isFinite(r.input.maxDiscountPercent) ||
+          r.input.maxDiscountPercent < 0 ||
+          r.input.maxDiscountPercent > 100
+        ) {
           return { success: false, error: 'maxDiscountPercent must be a number between 0 and 100' }
         }
       }
@@ -89,7 +104,8 @@ export function registerRoleHandlers(): void {
       if (!data) return { success: false, error: 'Role not found' }
       return { success: true, data }
     } catch (err: any) {
-      if ((err as any).code === 11000) return { success: false, error: 'A role with this name already exists' }
+      if ((err as any).code === 11000)
+        return { success: false, error: 'A role with this name already exists' }
       return { success: false, error: err.message ?? 'Failed to update role' }
     }
   })
@@ -97,7 +113,8 @@ export function registerRoleHandlers(): void {
   ipcMain.handle(IPC.ROLES_DELETE, async (_e, req: unknown) => {
     try {
       const auth = await requireAuth(store.get('jwt') ?? null)
-      if (!auth.role.permissions.includes('can_manage_roles')) return { success: false, error: 'Permission denied' }
+      if (!auth.role.permissions.includes('can_manage_roles'))
+        return { success: false, error: 'Permission denied' }
       const r = req as { id: string }
       if (!r?.id) return { success: false, error: 'ID is required' }
       const result = await deleteRole(r.id)

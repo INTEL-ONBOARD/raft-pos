@@ -18,14 +18,18 @@ export interface IPayOutDoc {
 const payOutSchema = new Schema<IPayOutDoc>({
   amount: { type: Number, required: true, min: 0.01 },
   reason: { type: String, required: true, trim: true },
-  category: { type: String, enum: ['supplies', 'cod_delivery', 'petty_cash', 'other'], required: true },
+  category: {
+    type: String,
+    enum: ['supplies', 'cod_delivery', 'petty_cash', 'other'],
+    required: true
+  },
   recipient: { type: String, required: true, trim: true },
   recordedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   recordedAt: { type: Date, required: true },
   status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
   reviewedBy: { type: Schema.Types.ObjectId, default: null },
   reviewedAt: { type: Date, default: null },
-  reviewNote: { type: String, default: null },
+  reviewNote: { type: String, default: null }
 })
 
 export interface ICashDrawerDoc extends Document {
@@ -64,14 +68,14 @@ const cashDrawerSchema = new Schema<ICashDrawerDoc>(
     totalTransactions: { type: Number, default: 0 },
     openedAt: { type: Date, required: true },
     closedAt: { type: Date, default: null },
-    payOuts: { type: [payOutSchema], default: [] },
+    payOuts: { type: [payOutSchema], default: [] }
   },
   { timestamps: false }
 )
 
 // DB-enforced: only one open drawer per terminal at a time
 cashDrawerSchema.index(
-  { terminalId: 1 },
+  { branchId: 1, terminalId: 1 },
   { unique: true, partialFilterExpression: { status: 'open' } }
 )
 cashDrawerSchema.index({ branchId: 1, openedAt: -1 })

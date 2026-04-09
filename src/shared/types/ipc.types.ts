@@ -80,7 +80,10 @@ export const IPC = {
   DRAWER_CLOSE: 'drawer:close',
   DRAWER_GET_OPEN: 'drawer:getOpen',
   DRAWER_GET_ALL: 'drawer:getAll',
-  DRAWER_PRINT_Z_REPORT: 'drawer:printZReport',   // reserved for Phase 7 ESC/POS thermal print; Phase 6 uses window.print() in renderer
+  DRAWER_PRINT_Z_REPORT: 'drawer:printZReport', // reserved for Phase 7 ESC/POS thermal print; Phase 6 uses window.print() in renderer
+  DRAWER_PAY_OUT: 'drawer:payOut',
+  DRAWER_REVIEW_PAY_OUT: 'drawer:reviewPayOut',
+  DRAWER_GET_PAY_OUTS: 'drawer:getPayOuts',
 
   // Dashboard
   DASHBOARD_GET_STATS: 'dashboard:getStats',
@@ -117,7 +120,7 @@ export const IPC = {
   REPORTING_GET_INVENTORY_VALUATION: 'reporting:getInventoryValuation',
   REPORTING_GET_CASH_DRAWER_REPORT: 'reporting:getCashDrawerReport',
   REPORTING_EXPORT_PDF: 'reporting:exportPdf',
-  REPORTING_EXPORT_EXCEL: 'reporting:exportExcel',
+  REPORTING_EXPORT_EXCEL: 'reporting:exportExcel'
 } as const
 
-export type IpcChannel = typeof IPC[keyof typeof IPC]
+export type IpcChannel = (typeof IPC)[keyof typeof IPC]

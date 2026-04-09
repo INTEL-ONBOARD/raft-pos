@@ -8,7 +8,14 @@ import {
   ArrowRightIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline'
-import { usePosStore, selectSubtotal, selectOrderDiscountAmount, selectTaxAmount, selectTotalAmount, selectTotalPaid } from '../../stores/pos.store'
+import {
+  usePosStore,
+  selectSubtotal,
+  selectOrderDiscountAmount,
+  selectTaxAmount,
+  selectTotalAmount,
+  selectTotalPaid
+} from '../../stores/pos.store'
 import { useCartTotals, usePOS } from '../../hooks/usePOS'
 import { useAuthStore } from '../../stores/auth.store'
 import { useSettings } from '../../hooks/useSettings'
@@ -32,25 +39,39 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
   const items = usePosStore((s) => s.items)
   const orderDiscount = usePosStore((s) => s.orderDiscount)
   const payments = usePosStore((s) => s.payments)
-  const { updateQty, removeItem, setItemDiscount, setOrderDiscount, clearOrderDiscount, removePayment, clearCart } = usePosStore()
+  const {
+    updateQty,
+    removeItem,
+    setItemDiscount,
+    setOrderDiscount,
+    clearOrderDiscount,
+    removePayment,
+    clearCart
+  } = usePosStore()
 
   const { settingsQuery } = useSettings()
   const taxRate = settingsQuery.data?.globalTaxRate ?? 0
   const totals = useCartTotals(taxRate)
-  const { completeSaleMutation, validateSupervisorPin, maxDiscountPercent, requiresSupervisorOverride } = usePOS()
+  const {
+    completeSaleMutation,
+    validateSupervisorPin,
+    maxDiscountPercent,
+    requiresSupervisorOverride
+  } = usePOS()
   const role = useAuthStore((s) => s.role)
   const canApplyDiscount = role?.permissions?.includes('can_apply_discount') ?? false
   const canApplyOrderDiscount = role?.permissions?.includes('can_apply_order_discount') ?? false
 
   const [showPaymentModal, setShowPaymentModal] = useState(false)
-  const [pendingDiscount, setPendingDiscount] = useState<{ productId: string | null; amount: number; type: DiscountType } | null>(null)
+  const [pendingDiscount, setPendingDiscount] = useState<{
+    productId: string | null
+    amount: number
+    type: DiscountType
+  } | null>(null)
   const [showSupervisorModal, setShowSupervisorModal] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const canPay =
-    items.length > 0 &&
-    payments.length > 0 &&
-    totals.totalPaid >= totals.totalAmount
+  const canPay = items.length > 0 && payments.length > 0 && totals.totalPaid >= totals.totalAmount
 
   async function handlePay() {
     if (!canPay || completeSaleMutation.isPending) return
@@ -91,13 +112,16 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
 
   function handleItemDiscountChange(productId: string, amount: number, type: DiscountType) {
     const item = items.find((i) => i.productId === productId)
-    if (!item) return
+    if (!item) {
+      setError('Item not found in cart. Please remove and re-add the product.')
+      return
+    }
 
     const cap = maxDiscountPercent
     const exceeds =
       type === 'percent'
         ? amount > cap
-        : (item.unitPrice * item.quantity) > 0
+        : item.unitPrice * item.quantity > 0
           ? (amount / (item.unitPrice * item.quantity)) * 100 > cap
           : false
 
@@ -131,7 +155,8 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
   function handleOrderDiscountChange(value: string, type: DiscountType) {
     const amount = parseFloat(value) || 0
     const orderBase = totals.subtotal
-    const percentEquiv = type === 'percent' ? amount : (orderBase > 0 ? (amount / orderBase) * 100 : 0)
+    const percentEquiv =
+      type === 'percent' ? amount : orderBase > 0 ? (amount / orderBase) * 100 : 0
 
     if (percentEquiv > maxDiscountPercent && requiresSupervisorOverride) {
       setPendingDiscount({ productId: null, amount, type })
@@ -139,9 +164,10 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
       return
     }
 
-    const cappedAmount = type === 'percent'
-      ? Math.min(amount, maxDiscountPercent)
-      : Math.min(amount, (orderBase * maxDiscountPercent) / 100)
+    const cappedAmount =
+      type === 'percent'
+        ? Math.min(amount, maxDiscountPercent)
+        : Math.min(amount, (orderBase * maxDiscountPercent) / 100)
     setOrderDiscount(cappedAmount, type)
   }
 
@@ -154,17 +180,15 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
       >
         <div className="flex items-center gap-2">
           <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>Cart</h2>
-          {items.length > 0 && (
-            <span className="badge-blue">{items.length}</span>
-          )}
+          {items.length > 0 && <span className="badge-blue">{items.length}</span>}
         </div>
         {items.length > 0 && (
           <button
             onClick={clearCart}
             className="p-1.5 rounded-lg transition-colors"
             style={{ color: 'var(--text-muted)' }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-danger)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-danger)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
             title="Clear cart"
             aria-label="Clear cart"
           >
@@ -177,7 +201,9 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
       <div className="flex-1 overflow-y-auto px-4 py-3">
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center mt-12 gap-2">
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Add products to start a sale</p>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+              Add products to start a sale
+            </p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -203,15 +229,16 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
                     onClick={() => removeItem(item.productId)}
                     className="shrink-0 p-0.5 rounded transition-colors"
                     style={{ color: 'var(--text-muted)' }}
-                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-danger)')}
-                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-danger)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
                     aria-label={`Remove ${item.name}`}
                   >
                     <XMarkIcon className="w-3.5 h-3.5" />
                   </button>
                 </div>
                 <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                  &#8369;{item.unitPrice.toLocaleString('en-PH', { minimumFractionDigits: 2 })} / {item.unit}
+                  &#8369;{item.unitPrice.toLocaleString('en-PH', { minimumFractionDigits: 2 })} /{' '}
+                  {item.unit}
                 </p>
 
                 {/* Qty stepper + line total */}
@@ -230,8 +257,8 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
                       onClick={() => updateQty(item.productId, item.quantity - 1)}
                       className="flex items-center justify-center transition-colors"
                       style={{ width: '28px', height: '28px', color: 'var(--text-secondary)' }}
-                      onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-hover)')}
-                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                       aria-label="Decrease quantity"
                     >
                       <MinusIcon className="w-3 h-3" />
@@ -251,15 +278,18 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
                       onClick={() => updateQty(item.productId, item.quantity + 1)}
                       className="flex items-center justify-center transition-colors"
                       style={{ width: '28px', height: '28px', color: 'var(--text-secondary)' }}
-                      onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-hover)')}
-                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                       aria-label="Increase quantity"
                     >
                       <PlusIcon className="w-3 h-3" />
                     </button>
                   </div>
                   <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    &#8369;{(item.unitPrice * item.quantity).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                    &#8369;
+                    {(item.unitPrice * item.quantity).toLocaleString('en-PH', {
+                      minimumFractionDigits: 2
+                    })}
                   </p>
                 </div>
 
@@ -273,11 +303,18 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
                 {/* Per-item discount */}
                 {canApplyDiscount && (
                   <div className="flex items-center gap-2 mt-2">
-                    <TagIcon className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--text-muted)' }} />
+                    <TagIcon
+                      className="w-3.5 h-3.5 shrink-0"
+                      style={{ color: 'var(--text-muted)' }}
+                    />
                     <select
                       value={item.discountType}
                       onChange={(e) =>
-                        handleItemDiscountChange(item.productId, item.discountAmount, e.target.value as DiscountType)
+                        handleItemDiscountChange(
+                          item.productId,
+                          item.discountAmount,
+                          e.target.value as DiscountType
+                        )
                       }
                       className="dark-select text-xs py-0.5 px-1"
                     >
@@ -308,11 +345,16 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
         {/* Order-level discount */}
         {canApplyOrderDiscount && (
           <div className="flex items-center gap-2">
-            <span className="text-xs w-24 shrink-0" style={{ color: 'var(--text-muted)' }}>Order discount</span>
+            <span className="text-xs w-24 shrink-0" style={{ color: 'var(--text-muted)' }}>
+              Order discount
+            </span>
             <select
               value={orderDiscount?.type ?? 'fixed'}
               onChange={(e) =>
-                handleOrderDiscountChange(String(orderDiscount?.amount ?? 0), e.target.value as DiscountType)
+                handleOrderDiscountChange(
+                  String(orderDiscount?.amount ?? 0),
+                  e.target.value as DiscountType
+                )
               }
               className="dark-select text-xs py-0.5 px-1"
             >
@@ -330,7 +372,11 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
               className="dark-input w-20 text-xs py-0.5 px-2"
             />
             {orderDiscount && (
-              <button onClick={clearOrderDiscount} className="text-xs" style={{ color: 'var(--color-danger)' }}>
+              <button
+                onClick={clearOrderDiscount}
+                className="text-xs"
+                style={{ color: 'var(--color-danger)' }}
+              >
                 Remove
               </button>
             )}
@@ -341,18 +387,25 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
         <div className="space-y-1 text-sm">
           <div className="flex justify-between" style={{ color: 'var(--text-muted)' }}>
             <span>Subtotal</span>
-            <span>&#8369;{totals.subtotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+            <span>
+              &#8369;{totals.subtotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+            </span>
           </div>
           {totals.orderDiscountAmount > 0 && (
             <div className="flex justify-between" style={{ color: 'var(--color-success)' }}>
               <span>Discount</span>
-              <span>-&#8369;{totals.orderDiscountAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+              <span>
+                -&#8369;
+                {totals.orderDiscountAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+              </span>
             </div>
           )}
           {totals.taxAmount > 0 && (
             <div className="flex justify-between" style={{ color: 'var(--text-muted)' }}>
               <span>Tax ({taxRate}%)</span>
-              <span>&#8369;{totals.taxAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+              <span>
+                &#8369;{totals.taxAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+              </span>
             </div>
           )}
           <div
@@ -414,7 +467,9 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
             }}
           >
             <span>Change</span>
-            <span>&#8369;{totals.change.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+            <span>
+              &#8369;{totals.change.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+            </span>
           </div>
         )}
         {totals.remaining > 0 && payments.length > 0 && (
@@ -427,7 +482,9 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
             }}
           >
             <span>Remaining</span>
-            <span>&#8369;{totals.remaining.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+            <span>
+              &#8369;{totals.remaining.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+            </span>
           </div>
         )}
 
@@ -462,13 +519,13 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
             opacity: !canPay ? 0.5 : 1,
             boxShadow: canPay ? 'var(--shadow-sm)' : 'none'
           }}
-          onMouseEnter={e => {
+          onMouseEnter={(e) => {
             if (canPay) {
               e.currentTarget.style.transform = 'translateY(-1px)'
               e.currentTarget.style.boxShadow = 'var(--shadow-md)'
             }
           }}
-          onMouseLeave={e => {
+          onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'none'
             e.currentTarget.style.boxShadow = canPay ? 'var(--shadow-sm)' : 'none'
           }}
@@ -493,7 +550,10 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
       {showSupervisorModal && (
         <SupervisorPinModal
           onApproved={handleSupervisorApproved}
-          onClose={() => { setShowSupervisorModal(false); setPendingDiscount(null) }}
+          onClose={() => {
+            setShowSupervisorModal(false)
+            setPendingDiscount(null)
+          }}
           validatePin={async (email, pin) => {
             const res = await validateSupervisorPin(email, pin)
             return res

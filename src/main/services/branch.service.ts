@@ -34,7 +34,7 @@ function toPublic(doc: any): IBranchPublic {
     address: doc.address ?? '',
     phone: doc.phone ?? '',
     email: doc.email ?? '',
-    isActive: doc.isActive ?? true,
+    isActive: doc.isActive ?? true
   }
 }
 
@@ -50,12 +50,15 @@ export async function createBranch(input: CreateBranchInput): Promise<IBranchPub
     address: input.address?.trim() ?? '',
     phone: input.phone?.trim() ?? '',
     email: input.email?.trim() ?? '',
-    isActive: true,
+    isActive: true
   })
   return toPublic(doc)
 }
 
-export async function updateBranch(id: string, input: UpdateBranchInput): Promise<IBranchPublic | null> {
+export async function updateBranch(
+  id: string,
+  input: UpdateBranchInput
+): Promise<IBranchPublic | null> {
   const updates: any = {}
   if (input.name !== undefined) updates.name = input.name.trim()
   if (input.code !== undefined) updates.code = input.code.trim().toUpperCase()
@@ -67,6 +70,10 @@ export async function updateBranch(id: string, input: UpdateBranchInput): Promis
 }
 
 export async function deactivateBranch(id: string): Promise<IBranchPublic | null> {
-  const doc = await Branch.findByIdAndUpdate(id, { $set: { isActive: false } }, { new: true }).lean()
+  const doc = await Branch.findByIdAndUpdate(
+    id,
+    { $set: { isActive: false } },
+    { new: true }
+  ).lean()
   return doc ? toPublic(doc) : null
 }

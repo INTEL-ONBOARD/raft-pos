@@ -40,7 +40,14 @@ export default function LoginPage() {
     <AuthLayout>
       <div style={{ width: '100%', maxWidth: '360px' }}>
         {/* Logo mark */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '2rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            marginBottom: '2rem'
+          }}
+        >
           <div
             style={{
               width: '56px',
@@ -51,26 +58,47 @@ export default function LoginPage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              marginBottom: '1rem',
+              marginBottom: '1rem'
             }}
           >
-            <span style={{ color: '#fff', fontSize: '24px', fontWeight: 700, lineHeight: 1 }}>R</span>
+            <span style={{ color: '#fff', fontSize: '24px', fontWeight: 700, lineHeight: 1 }}>
+              R
+            </span>
           </div>
-          <h1 style={{ color: '#ffffff', fontSize: '1.5rem', fontWeight: 700, margin: 0, letterSpacing: '-0.02em' }}>
+          <h1
+            style={{
+              color: '#ffffff',
+              fontSize: '1.5rem',
+              fontWeight: 700,
+              margin: 0,
+              letterSpacing: '-0.02em'
+            }}
+          >
             Raft POS
           </h1>
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.875rem', marginTop: '0.375rem' }}>
+          <p
+            style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.875rem', marginTop: '0.375rem' }}
+          >
             Sign in to your account
           </p>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+        >
           {/* Email */}
           <div>
             <label
               htmlFor="login-email"
-              style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 500, marginBottom: '0.375rem' }}
+              style={{
+                display: 'block',
+                color: 'rgba(255,255,255,0.5)',
+                fontSize: '0.75rem',
+                fontWeight: 500,
+                marginBottom: '0.375rem'
+              }}
             >
               Email
             </label>
@@ -94,7 +122,7 @@ export default function LoginPage() {
                 padding: '0 0.75rem',
                 outline: 'none',
                 boxSizing: 'border-box',
-                fontFamily: 'inherit',
+                fontFamily: 'inherit'
               }}
               onFocus={(e) => {
                 e.target.style.borderColor = 'rgba(99,102,241,0.6)'
@@ -111,7 +139,13 @@ export default function LoginPage() {
           <div>
             <label
               htmlFor="login-password"
-              style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 500, marginBottom: '0.375rem' }}
+              style={{
+                display: 'block',
+                color: 'rgba(255,255,255,0.5)',
+                fontSize: '0.75rem',
+                fontWeight: 500,
+                marginBottom: '0.375rem'
+              }}
             >
               Password
             </label>
@@ -135,7 +169,7 @@ export default function LoginPage() {
                   padding: '0 2.5rem 0 0.75rem',
                   outline: 'none',
                   boxSizing: 'border-box',
-                  fontFamily: 'inherit',
+                  fontFamily: 'inherit'
                 }}
                 onFocus={(e) => {
                   e.target.style.borderColor = 'rgba(99,102,241,0.6)'
@@ -161,7 +195,7 @@ export default function LoginPage() {
                   color: 'rgba(255,255,255,0.3)',
                   display: 'flex',
                   alignItems: 'center',
-                  padding: '0.25rem',
+                  padding: '0.25rem'
                 }}
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -179,7 +213,7 @@ export default function LoginPage() {
                 borderRadius: '8px',
                 color: '#f87171',
                 fontSize: '0.8125rem',
-                padding: '0.75rem 1rem',
+                padding: '0.75rem 1rem'
               }}
             >
               {error}
@@ -207,13 +241,49 @@ export default function LoginPage() {
               gap: '0.5rem',
               fontFamily: 'inherit',
               marginTop: '0.5rem',
-              transition: 'background 150ms ease-out',
+              transition: 'background 150ms ease-out'
             }}
-            onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = '#4f46e5' }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = '#6366f1' }}
+            onMouseEnter={(e) => {
+              if (!loading) e.currentTarget.style.background = '#4f46e5'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#6366f1'
+            }}
           >
             {loading && <Loader2 size={16} className="animate-spin" />}
             {loading ? 'Signing in…' : 'Sign In'}
+          </button>
+
+          {/* Dev quick-login bypass */}
+          <button
+            type="button"
+            onClick={() => {
+              setEmail('admin@raftpos.com')
+              setPassword('Admin@123456')
+            }}
+            style={{
+              width: '100%',
+              height: '36px',
+              borderRadius: '8px',
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px dashed rgba(255,255,255,0.12)',
+              color: 'rgba(255,255,255,0.35)',
+              fontSize: '0.75rem',
+              fontWeight: 500,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              letterSpacing: '0.01em'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'
+              e.currentTarget.style.color = 'rgba(255,255,255,0.55)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'
+              e.currentTarget.style.color = 'rgba(255,255,255,0.35)'
+            }}
+          >
+            Dev: Fill admin credentials
           </button>
         </form>
       </div>

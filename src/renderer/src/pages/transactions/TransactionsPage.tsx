@@ -8,7 +8,7 @@ import { RefundModal } from './RefundModal'
 import { TransactionDetailModal } from './TransactionDetailModal'
 import type { ITransaction } from '@shared/types/transaction.types'
 
-type FilterStatus = '' | 'completed' | 'voided' | 'refunded'
+type FilterStatus = '' | 'completed' | 'voided' | 'refunded' | 'partially_refunded'
 
 function fmt(n: number) {
   return n.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -18,6 +18,7 @@ function statusBadge(s: string) {
   if (s === 'completed') return 'badge-green'
   if (s === 'voided') return 'badge-red'
   if (s === 'refunded') return 'badge-yellow'
+  if (s === 'partially_refunded') return 'badge-yellow'
   return 'badge-gray'
 }
 
@@ -25,11 +26,12 @@ const STATUS_TABS: { label: string; value: FilterStatus }[] = [
   { label: 'All', value: '' },
   { label: 'Completed', value: 'completed' },
   { label: 'Voided', value: 'voided' },
+  { label: 'Partial Refunds', value: 'partially_refunded' },
   { label: 'Refunded', value: 'refunded' }
 ]
 
 export default function TransactionsPage() {
-  const role = useAuthStore(s => s.role)
+  const role = useAuthStore((s) => s.role)
   const canVoid = role?.permissions.includes('can_void_transaction') ?? false
   const canRefund = role?.permissions.includes('can_refund_transaction') ?? false
   const canReprint = role?.permissions.includes('can_reprint_receipt') ?? false
@@ -57,8 +59,8 @@ export default function TransactionsPage() {
   const [detailTarget, setDetailTarget] = useState<ITransaction | null>(null)
   const [actionError, setActionError] = useState('')
 
-  const transactions = (data?.data ?? []).filter(t =>
-    !search || t.receiptNo.toLowerCase().includes(search.toLowerCase())
+  const transactions = (data?.data ?? []).filter(
+    (t) => !search || t.receiptNo.toLowerCase().includes(search.toLowerCase())
   )
 
   const total = data?.total ?? 0
@@ -75,7 +77,10 @@ export default function TransactionsPage() {
     }
   }
 
-  async function handleRefund(reason: string, refundedItems: Array<{ productId: string; quantity: number }>) {
+  async function handleRefund(
+    reason: string,
+    refundedItems: Array<{ productId: string; quantity: number }>
+  ) {
     if (!refundTarget) return
     setActionError('')
     try {
@@ -95,62 +100,173 @@ export default function TransactionsPage() {
     textTransform: 'uppercase',
     padding: '10px 16px',
     textAlign: 'left',
-    borderBottom: '1px solid rgba(255,255,255,0.06)',
+    borderBottom: '1px solid rgba(255,255,255,0.06)'
   }
 
   const tdStyle: React.CSSProperties = {
     padding: '12px 16px',
     borderBottom: '1px solid rgba(255,255,255,0.05)',
     fontSize: '13px',
-    color: 'rgba(255,255,255,0.65)',
+    color: 'rgba(255,255,255,0.65)'
   }
 
   const tdLastStyle: React.CSSProperties = {
     padding: '12px 16px',
     fontSize: '13px',
-    color: 'rgba(255,255,255,0.65)',
+    color: 'rgba(255,255,255,0.65)'
   }
 
   return (
-    <div style={{ background: '#080810', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+    <div
+      style={{
+        background: '#080810',
+        position: 'relative',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100%'
+      }}
+    >
       {/* Ambient glow */}
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, background: 'radial-gradient(ellipse 900px 600px at 20% 0%, rgba(124,58,237,0.10) 0%, transparent 70%)' }} />
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          pointerEvents: 'none',
+          zIndex: 0,
+          background:
+            'radial-gradient(ellipse 900px 600px at 20% 0%, rgba(124,58,237,0.10) 0%, transparent 70%)'
+        }}
+      />
 
       {/* Content wrapper */}
-      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', flex: 1 }}>
-
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1
+        }}
+      >
         {/* Page header */}
-        <div style={{ padding: '28px 36px 20px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div
+          style={{
+            padding: '28px 36px 20px',
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '38px', height: '38px', background: 'rgba(99,102,241,0.12)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div
+              style={{
+                width: '38px',
+                height: '38px',
+                background: 'rgba(99,102,241,0.12)',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}
+            >
               <ArrowsRightLeftIcon style={{ width: '18px', height: '18px', color: '#a5b4fc' }} />
             </div>
             <div>
-              <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', margin: 0 }}>Transactions</h1>
-              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.40)', marginTop: '2px', marginBottom: 0 }}>Sales history, void, and refund management</p>
+              <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', margin: 0 }}>
+                Transactions
+              </h1>
+              <p
+                style={{
+                  fontSize: '13px',
+                  color: 'rgba(255,255,255,0.40)',
+                  marginTop: '2px',
+                  marginBottom: 0
+                }}
+              >
+                Sales history, void, and refund management
+              </p>
             </div>
           </div>
         </div>
 
         {/* Content area */}
-        <div style={{ padding: '0 36px 36px', flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
+        <div
+          style={{
+            padding: '0 36px 36px',
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px'
+          }}
+        >
           {actionError && (
-            <div style={{ padding: '12px', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '12px', background: 'rgba(220,38,38,0.06)', border: '1px solid rgba(220,38,38,0.15)', color: '#dc2626' }}>
+            <div
+              style={{
+                padding: '12px',
+                fontSize: '13px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                borderRadius: '12px',
+                background: 'rgba(220,38,38,0.06)',
+                border: '1px solid rgba(220,38,38,0.15)',
+                color: '#dc2626'
+              }}
+            >
               {actionError}
-              <button style={{ marginLeft: '8px', cursor: 'pointer', background: 'none', border: 'none', color: '#dc2626', fontSize: '16px' }} onClick={() => setActionError('')}>×</button>
+              <button
+                style={{
+                  marginLeft: '8px',
+                  cursor: 'pointer',
+                  background: 'none',
+                  border: 'none',
+                  color: '#dc2626',
+                  fontSize: '16px'
+                }}
+                onClick={() => setActionError('')}
+              >
+                ×
+              </button>
             </div>
           )}
 
           {/* Status filter tabs */}
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            {STATUS_TABS.map(tab => (
+            {STATUS_TABS.map((tab) => (
               <button
                 key={tab.value}
-                onClick={() => { setStatusFilter(tab.value); setPage(1) }}
-                style={statusFilter === tab.value
-                  ? { height: '32px', borderRadius: '999px', padding: '0 14px', fontSize: '12px', fontWeight: 500, background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.30)', color: '#a5b4fc', cursor: 'pointer' }
-                  : { height: '32px', borderRadius: '999px', padding: '0 14px', fontSize: '12px', fontWeight: 500, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.45)', cursor: 'pointer' }}
+                onClick={() => {
+                  setStatusFilter(tab.value)
+                  setPage(1)
+                }}
+                style={
+                  statusFilter === tab.value
+                    ? {
+                        height: '32px',
+                        borderRadius: '999px',
+                        padding: '0 14px',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        background: 'rgba(99,102,241,0.15)',
+                        border: '1px solid rgba(99,102,241,0.30)',
+                        color: '#a5b4fc',
+                        cursor: 'pointer'
+                      }
+                    : {
+                        height: '32px',
+                        borderRadius: '999px',
+                        padding: '0 14px',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        color: 'rgba(255,255,255,0.45)',
+                        cursor: 'pointer'
+                      }
+                }
               >
                 {tab.label}
               </button>
@@ -160,14 +276,31 @@ export default function TransactionsPage() {
           {/* Search + Date filters */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
             <div style={{ position: 'relative' }}>
-              <MagnifyingGlassIcon style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: 'rgba(255,255,255,0.35)' }} />
+              <MagnifyingGlassIcon
+                style={{
+                  position: 'absolute',
+                  left: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: '16px',
+                  height: '16px',
+                  color: 'rgba(255,255,255,0.35)'
+                }}
+              />
               <input
                 type="text"
                 placeholder="Search receipt number…"
                 value={search}
-                onChange={e => setSearch(e.target.value)}
+                onChange={(e) => setSearch(e.target.value)}
                 className="dark-input"
-                style={{ paddingLeft: '36px', paddingRight: '16px', paddingTop: '8px', paddingBottom: '8px', fontSize: '13px', width: '208px' }}
+                style={{
+                  paddingLeft: '36px',
+                  paddingRight: '16px',
+                  paddingTop: '8px',
+                  paddingBottom: '8px',
+                  fontSize: '13px',
+                  width: '208px'
+                }}
               />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
@@ -175,7 +308,10 @@ export default function TransactionsPage() {
               <input
                 type="date"
                 value={dateFrom}
-                onChange={e => { setDateFrom(e.target.value); setPage(1) }}
+                onChange={(e) => {
+                  setDateFrom(e.target.value)
+                  setPage(1)
+                }}
                 className="dark-input"
                 style={{ padding: '8px 12px', fontSize: '13px' }}
               />
@@ -185,17 +321,30 @@ export default function TransactionsPage() {
               <input
                 type="date"
                 value={dateTo}
-                onChange={e => { setDateTo(e.target.value); setPage(1) }}
+                onChange={(e) => {
+                  setDateTo(e.target.value)
+                  setPage(1)
+                }}
                 className="dark-input"
                 style={{ padding: '8px 12px', fontSize: '13px' }}
               />
             </div>
             {(dateFrom || dateTo) && (
               <button
-                onClick={() => { setDateFrom(''); setDateTo(''); setPage(1) }}
-                style={{ fontSize: '13px', color: 'rgba(255,255,255,0.40)', background: 'none', border: 'none', cursor: 'pointer' }}
-                onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.80)')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.40)')}
+                onClick={() => {
+                  setDateFrom('')
+                  setDateTo('')
+                  setPage(1)
+                }}
+                style={{
+                  fontSize: '13px',
+                  color: 'rgba(255,255,255,0.40)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.80)')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.40)')}
               >
                 Clear dates
               </button>
@@ -203,14 +352,25 @@ export default function TransactionsPage() {
           </div>
 
           {/* Table container */}
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', overflow: 'hidden' }}>
+          <div
+            style={{
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.07)',
+              borderRadius: '16px',
+              overflow: 'hidden'
+            }}
+          >
             {isLoading ? (
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
-                    {['Receipt No', 'Date', 'Items', 'Total', 'Payment', 'Status', 'Actions'].map(h => (
-                      <th key={h} style={thStyle}>{h}</th>
-                    ))}
+                    {['Receipt No', 'Date', 'Items', 'Total', 'Payment', 'Status', 'Actions'].map(
+                      (h) => (
+                        <th key={h} style={thStyle}>
+                          {h}
+                        </th>
+                      )
+                    )}
                   </tr>
                 </thead>
                 <tbody>
@@ -218,7 +378,15 @@ export default function TransactionsPage() {
                     <tr key={i}>
                       {Array.from({ length: 7 }).map((__, j) => (
                         <td key={j} style={tdStyle}>
-                          <div className="animate-pulse" style={{ height: '14px', borderRadius: '4px', background: 'rgba(255,255,255,0.06)', width: j === 0 ? '100px' : j === 1 ? '130px' : '70px' }} />
+                          <div
+                            className="animate-pulse"
+                            style={{
+                              height: '14px',
+                              borderRadius: '4px',
+                              background: 'rgba(255,255,255,0.06)',
+                              width: j === 0 ? '100px' : j === 1 ? '130px' : '70px'
+                            }}
+                          />
                         </td>
                       ))}
                     </tr>
@@ -226,15 +394,59 @@ export default function TransactionsPage() {
                 </tbody>
               </table>
             ) : isError ? (
-              <div style={{ padding: '32px', textAlign: 'center', fontSize: '13px', color: '#dc2626' }}>Failed to load transactions</div>
+              <div
+                style={{ padding: '32px', textAlign: 'center', fontSize: '13px', color: '#dc2626' }}
+              >
+                Failed to load transactions
+              </div>
             ) : transactions.length === 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '64px 0', gap: '12px' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                  <ArrowsRightLeftIcon style={{ width: '20px', height: '20px', color: 'rgba(255,255,255,0.30)' }} />
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '64px 0',
+                  gap: '12px'
+                }}
+              >
+                <div
+                  style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.07)'
+                  }}
+                >
+                  <ArrowsRightLeftIcon
+                    style={{ width: '20px', height: '20px', color: 'rgba(255,255,255,0.30)' }}
+                  />
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <p style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.60)', margin: 0 }}>No transactions found</p>
-                  <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', marginTop: '4px', marginBottom: 0 }}>Try adjusting your search or filters.</p>
+                  <p
+                    style={{
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      color: 'rgba(255,255,255,0.60)',
+                      margin: 0
+                    }}
+                  >
+                    No transactions found
+                  </p>
+                  <p
+                    style={{
+                      fontSize: '13px',
+                      color: 'rgba(255,255,255,0.35)',
+                      marginTop: '4px',
+                      marginBottom: 0
+                    }}
+                  >
+                    Try adjusting your search or filters.
+                  </p>
                 </div>
               </div>
             ) : (
@@ -257,7 +469,7 @@ export default function TransactionsPage() {
                       const isHovered = hoveredRow === t._id
                       const rowTd: React.CSSProperties = {
                         ...(isLast ? tdLastStyle : tdStyle),
-                        background: isHovered ? 'rgba(255,255,255,0.03)' : 'transparent',
+                        background: isHovered ? 'rgba(255,255,255,0.03)' : 'transparent'
                       }
                       return (
                         <tr
@@ -268,9 +480,16 @@ export default function TransactionsPage() {
                           <td style={rowTd}>
                             <button
                               onClick={() => setDetailTarget(t)}
-                              style={{ color: '#818cf8', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px' }}
-                              onMouseEnter={e => (e.currentTarget.style.color = '#a5b4fc')}
-                              onMouseLeave={e => (e.currentTarget.style.color = '#818cf8')}
+                              style={{
+                                color: '#818cf8',
+                                fontWeight: 500,
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontSize: '13px'
+                              }}
+                              onMouseEnter={(e) => (e.currentTarget.style.color = '#a5b4fc')}
+                              onMouseLeave={(e) => (e.currentTarget.style.color = '#818cf8')}
                             >
                               {t.receiptNo}
                             </button>
@@ -278,14 +497,33 @@ export default function TransactionsPage() {
                           <td style={{ ...rowTd, color: 'rgba(255,255,255,0.55)' }}>
                             {new Date(t.createdAt).toLocaleString()}
                           </td>
-                          <td style={{ ...rowTd, textAlign: 'right', color: 'rgba(255,255,255,0.55)' }}>
+                          <td
+                            style={{
+                              ...rowTd,
+                              textAlign: 'right',
+                              color: 'rgba(255,255,255,0.55)'
+                            }}
+                          >
                             {t.items.reduce((s, i) => s + i.quantity, 0)}
                           </td>
-                          <td style={{ ...rowTd, textAlign: 'right', color: 'rgba(255,255,255,0.88)', fontWeight: 500 }}>
+                          <td
+                            style={{
+                              ...rowTd,
+                              textAlign: 'right',
+                              color: 'rgba(255,255,255,0.88)',
+                              fontWeight: 500
+                            }}
+                          >
                             ₱{fmt(t.totalAmount)}
                           </td>
-                          <td style={{ ...rowTd, textTransform: 'capitalize', color: 'rgba(255,255,255,0.55)' }}>
-                            {t.isSplit ? 'Split' : t.payments[0]?.method ?? '—'}
+                          <td
+                            style={{
+                              ...rowTd,
+                              textTransform: 'capitalize',
+                              color: 'rgba(255,255,255,0.55)'
+                            }}
+                          >
+                            {t.isSplit ? 'Split' : (t.payments[0]?.method ?? '—')}
                           </td>
                           <td style={rowTd}>
                             <span className={statusBadge(t.status)}>
@@ -298,31 +536,61 @@ export default function TransactionsPage() {
                                 <button
                                   onClick={() => setDetailTarget(t)}
                                   aria-label={`Reprint receipt for ${t.receiptNo}`}
-                                  style={{ fontSize: '12px', color: 'rgba(255,255,255,0.40)', background: 'none', border: 'none', cursor: 'pointer' }}
-                                  onMouseEnter={e => (e.currentTarget.style.color = '#a5b4fc')}
-                                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.40)')}
+                                  style={{
+                                    fontSize: '12px',
+                                    color: 'rgba(255,255,255,0.40)',
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer'
+                                  }}
+                                  onMouseEnter={(e) => (e.currentTarget.style.color = '#a5b4fc')}
+                                  onMouseLeave={(e) =>
+                                    (e.currentTarget.style.color = 'rgba(255,255,255,0.40)')
+                                  }
                                 >
                                   Reprint
                                 </button>
                               )}
                               {canVoid && t.status === 'completed' && (
                                 <button
-                                  onClick={() => { setActionError(''); setVoidTarget(t) }}
+                                  onClick={() => {
+                                    setActionError('')
+                                    setVoidTarget(t)
+                                  }}
                                   aria-label={`Void transaction ${t.receiptNo}`}
-                                  style={{ fontSize: '12px', color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer' }}
-                                  onMouseEnter={e => (e.currentTarget.style.color = '#b91c1c')}
-                                  onMouseLeave={e => (e.currentTarget.style.color = '#dc2626')}
+                                  style={{
+                                    fontSize: '12px',
+                                    color: '#dc2626',
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer'
+                                  }}
+                                  onMouseEnter={(e) => (e.currentTarget.style.color = '#b91c1c')}
+                                  onMouseLeave={(e) => (e.currentTarget.style.color = '#dc2626')}
                                 >
                                   Void
                                 </button>
                               )}
                               {canRefund && t.status === 'completed' && (
                                 <button
-                                  onClick={() => { setActionError(''); setRefundTarget(t) }}
+                                  onClick={() => {
+                                    setActionError('')
+                                    setRefundTarget(t)
+                                  }}
                                   aria-label={`Refund transaction ${t.receiptNo}`}
-                                  style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', background: 'none', border: 'none', cursor: 'pointer' }}
-                                  onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.88)')}
-                                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.55)')}
+                                  style={{
+                                    fontSize: '12px',
+                                    color: 'rgba(255,255,255,0.55)',
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer'
+                                  }}
+                                  onMouseEnter={(e) =>
+                                    (e.currentTarget.style.color = 'rgba(255,255,255,0.88)')
+                                  }
+                                  onMouseLeave={(e) =>
+                                    (e.currentTarget.style.color = 'rgba(255,255,255,0.55)')
+                                  }
                                 >
                                   Refund
                                 </button>
@@ -340,12 +608,22 @@ export default function TransactionsPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px', color: 'rgba(255,255,255,0.50)' }}>
-              <span>Page {page} of {totalPages} ({total} total)</span>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                fontSize: '13px',
+                color: 'rgba(255,255,255,0.50)'
+              }}
+            >
+              <span>
+                Page {page} of {totalPages} ({total} total)
+              </span>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button
                   disabled={page <= 1}
-                  onClick={() => setPage(p => p - 1)}
+                  onClick={() => setPage((p) => p - 1)}
                   className="btn-secondary"
                   style={{ padding: '4px 12px', borderRadius: '6px' }}
                 >
@@ -353,7 +631,7 @@ export default function TransactionsPage() {
                 </button>
                 <button
                   disabled={page >= totalPages}
-                  onClick={() => setPage(p => p + 1)}
+                  onClick={() => setPage((p) => p + 1)}
                   className="btn-secondary"
                   style={{ padding: '4px 12px', borderRadius: '6px' }}
                 >
@@ -362,7 +640,6 @@ export default function TransactionsPage() {
               </div>
             </div>
           )}
-
         </div>
       </div>
 
@@ -383,10 +660,7 @@ export default function TransactionsPage() {
         />
       )}
       {detailTarget && (
-        <TransactionDetailModal
-          transaction={detailTarget}
-          onClose={() => setDetailTarget(null)}
-        />
+        <TransactionDetailModal transaction={detailTarget} onClose={() => setDetailTarget(null)} />
       )}
     </div>
   )

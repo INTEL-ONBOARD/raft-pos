@@ -9,8 +9,13 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, permission }: ProtectedRouteProps) {
-  const { isAuthenticated, role } = useAuth()
-  if (!isAuthenticated) return <Navigate to="/login" replace />
+  const { isAuthenticated, expiresAt, role } = useAuth()
+
+  // Session is valid if authenticated AND (no expiry OR expiry is in the future)
+  const isSessionExpired = expiresAt != null && Date.now() >= expiresAt
+  const sessionValid = isAuthenticated && !isSessionExpired
+
+  if (!sessionValid) return <Navigate to="/login" replace />
   if (permission && !role?.permissions.includes(permission)) {
     return <Navigate to="/home" replace />
   }

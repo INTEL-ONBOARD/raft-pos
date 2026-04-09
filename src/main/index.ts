@@ -46,7 +46,7 @@ function createWindow(): BrowserWindow {
 app.whenReady().then(async () => {
   app.setAppUserModelId('com.raftpos')
 
-app.on('browser-window-created', (_, window) => {
+  app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
 

@@ -12,7 +12,10 @@ const pinAttempts = new Map<string, { count: number; resetAt: number }>()
 const PIN_MAX_ATTEMPTS = 5
 const PIN_WINDOW_MS = 5 * 60 * 1000 // 5 minutes
 
-function checkPinRateLimit(email: string, terminalId: string): { allowed: boolean; waitMs: number } {
+function checkPinRateLimit(
+  email: string,
+  terminalId: string
+): { allowed: boolean; waitMs: number } {
   const key = `${email.toLowerCase()}:${terminalId}`
   const now = Date.now()
   const entry = pinAttempts.get(key)
@@ -38,7 +41,6 @@ function clearPinAttempts(email: string, terminalId: string): void {
 }
 
 export function registerSupervisorHandlers(): void {
-
   // ── POS_VALIDATE_SUPERVISOR_PIN ────────────────────────────────────────────
   // The cashier is already logged in. This handler validates a DIFFERENT user's
   // supervisor PIN (e.g., a manager approving a discount override).

@@ -19,10 +19,10 @@ export const usePurchaseOrderStore = create<PurchaseOrderState>((set) => ({
   setPurchaseOrders: (purchaseOrders, total) => set({ purchaseOrders, total }),
   setActivePO: (activePO) => set({ activePO }),
   updatePurchaseOrder: (po) =>
-    set(state => ({
-      purchaseOrders: state.purchaseOrders.map(p => p._id === po._id ? po : p),
+    set((state) => ({
+      purchaseOrders: state.purchaseOrders.map((p) => (p._id === po._id ? po : p)),
       activePO: state.activePO?._id === po._id ? po : state.activePO
     })),
   addPurchaseOrder: (po) =>
-    set(state => ({ purchaseOrders: [po, ...state.purchaseOrders], total: state.total + 1 }))
+    set((state) => ({ purchaseOrders: [po, ...state.purchaseOrders], total: state.total + 1 }))
 }))

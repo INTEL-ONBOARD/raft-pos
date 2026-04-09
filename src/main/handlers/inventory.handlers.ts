@@ -15,8 +15,12 @@ export function registerInventoryHandlers(): void {
       const data = await getStockLevels(branchId)
       return { success: true, data }
     } catch (err: any) {
-      console.error('[IPC] INVENTORY_GET_STOCK_LEVELS:', err)
-      return { success: false, error: err.message ?? 'Failed to load stock levels' }
+      // UNAUTHORIZED is expected when renderer auth state is stale; avoid noisy logs in dev/startup.
+      const message = typeof err?.message === 'string' ? err.message : String(err ?? '')
+      if (!message.includes('UNAUTHORIZED')) {
+        console.error('[IPC] INVENTORY_GET_STOCK_LEVELS:', err)
+      }
+      return { success: false, error: message || 'Failed to load stock levels' }
     }
   })
 
@@ -26,13 +30,24 @@ export function registerInventoryHandlers(): void {
       if (!auth.role.permissions.includes('can_manage_inventory')) {
         return { success: false, error: 'Permission denied' }
       }
-      const r = req as { productId: string; type: string; quantity: number; reason: string; notes?: string; reorderPoint?: number; lowStockThreshold?: number }
+      const r = req as {
+        productId: string
+        type: string
+        quantity: number
+        reason: string
+        notes?: string
+        reorderPoint?: number
+        lowStockThreshold?: number
+      }
       if (!r?.productId || !r?.type || r?.quantity == null || !r?.reason) {
         return { success: false, error: 'productId, type, quantity, and reason are required' }
       }
       if (r.reorderPoint !== undefined && r.lowStockThreshold !== undefined) {
         if (r.reorderPoint < r.lowStockThreshold) {
-          return { success: false, error: 'Reorder point must be greater than or equal to low stock threshold' }
+          return {
+            success: false,
+            error: 'Reorder point must be greater than or equal to low stock threshold'
+          }
         }
       }
       if (!['in', 'out', 'adjustment'].includes(r.type)) {
@@ -46,7 +61,13 @@ export function registerInventoryHandlers(): void {
         return { success: false, error: 'Quantity cannot be negative' }
       }
       const data = await manualAdjustment(
-        { productId: r.productId, type: r.type as any, quantity: r.quantity, reason: r.reason, notes: r.notes },
+        {
+          productId: r.productId,
+          type: r.type as any,
+          quantity: r.quantity,
+          reason: r.reason,
+          notes: r.notes
+        },
         auth.user.branchId,
         auth.user._id
       )

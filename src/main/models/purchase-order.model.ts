@@ -1,24 +1,30 @@
 // src/main/models/purchase-order.model.ts
 import { Schema, model, Document, Types } from 'mongoose'
 
-const receiveHistorySchema = new Schema({
-  qty: { type: Number, required: true },
-  receivedAt: { type: Date, required: true },
-  receivedBy: { type: Schema.Types.ObjectId, required: true },
-  notes: { type: String, default: '' }
-}, { _id: false })
+const receiveHistorySchema = new Schema(
+  {
+    qty: { type: Number, required: true },
+    receivedAt: { type: Date, required: true },
+    receivedBy: { type: Schema.Types.ObjectId, required: true },
+    notes: { type: String, default: '' }
+  },
+  { _id: false }
+)
 
-const poItemSchema = new Schema({
-  productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
-  sku: { type: String, required: true },
-  name: { type: String, required: true },
-  unit: { type: String, required: true },
-  orderedQty: { type: Number, required: true, min: 0.001 },
-  receivedQty: { type: Number, default: 0 },
-  receiveHistory: [receiveHistorySchema],
-  unitCost: { type: Number, required: true, min: 0 },
-  totalCost: { type: Number, required: true, min: 0 }
-}, { _id: false })
+const poItemSchema = new Schema(
+  {
+    productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
+    sku: { type: String, required: true },
+    name: { type: String, required: true },
+    unit: { type: String, required: true },
+    orderedQty: { type: Number, required: true, min: 0.001 },
+    receivedQty: { type: Number, default: 0 },
+    receiveHistory: [receiveHistorySchema],
+    unitCost: { type: Number, required: true, min: 0 },
+    totalCost: { type: Number, required: true, min: 0 }
+  },
+  { _id: false }
+)
 
 export interface IPurchaseOrder extends Document {
   poNumber: string
@@ -42,7 +48,11 @@ const purchaseOrderSchema = new Schema<IPurchaseOrder>(
     supplierId: { type: Schema.Types.ObjectId, ref: 'Supplier', required: true },
     branchId: { type: Schema.Types.ObjectId, required: true },
     items: [poItemSchema],
-    status: { type: String, enum: ['draft', 'sent', 'partial', 'received', 'cancelled'], default: 'draft' },
+    status: {
+      type: String,
+      enum: ['draft', 'sent', 'partial', 'received', 'cancelled'],
+      default: 'draft'
+    },
     subtotal: { type: Number, required: true },
     totalAmount: { type: Number, required: true },
     notes: { type: String, default: '' },

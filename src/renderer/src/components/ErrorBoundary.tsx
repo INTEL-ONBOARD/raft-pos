@@ -1,8 +1,12 @@
 import { Component } from 'react'
 import type { ReactNode, ErrorInfo } from 'react'
 
-interface Props { children: ReactNode }
-interface State { error: Error | null }
+interface Props {
+  children: ReactNode
+}
+interface State {
+  error: Error | null
+}
 
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { error: null }
@@ -19,9 +23,17 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.error) {
       return (
         <div className="flex-1 flex flex-col items-center justify-center p-8 gap-4">
-          <div className="rounded-2xl p-6 max-w-xl w-full" style={{ background: 'rgba(220,38,38,0.06)', border: '1px solid rgba(220,38,38,0.15)' }}>
-            <h2 className="text-base font-bold mb-2" style={{ color: '#dc2626' }}>Something went wrong</h2>
-            <p className="text-sm font-mono whitespace-pre-wrap break-all" style={{ color: '#dc2626' }}>
+          <div
+            className="rounded-2xl p-6 max-w-xl w-full"
+            style={{ background: 'rgba(220,38,38,0.06)', border: '1px solid rgba(220,38,38,0.15)' }}
+          >
+            <h2 className="text-base font-bold mb-2" style={{ color: '#dc2626' }}>
+              Something went wrong
+            </h2>
+            <p
+              className="text-sm font-mono whitespace-pre-wrap break-all"
+              style={{ color: '#dc2626' }}
+            >
               {this.state.error.message}
             </p>
             <button

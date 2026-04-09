@@ -28,7 +28,9 @@ export function PaymentModal({ onClose, taxRate }: PaymentModalProps) {
   const [reference, setReference] = useState('')
 
   function handleAdd() {
-    const numAmount = parseFloat(amount)
+    const rawAmount = parseFloat(amount)
+    const due = totals.remaining > 0 ? totals.remaining : totals.totalAmount
+    const numAmount = method === 'cash' ? rawAmount : Math.min(rawAmount, due)
     if (isNaN(numAmount) || numAmount <= 0) return
     addPayment({ method, amount: numAmount, reference })
     onClose()
@@ -41,22 +43,30 @@ export function PaymentModal({ onClose, taxRate }: PaymentModalProps) {
   return (
     <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="modal-panel w-full max-w-90 overflow-hidden">
-
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5"
-          style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+        <div
+          className="flex items-center justify-between px-6 py-5"
+          style={{ borderBottom: '1px solid var(--border-subtle)' }}
+        >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-              style={{ background: 'rgba(79,70,229,0.10)' }}>
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: 'rgba(79,70,229,0.10)' }}
+            >
               <CreditCard className="w-4 h-4" style={{ color: 'var(--accent)' }} />
             </div>
             <div>
-              <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>Add Payment</h2>
+              <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                Add Payment
+              </h2>
             </div>
           </div>
-          <button onClick={onClose} style={{ color: 'var(--text-muted)' }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
+          <button
+            onClick={onClose}
+            style={{ color: 'var(--text-muted)' }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -85,7 +95,15 @@ export function PaymentModal({ onClose, taxRate }: PaymentModalProps) {
         <div className="px-6 pt-3 pb-5 space-y-4">
           {/* Amount */}
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>
+            <label
+              style={{
+                fontSize: '12px',
+                fontWeight: 500,
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+                color: 'var(--text-muted)'
+              }}
+            >
               Amount
             </label>
             <input
@@ -105,7 +123,10 @@ export function PaymentModal({ onClose, taxRate }: PaymentModalProps) {
           {method === 'cash' && (
             <div className="flex justify-between items-center text-sm px-1">
               <span style={{ color: 'var(--text-muted)' }}>Change due</span>
-              <span className="font-semibold" style={{ color: changeDue >= 0 ? '#16a34a' : '#dc2626' }}>
+              <span
+                className="font-semibold"
+                style={{ color: changeDue >= 0 ? '#16a34a' : '#dc2626' }}
+              >
                 ₱{Math.abs(changeDue).toFixed(2)}
               </span>
             </div>
@@ -114,7 +135,15 @@ export function PaymentModal({ onClose, taxRate }: PaymentModalProps) {
           {/* Reference (for non-cash) */}
           {method !== 'cash' && (
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>
+              <label
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 500,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  color: 'var(--text-muted)'
+                }}
+              >
                 Reference / Approval Code
               </label>
               <input
@@ -130,13 +159,14 @@ export function PaymentModal({ onClose, taxRate }: PaymentModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 px-6 py-4"
-          style={{ borderTop: '1px solid var(--border-subtle)' }}>
-          <button type="button" onClick={onClose} className="btn-secondary px-5 py-2">Cancel</button>
-          <button
-            onClick={handleAdd}
-            className="btn-primary px-5 py-2"
-          >
+        <div
+          className="flex justify-end gap-2 px-6 py-4"
+          style={{ borderTop: '1px solid var(--border-subtle)' }}
+        >
+          <button type="button" onClick={onClose} className="btn-secondary px-5 py-2">
+            Cancel
+          </button>
+          <button onClick={handleAdd} className="btn-primary px-5 py-2">
             Add
           </button>
         </div>

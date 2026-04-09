@@ -3,15 +3,26 @@ import { IPC } from '@shared/types/ipc.types'
 import { requireAuth } from '../services/auth.service'
 import store from '../store/electron-store'
 import {
-  getAllProducts, getProductById, getProductByBarcode,
-  createProduct, updateProduct, deactivateProduct, importProductsFromCsv
+  getAllProducts,
+  getProductById,
+  getProductByBarcode,
+  createProduct,
+  updateProduct,
+  deactivateProduct,
+  importProductsFromCsv
 } from '../services/product.service'
 
 export function registerProductHandlers(): void {
   ipcMain.handle(IPC.PRODUCTS_GET_ALL, async (_e, req: unknown) => {
     try {
       await requireAuth(store.get('jwt') ?? null)
-      const r = (req ?? {}) as { search?: string; categoryId?: string; isActive?: boolean; limit?: number; skip?: number }
+      const r = (req ?? {}) as {
+        search?: string
+        categoryId?: string
+        isActive?: boolean
+        limit?: number
+        skip?: number
+      }
       const result = await getAllProducts(r)
       return { success: true, ...result }
     } catch (err: any) {

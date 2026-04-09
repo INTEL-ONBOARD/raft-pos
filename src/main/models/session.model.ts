@@ -3,7 +3,7 @@ import { Schema, model, Document, Types } from 'mongoose'
 export interface ISession extends Document {
   userId: Types.ObjectId
   terminalId: string
-  jwtId: string           // jti claim from JWT
+  jwtId: string // jti claim from JWT
   issuedAt: Date
   expiresAt: Date
   isRevoked: boolean
@@ -24,10 +24,7 @@ const sessionSchema = new Schema<ISession>({
 // TTL index: delete session documents once current time passes expiresAt
 sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 })
 // Auto-delete revoked sessions after 7 days to prevent accumulation
-sessionSchema.index(
-  { revokedAt: 1 },
-  { expireAfterSeconds: 7 * 24 * 60 * 60, sparse: true }
-)
+sessionSchema.index({ revokedAt: 1 }, { expireAfterSeconds: 7 * 24 * 60 * 60, sparse: true })
 // Compound index for forceLogout queries (updateMany by userId + isRevoked)
 sessionSchema.index({ userId: 1, isRevoked: 1 })
 

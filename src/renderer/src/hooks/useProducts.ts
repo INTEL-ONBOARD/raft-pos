@@ -2,7 +2,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ipc } from '../lib/ipc'
 import { IPC } from '@shared/types/ipc.types'
 import { useProductStore } from '../stores/product.store'
-import type { ProductResult, ProductsResult, CreateProductInput, UpdateProductInput } from '@shared/types/product.types'
+import type {
+  ProductResult,
+  ProductsResult,
+  CreateProductInput,
+  UpdateProductInput
+} from '@shared/types/product.types'
 
 export function useProducts(opts?: { search?: string; categoryId?: string; isActive?: boolean }) {
   const { setProducts } = useProductStore()
@@ -32,8 +37,7 @@ export function useProducts(opts?: { search?: string; categoryId?: string; isAct
   })
 
   const deactivate = useMutation({
-    mutationFn: (id: string) =>
-      ipc.invoke<{ success: boolean }>(IPC.PRODUCTS_DEACTIVATE, { id }),
+    mutationFn: (id: string) => ipc.invoke<{ success: boolean }>(IPC.PRODUCTS_DEACTIVATE, { id }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['products'] })
   })
 

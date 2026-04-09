@@ -4,7 +4,10 @@ import { IPC } from '@shared/types/ipc.types'
 import { requireAuth } from '../services/auth.service'
 import store from '../store/electron-store'
 import {
-  getSalesSummary, getSalesByProduct, getInventoryValuation, getCashDrawerReport
+  getSalesSummary,
+  getSalesByProduct,
+  getInventoryValuation,
+  getCashDrawerReport
 } from '../services/reporting.service'
 import type { ReportFilters } from '@shared/types/reporting.types'
 import fs from 'fs'
@@ -79,20 +82,25 @@ export function registerReportingHandlers(): void {
   ipcMain.handle(IPC.REPORTING_EXPORT_EXCEL, async (_e, req: unknown) => {
     try {
       const auth = await requireAuth(store.get('jwt') ?? null)
-      if (!auth.role.permissions.includes('can_export_reports')) return { success: false, error: 'Permission denied' }
+      if (!auth.role.permissions.includes('can_export_reports'))
+        return { success: false, error: 'Permission denied' }
       const r = req as { filters: ReportFilters; rows: any[][]; headers: string[]; title: string }
       // Sanitize title: strip path separators to prevent path traversal in defaultPath
-      const safeTitle = path.basename(String(r.title ?? 'Report').replace(/[/\\]/g, '_')).slice(0, 100)
+      const safeTitle = path
+        .basename(String(r.title ?? 'Report').replace(/[/\\]/g, '_'))
+        .slice(0, 100)
 
       const wb = new ExcelJS.Workbook()
       const ws = wb.addWorksheet(safeTitle)
       ws.addRow(r.headers)
       r.rows.forEach((row: any[]) => {
         // Force each cell value to String to prevent CSV/formula injection (=, +, -, @ prefixes)
-        ws.addRow(row.map((cell) => {
-          const s = String(cell ?? '')
-          return /^[=+\-@]/.test(s) ? `'${s}` : s
-        }))
+        ws.addRow(
+          row.map((cell) => {
+            const s = String(cell ?? '')
+            return /^[=+\-@]/.test(s) ? `'${s}` : s
+          })
+        )
       })
 
       const { filePath } = await dialog.showSaveDialog({
@@ -110,9 +118,12 @@ export function registerReportingHandlers(): void {
   ipcMain.handle(IPC.REPORTING_EXPORT_PDF, async (_e, req: unknown) => {
     try {
       const auth = await requireAuth(store.get('jwt') ?? null)
-      if (!auth.role.permissions.includes('can_export_reports')) return { success: false, error: 'Permission denied' }
+      if (!auth.role.permissions.includes('can_export_reports'))
+        return { success: false, error: 'Permission denied' }
       const r = req as { filters: ReportFilters; rows: any[][]; headers: string[]; title: string }
-      const safeTitle = path.basename(String(r.title ?? 'Report').replace(/[/\\]/g, '_')).slice(0, 100)
+      const safeTitle = path
+        .basename(String(r.title ?? 'Report').replace(/[/\\]/g, '_'))
+        .slice(0, 100)
 
       const { filePath } = await dialog.showSaveDialog({
         defaultPath: path.join(os.homedir(), `${safeTitle.replace(/\s+/g, '_')}.pdf`),

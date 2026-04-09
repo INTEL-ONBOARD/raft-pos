@@ -4,19 +4,38 @@ import { randomUUID } from 'crypto'
 import { User } from '../models/user.model'
 import { Role } from '../models/role.model'
 import { Session } from '../models/session.model'
+import { Branch } from '../models/branch.model'
 import store from '../store/electron-store'
-import type { AuthPayload, AuthResult, SessionValidationResult, LoginRequest } from '@shared/types/auth.types'
+import type {
+  AuthPayload,
+  AuthResult,
+  SessionValidationResult,
+  LoginRequest,
+  SessionValidationFailureReason
+} from '@shared/types/auth.types'
 import type { PublicRole, PublicUser } from '@shared/types/auth.types'
 
 function getJwtSecret(): string {
   const s = process.env.JWT_SECRET
   if (!s || s.length < 32) {
-    throw new Error('JWT_SECRET env variable is missing or too short (minimum 32 chars). Set it in .env.')
+    throw new Error(
+      'JWT_SECRET env variable is missing or too short (minimum 32 chars). Set it in .env.'
+    )
   }
   return s
 }
 const JWT_EXPIRES_IN = '8h'
 const SESSION_DURATION_MS = 8 * 60 * 60 * 1000 // 8 hours
+
+export class UnauthorizedError extends Error {
+  readonly reason: SessionValidationFailureReason
+
+  constructor(reason: Exclude<SessionValidationFailureReason, 'system_error'>) {
+    super('UNAUTHORIZED')
+    this.name = 'UnauthorizedError'
+    this.reason = reason
+  }
+}
 
 export async function login(req: LoginRequest): Promise<AuthResult> {
   const { email, password } = req
@@ -76,7 +95,7 @@ export async function login(req: LoginRequest): Promise<AuthResult> {
   const publicRole: PublicRole = {
     _id: role._id.toString(),
     name: String(role.name),
-    permissions: role.permissions.map(p => String(p)) as PublicRole['permissions'],
+    permissions: role.permissions.map((p) => String(p)) as PublicRole['permissions'],
     maxDiscountPercent: Number(role.maxDiscountPercent),
     requiresSupervisorOverride: Boolean(role.requiresSupervisorOverride)
   }
@@ -92,55 +111,65 @@ export async function login(req: LoginRequest): Promise<AuthResult> {
 }
 
 export async function validateSession(token: string): Promise<SessionValidationResult> {
+  let decoded: { sub: string; jti: string; roleId: string }
+
   try {
-    const decoded = jwt.verify(token, getJwtSecret()) as { sub: string; jti: string; roleId: string }
-
-    const session = await Session.findOne({ jwtId: decoded.jti })
-    if (!session) {
-      return { valid: false, reason: 'not_found' }
-    }
-    if (session.isRevoked) {
-      return { valid: false, reason: 'revoked' }
-    }
-    if (session.expiresAt < new Date()) {
-      return { valid: false, reason: 'expired' }
-    }
-
-    const [user, role] = await Promise.all([
-      User.findById(decoded.sub),
-      Role.findById(decoded.roleId)
-    ])
-    if (!user || !user.isActive) return { valid: false, reason: 'not_found' }
-    if (!role) return { valid: false, reason: 'not_found' }
-
-    const publicUser: PublicUser = {
-      _id: user._id.toString(),
-      name: user.name,
-      email: user.email,
-      roleId: user.roleId.toString(),
-      branchId: user.branchId.toString(),
-      isActive: user.isActive,
-      lastLogin: user.lastLogin ? user.lastLogin.getTime() : null
-    }
-
-    const publicRole: PublicRole = {
-      _id: role._id.toString(),
-      name: String(role.name),
-      permissions: role.permissions.map(p => String(p)) as PublicRole['permissions'],
-      maxDiscountPercent: Number(role.maxDiscountPercent),
-      requiresSupervisorOverride: Boolean(role.requiresSupervisorOverride)
-    }
-
-    return {
-      valid: true,
-      data: { user: publicUser, role: publicRole, token, expiresAt: session.expiresAt.getTime() }
+    decoded = jwt.verify(token, getJwtSecret()) as {
+      sub: string
+      jti: string
+      roleId: string
     }
   } catch (err: unknown) {
-    // jwt.verify throws JsonWebTokenError for invalid tokens, TokenExpiredError for expired
     if (err instanceof Error && err.name === 'TokenExpiredError') {
       return { valid: false, reason: 'expired' }
     }
     return { valid: false, reason: 'not_found' }
+  }
+
+  const session = await Session.findOne({ jwtId: decoded.jti })
+  if (!session) {
+    return { valid: false, reason: 'not_found' }
+  }
+  if (session.isRevoked) {
+    return { valid: false, reason: 'revoked' }
+  }
+  if (session.expiresAt < new Date()) {
+    return { valid: false, reason: 'expired' }
+  }
+
+  const [user, role] = await Promise.all([
+    User.findById(decoded.sub),
+    Role.findById(decoded.roleId)
+  ])
+  if (!user || !user.isActive) return { valid: false, reason: 'not_found' }
+  if (!role) return { valid: false, reason: 'not_found' }
+
+  const branch = await Branch.findById(user.branchId, 'isActive').lean()
+  if (!branch || !(branch as { isActive?: boolean }).isActive) {
+    return { valid: false, reason: 'not_found' }
+  }
+
+  const publicUser: PublicUser = {
+    _id: user._id.toString(),
+    name: user.name,
+    email: user.email,
+    roleId: user.roleId.toString(),
+    branchId: user.branchId.toString(),
+    isActive: user.isActive,
+    lastLogin: user.lastLogin ? user.lastLogin.getTime() : null
+  }
+
+  const publicRole: PublicRole = {
+    _id: role._id.toString(),
+    name: String(role.name),
+    permissions: role.permissions.map((p) => String(p)) as PublicRole['permissions'],
+    maxDiscountPercent: Number(role.maxDiscountPercent),
+    requiresSupervisorOverride: Boolean(role.requiresSupervisorOverride)
+  }
+
+  return {
+    valid: true,
+    data: { user: publicUser, role: publicRole, token, expiresAt: session.expiresAt.getTime() }
   }
 }
 
@@ -157,18 +186,27 @@ export async function logout(token: string): Promise<void> {
   store.delete('jwt') // returns key to its default value (null) without a type cast
 }
 
-export function requireAuthFast(token: string | null): { sub: string; jti: string; roleId: string } {
-  if (!token) throw new Error('UNAUTHORIZED')
+export function requireAuthFast(token: string | null): {
+  sub: string
+  jti: string
+  roleId: string
+} {
+  if (!token) throw new UnauthorizedError('not_found')
   try {
     return jwt.verify(token, getJwtSecret()) as { sub: string; jti: string; roleId: string }
   } catch {
-    throw new Error('UNAUTHORIZED')
+    throw new UnauthorizedError('not_found')
   }
 }
 
 export async function requireAuth(token: string | null): Promise<AuthPayload> {
-  if (!token) throw new Error('UNAUTHORIZED')
+  if (!token) throw new UnauthorizedError('not_found')
   const result = await validateSession(token)
-  if (!result.valid) throw new Error('UNAUTHORIZED')
+  if (!result.valid) {
+    if (result.reason === 'system_error') {
+      throw new Error(result.error ?? 'Session validation failed')
+    }
+    throw new UnauthorizedError(result.reason)
+  }
   return result.data
 }

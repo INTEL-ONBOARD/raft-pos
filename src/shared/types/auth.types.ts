@@ -30,13 +30,13 @@ export interface LoginRequest {
   password: string
 }
 
-export type AuthResult =
-  | { success: true; data: AuthPayload }
-  | { success: false; error: string }
+export type AuthResult = { success: true; data: AuthPayload } | { success: false; error: string }
+
+export type SessionValidationFailureReason = 'expired' | 'revoked' | 'not_found' | 'system_error'
 
 export type SessionValidationResult =
   | { valid: true; data: AuthPayload }
-  | { valid: false; reason: 'expired' | 'revoked' | 'not_found' }
+  | { valid: false; reason: SessionValidationFailureReason; error?: string }
 
 export interface SetupRequest {
   storeName: string
@@ -46,9 +46,7 @@ export interface SetupRequest {
   password: string
 }
 
-export type SetupResult =
-  | { success: true }
-  | { success: false; error: string }
+export type SetupResult = { success: true } | { success: false; error: string }
 
 export interface SetupCheckResult {
   setupComplete: boolean

@@ -17,7 +17,7 @@ export interface IPOItem {
   receivedQty: number
   receiveHistory: IPOReceiveHistoryEntry[]
   unitCost: number
-  totalCost: number   // = unitCost × orderedQty, fixed at order time
+  totalCost: number // = unitCost × orderedQty, fixed at order time
 }
 
 export interface IPurchaseOrder {
@@ -61,9 +61,7 @@ export interface ReceivePOInput {
   }>
 }
 
-export type POResult =
-  | { success: true; data: IPurchaseOrder }
-  | { success: false; error: string }
+export type POResult = { success: true; data: IPurchaseOrder } | { success: false; error: string }
 
 export type POsResult =
   | { success: true; data: IPurchaseOrder[]; total: number }

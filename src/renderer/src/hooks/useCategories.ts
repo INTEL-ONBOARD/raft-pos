@@ -5,7 +5,7 @@ import { useCategoryStore } from '../stores/category.store'
 import type { CategoriesResult, CategoryResult } from '@shared/types/category.types'
 
 export function useCategories() {
-  const setCategories = useCategoryStore(s => s.setCategories)
+  const setCategories = useCategoryStore((s) => s.setCategories)
   const queryClient = useQueryClient()
 
   const query = useQuery({
@@ -39,7 +39,9 @@ export function useCategories() {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const result = await ipc.invoke<{ success: boolean; error?: string }>(IPC.CATEGORIES_DELETE, { id })
+      const result = await ipc.invoke<{ success: boolean; error?: string }>(IPC.CATEGORIES_DELETE, {
+        id
+      })
       if (!result.success) throw new Error(result.error)
       return result
     },

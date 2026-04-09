@@ -1,14 +1,21 @@
 import { Schema, model, Document, Types } from 'mongoose'
 
 const ADJUSTMENT_TYPES = [
-  'in', 'out', 'transfer_out', 'transfer_in', 'adjustment',
-  'purchase_received', 'sale', 'void_return', 'refund_return'
+  'in',
+  'out',
+  'transfer_out',
+  'transfer_in',
+  'adjustment',
+  'purchase_received',
+  'sale',
+  'void_return',
+  'refund_return'
 ] as const
 
 export interface IStockAdjustment extends Document {
   branchId: Types.ObjectId
   productId: Types.ObjectId
-  type: typeof ADJUSTMENT_TYPES[number]
+  type: (typeof ADJUSTMENT_TYPES)[number]
   quantity: number
   previousStock: number
   newStock: number

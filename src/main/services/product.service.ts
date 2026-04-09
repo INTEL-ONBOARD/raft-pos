@@ -55,7 +55,10 @@ export async function getProductByBarcode(barcode: string): Promise<IProduct | n
   return p ? toShared(p) : null
 }
 
-export async function createProduct(input: CreateProductInput, branchId: string): Promise<IProduct> {
+export async function createProduct(
+  input: CreateProductInput,
+  branchId: string
+): Promise<IProduct> {
   // Check SKU uniqueness
   const existing = await Product.findOne({ sku: input.sku.toUpperCase() })
   if (existing) throw new Error(`SKU "${input.sku}" already exists`)
@@ -94,7 +97,10 @@ export async function createProduct(input: CreateProductInput, branchId: string)
   return toShared(product)
 }
 
-export async function updateProduct(id: string, input: UpdateProductInput): Promise<IProduct | null> {
+export async function updateProduct(
+  id: string,
+  input: UpdateProductInput
+): Promise<IProduct | null> {
   if (input.sku) {
     const conflict = await Product.findOne({ sku: input.sku.toUpperCase(), _id: { $ne: id } })
     if (conflict) throw new Error(`SKU "${input.sku}" already exists`)
@@ -139,21 +145,49 @@ export async function importProductsFromCsv(
   let imported = 0
 
   // First pass: validate all rows (no DB writes)
-  const validRows: Array<{ rowNum: number; row: CsvImportRow; costPrice: number; sellingPrice: number }> = []
+  const validRows: Array<{
+    rowNum: number
+    row: CsvImportRow
+    costPrice: number
+    sellingPrice: number
+  }> = []
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i]
-    const rowNum = i + 2  // +2 because row 1 is header
+    const rowNum = i + 2 // +2 because row 1 is header
 
     // Validate required fields
-    if (!row.sku?.trim()) { errors.push({ row: rowNum, sku: row.sku ?? '', error: 'SKU is required' }); continue }
-    if (!row.name?.trim()) { errors.push({ row: rowNum, sku: row.sku, error: 'Name is required' }); continue }
-    if (!VALID_UNITS.includes(row.unit)) { errors.push({ row: rowNum, sku: row.sku, error: `Unit must be one of: ${VALID_UNITS.join(', ')}` }); continue }
+    if (!row.sku?.trim()) {
+      errors.push({ row: rowNum, sku: row.sku ?? '', error: 'SKU is required' })
+      continue
+    }
+    if (!row.name?.trim()) {
+      errors.push({ row: rowNum, sku: row.sku, error: 'Name is required' })
+      continue
+    }
+    if (!VALID_UNITS.includes(row.unit)) {
+      errors.push({
+        row: rowNum,
+        sku: row.sku,
+        error: `Unit must be one of: ${VALID_UNITS.join(', ')}`
+      })
+      continue
+    }
 
     const costPrice = parseFloat(row.costPrice)
     const sellingPrice = parseFloat(row.sellingPrice)
-    if (isNaN(costPrice) || costPrice < 0) { errors.push({ row: rowNum, sku: row.sku, error: 'costPrice must be a non-negative number' }); continue }
-    if (isNaN(sellingPrice) || sellingPrice < 0) { errors.push({ row: rowNum, sku: row.sku, error: 'sellingPrice must be a non-negative number' }); continue }
+    if (isNaN(costPrice) || costPrice < 0) {
+      errors.push({ row: rowNum, sku: row.sku, error: 'costPrice must be a non-negative number' })
+      continue
+    }
+    if (isNaN(sellingPrice) || sellingPrice < 0) {
+      errors.push({
+        row: rowNum,
+        sku: row.sku,
+        error: 'sellingPrice must be a non-negative number'
+      })
+      continue
+    }
 
     validRows.push({ rowNum, row, costPrice, sellingPrice })
   }

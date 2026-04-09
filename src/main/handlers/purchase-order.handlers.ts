@@ -4,7 +4,13 @@ import { IPC } from '@shared/types/ipc.types'
 import { requireAuth } from '../services/auth.service'
 import store from '../store/electron-store'
 import {
-  createPO, updatePO, sendPO, receivePO, cancelPO, getPO, getPOs
+  createPO,
+  updatePO,
+  sendPO,
+  receivePO,
+  cancelPO,
+  getPO,
+  getPOs
 } from '../services/purchase-order.service'
 
 export function registerPurchaseOrderHandlers(): void {
@@ -15,7 +21,9 @@ export function registerPurchaseOrderHandlers(): void {
       const canViewAll = auth.role.permissions.includes('can_view_all_branches')
       if (!isAdmin) return { success: false, error: 'Permission denied' }
 
-      const r = req as { supplierId?: string; status?: string; limit?: number; skip?: number } | undefined
+      const r = req as
+        | { supplierId?: string; status?: string; limit?: number; skip?: number }
+        | undefined
       const branchId = canViewAll ? null : auth.user.branchId
       const limit = Math.min(Math.max(1, r?.limit ?? 50), 500)
       const skip = Math.max(0, r?.skip ?? 0)
@@ -110,7 +118,8 @@ export function registerPurchaseOrderHandlers(): void {
       }
       const r = req as any
       if (!r?.poId) return { success: false, error: 'PO ID is required' }
-      if (!r?.items?.length) return { success: false, error: 'At least one receive item is required' }
+      if (!r?.items?.length)
+        return { success: false, error: 'At least one receive item is required' }
       const data = await receivePO(r, auth.user._id, auth.user.branchId)
       return { success: true, data }
     } catch (err: any) {
@@ -128,7 +137,11 @@ export function registerPurchaseOrderHandlers(): void {
       const r = req as { id: string }
       if (!r?.id) return { success: false, error: 'ID is required' }
       const data = await cancelPO(r.id, auth.user.branchId, canViewAllCancel)
-      if (!data) return { success: false, error: 'Purchase order not found or cannot be cancelled in its current status' }
+      if (!data)
+        return {
+          success: false,
+          error: 'Purchase order not found or cannot be cancelled in its current status'
+        }
       return { success: true, data }
     } catch (err: any) {
       return { success: false, error: err.message ?? 'Failed to cancel purchase order' }

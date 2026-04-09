@@ -87,16 +87,20 @@ function AppRoutes() {
   useEffect(() => {
     const timeout = new Promise<[SessionValidationResult, SetupCheckResult]>((resolve) =>
       setTimeout(
-        () => resolve([{ valid: false, reason: 'not_found' }, { setupComplete: true }]),
+        () => resolve([{ valid: false, reason: 'system_error' }, { setupComplete: true }]),
         5000
       )
     )
 
     const checks = Promise.all([
       ipc.invoke<SessionValidationResult>(IPC.AUTH_VALIDATE_SESSION).catch(
-        (): SessionValidationResult => ({ valid: false, reason: 'not_found' })
+        (): SessionValidationResult => ({
+          valid: false,
+          reason: 'system_error',
+          error: 'Session validation failed'
+        })
       ),
-      ipc.invoke<SetupCheckResult>(IPC.AUTH_CHECK_SETUP).catch(() => ({ setupComplete: true })),
+      ipc.invoke<SetupCheckResult>(IPC.AUTH_CHECK_SETUP).catch(() => ({ setupComplete: true }))
     ])
 
     Promise.race([checks, timeout])
@@ -108,7 +112,7 @@ function AppRoutes() {
         }
         if (sessionResult.valid) {
           setAuth(sessionResult.data)
-        } else {
+        } else if (sessionResult.reason !== 'system_error') {
           clearAuth()
         }
         setSessionChecked(true)
@@ -132,7 +136,7 @@ function AppRoutes() {
             height: '32px',
             borderRadius: '50%',
             border: '3px solid rgba(99,102,241,0.2)',
-            borderTopColor: '#6366f1',
+            borderTopColor: '#6366f1'
           }}
         />
       </div>
@@ -158,18 +162,74 @@ function AppRoutes() {
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="categories" element={<CategoriesPage />} />
           <Route path="products" element={<ProductsPage />} />
-          <Route path="inventory" element={<ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_INVENTORY}><InventoryPage /></ProtectedRoute>} />
+          <Route
+            path="inventory"
+            element={
+              <ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_INVENTORY}>
+                <InventoryPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="orders" element={<PosPage />} />
           <Route path="suppliers" element={<SuppliersPage />} />
-          <Route path="purchase-orders" element={<ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_PURCHASE_ORDERS}><PurchaseOrdersPage /></ProtectedRoute>} />
-          <Route path="purchase-orders/new" element={<ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_PURCHASE_ORDERS}><PurchaseOrderFormPage /></ProtectedRoute>} />
-          <Route path="purchase-orders/:id/edit" element={<ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_PURCHASE_ORDERS}><PurchaseOrderFormPage /></ProtectedRoute>} />
+          <Route
+            path="purchase-orders"
+            element={
+              <ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_PURCHASE_ORDERS}>
+                <PurchaseOrdersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="purchase-orders/new"
+            element={
+              <ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_PURCHASE_ORDERS}>
+                <PurchaseOrderFormPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="purchase-orders/:id/edit"
+            element={
+              <ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_PURCHASE_ORDERS}>
+                <PurchaseOrderFormPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="transactions" element={<TransactionsPage />} />
           <Route path="cash-drawer" element={<CashDrawerPage />} />
-          <Route path="users" element={<ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_USERS}><UsersPage /></ProtectedRoute>} />
-          <Route path="roles" element={<ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_ROLES}><RolesPage /></ProtectedRoute>} />
-          <Route path="settings" element={<ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_SETTINGS}><SettingsPage /></ProtectedRoute>} />
-          <Route path="reporting" element={<ProtectedRoute permission={PERMISSIONS.CAN_VIEW_REPORTS}><ReportingPage /></ProtectedRoute>} />
+          <Route
+            path="users"
+            element={
+              <ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_USERS}>
+                <UsersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="roles"
+            element={
+              <ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_ROLES}>
+                <RolesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="settings"
+            element={
+              <ProtectedRoute permission={PERMISSIONS.CAN_MANAGE_SETTINGS}>
+                <SettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="reporting"
+            element={
+              <ProtectedRoute permission={PERMISSIONS.CAN_VIEW_REPORTS}>
+                <ReportingPage />
+              </ProtectedRoute>
+            }
+          />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -31,9 +31,7 @@ export const usePosStore = create<PosState>((set) => ({
       if (existing) {
         return {
           items: state.items.map((i) =>
-            i.productId === item.productId
-              ? { ...i, quantity: i.quantity + 1 }
-              : i
+            i.productId === item.productId ? { ...i, quantity: i.quantity + 1 } : i
           )
         }
       }
@@ -50,9 +48,7 @@ export const usePosStore = create<PosState>((set) => ({
       items:
         qty <= 0
           ? state.items.filter((i) => i.productId !== productId)
-          : state.items.map((i) =>
-              i.productId === productId ? { ...i, quantity: qty } : i
-            )
+          : state.items.map((i) => (i.productId === productId ? { ...i, quantity: qty } : i))
     })),
 
   removeItem: (productId) =>
@@ -63,23 +59,17 @@ export const usePosStore = create<PosState>((set) => ({
   setItemDiscount: (productId, amount, type) =>
     set((state) => ({
       items: state.items.map((i) =>
-        i.productId === productId
-          ? { ...i, discountAmount: amount, discountType: type }
-          : i
+        i.productId === productId ? { ...i, discountAmount: amount, discountType: type } : i
       )
     })),
 
-  setOrderDiscount: (amount, type) =>
-    set({ orderDiscount: { type, amount } }),
+  setOrderDiscount: (amount, type) => set({ orderDiscount: { type, amount } }),
 
   clearOrderDiscount: () => set({ orderDiscount: null }),
 
   addPayment: (entry) =>
     set((state) => ({
-      payments: [
-        ...state.payments,
-        { ...entry, id: window.crypto.randomUUID() }
-      ]
+      payments: [...state.payments, { ...entry, id: window.crypto.randomUUID() }]
     })),
 
   removePayment: (id) =>
@@ -95,16 +85,12 @@ export const usePosStore = create<PosState>((set) => ({
 export function selectItemTotal(item: CartItem): number {
   const base = item.unitPrice * item.quantity
   const disc =
-    item.discountType === 'percent'
-      ? base * (item.discountAmount / 100)
-      : item.discountAmount
+    item.discountType === 'percent' ? base * (item.discountAmount / 100) : item.discountAmount
   return Math.round(Math.max(0, base - disc) * 100) / 100
 }
 
 export function selectSubtotal(state: Pick<PosState, 'items'>): number {
-  return Math.round(
-    state.items.reduce((sum, item) => sum + selectItemTotal(item), 0) * 100
-  ) / 100
+  return Math.round(state.items.reduce((sum, item) => sum + selectItemTotal(item), 0) * 100) / 100
 }
 
 export function selectOrderDiscountAmount(
@@ -112,9 +98,7 @@ export function selectOrderDiscountAmount(
   discount: PosState['orderDiscount']
 ): number {
   if (!discount) return 0
-  return discount.type === 'percent'
-    ? subtotal * (discount.amount / 100)
-    : discount.amount
+  return discount.type === 'percent' ? subtotal * (discount.amount / 100) : discount.amount
 }
 
 export function selectTaxAmount(afterDiscount: number, taxRate: number): number {

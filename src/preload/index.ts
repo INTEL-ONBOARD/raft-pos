@@ -18,8 +18,7 @@ contextBridge.exposeInMainWorld('ipcBridge', {
 
   on: (channel: string, callback: (...args: unknown[]) => void) => {
     assertAllowed(channel)
-    const listener = (_event: Electron.IpcRendererEvent, ...args: unknown[]) =>
-      callback(...args)
+    const listener = (_event: Electron.IpcRendererEvent, ...args: unknown[]) => callback(...args)
     ipcRenderer.on(channel, listener)
     // Return unsubscribe function
     return () => ipcRenderer.removeListener(channel, listener)

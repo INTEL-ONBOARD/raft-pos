@@ -13,7 +13,12 @@ import {
   selectTotalAmount,
   selectTotalPaid
 } from '../stores/pos.store'
-import type { CompleteSaleInput, SaleResult, TransactionResult, TransactionsResult } from '@shared/types/transaction.types'
+import type {
+  CompleteSaleInput,
+  SaleResult,
+  TransactionResult,
+  TransactionsResult
+} from '@shared/types/transaction.types'
 
 // ─── useCartTotals ───────────────────────────────────────────────────────────
 // Computes all financial totals from cart state. taxRate comes from a settings
@@ -66,10 +71,12 @@ export function usePOS() {
       if (result.success && result.data) {
         const product = result.data
         // Prefer fresh stock levels from refetched query; fall back to cached data
-        const freshStock = await queryClient.fetchQuery({
-          queryKey: ['inventory', 'stock-levels'],
-          staleTime: 5 * 1000 // use cached if less than 5s old, else refetch
-        }).catch(() => stockQuery.data)
+        const freshStock = await queryClient
+          .fetchQuery({
+            queryKey: ['inventory', 'stock-levels'],
+            staleTime: 5 * 1000 // use cached if less than 5s old, else refetch
+          })
+          .catch(() => stockQuery.data)
         const stockList = freshStock ?? stockQuery.data ?? []
         const stockRow = (stockList as any[]).find((r: any) => r.productId === product._id)
         const availableStock = stockRow?.quantity ?? 0
@@ -118,7 +125,11 @@ export function usePOS() {
 
   // Refund transaction mutation
   const refundMutation = useMutation({
-    mutationFn: async (input: { transactionId: string; reason: string; refundedItems: Array<{ productId: string; quantity: number }> }) => {
+    mutationFn: async (input: {
+      transactionId: string
+      reason: string
+      refundedItems: Array<{ productId: string; quantity: number }>
+    }) => {
       const result = await ipc.invoke<TransactionResult>(IPC.POS_REFUND_TRANSACTION, input)
       if (!result.success) throw new Error(result.error)
       return result
@@ -131,10 +142,12 @@ export function usePOS() {
 
   // Supervisor PIN validation (not a React Query mutation — returns immediately)
   const validateSupervisorPin = async (supervisorEmail: string, pin: string) => {
-    return ipc.invoke<{ valid: boolean; error?: string; supervisorId?: string; supervisorName?: string }>(
-      IPC.POS_VALIDATE_SUPERVISOR_PIN,
-      { supervisorEmail, pin }
-    )
+    return ipc.invoke<{
+      valid: boolean
+      error?: string
+      supervisorId?: string
+      supervisorName?: string
+    }>(IPC.POS_VALIDATE_SUPERVISOR_PIN, { supervisorEmail, pin })
   }
 
   return {
@@ -150,7 +163,11 @@ export function usePOS() {
 // ─── useTransactions ─────────────────────────────────────────────────────────
 
 export function useTransactions(filters?: {
-  status?: string; from?: string; to?: string; page?: number; limit?: number
+  status?: string
+  from?: string
+  to?: string
+  page?: number
+  limit?: number
 }) {
   return useQuery({
     queryKey: ['transactions', filters],

@@ -2,6 +2,7 @@
 import { ipcMain } from 'electron'
 import { IPC } from '@shared/types/ipc.types'
 import { requireAuth } from '../services/auth.service'
+import { BusinessError } from '../services/errors'
 import store from '../store/electron-store'
 import {
   completeSale,
@@ -13,7 +14,6 @@ import {
 import type { CompleteSaleInput, VoidInput, RefundInput } from '@shared/types/transaction.types'
 
 export function registerPosHandlers(): void {
-
   // ── POS_COMPLETE_SALE ──────────────────────────────────────────────────────
   ipcMain.handle(IPC.POS_COMPLETE_SALE, async (_e, req: unknown) => {
     try {
@@ -53,28 +53,33 @@ export function registerPosHandlers(): void {
       for (const it of r.items ?? []) {
         if ((it as any).discountAmount > 0 && (it as any).discountType === 'percent') {
           if ((it as any).discountAmount > maxPct) {
-            return { success: false, error: `Item discount ${(it as any).discountAmount}% exceeds your maximum allowed discount of ${maxPct}%` }
+            return {
+              success: false,
+              error: `Item discount ${(it as any).discountAmount}% exceeds your maximum allowed discount of ${maxPct}%`
+            }
           }
         }
       }
       if (hasOrderDiscount && r.discountType === 'percent') {
         if (r.discountAmount > maxPct) {
-          return { success: false, error: `Order discount ${r.discountAmount}% exceeds your maximum allowed discount of ${maxPct}%` }
+          return {
+            success: false,
+            error: `Order discount ${r.discountAmount}% exceeds your maximum allowed discount of ${maxPct}%`
+          }
         }
       }
 
       const input = r
       const terminalId = store.get('terminalId') ?? 'unknown'
-      const data = await completeSale(
-        input,
-        auth.user._id,
-        auth.user.branchId,
-        terminalId
-      )
+      const data = await completeSale(input, auth.user._id, auth.user.branchId, terminalId)
       return { success: true, data }
     } catch (err: any) {
       console.error('[IPC] POS_COMPLETE_SALE:', err)
-      return { success: false, error: err.message ?? 'Failed to complete sale' }
+      return {
+        success: false,
+        error: err.message ?? 'Failed to complete sale',
+        errorCode: err instanceof BusinessError ? 'BUSINESS_ERROR' : 'SYSTEM_ERROR'
+      }
     }
   })
 
@@ -89,14 +94,19 @@ export function registerPosHandlers(): void {
       const r = req as VoidInput
       if (!r?.transactionId) return { success: false, error: 'transactionId is required' }
       if (!r?.reason?.trim()) return { success: false, error: 'Void reason is required' }
-      if (r.reason.trim().length > 500) return { success: false, error: 'Reason must be 500 characters or fewer' }
+      if (r.reason.trim().length > 500)
+        return { success: false, error: 'Reason must be 500 characters or fewer' }
 
       const terminalId = store.get('terminalId') ?? 'unknown'
       const data = await voidTransaction(r, auth.user._id, auth.user.branchId, terminalId)
       return { success: true, data }
     } catch (err: any) {
       console.error('[IPC] POS_VOID_TRANSACTION:', err)
-      return { success: false, error: err.message ?? 'Failed to void transaction' }
+      return {
+        success: false,
+        error: err.message ?? 'Failed to void transaction',
+        errorCode: err instanceof BusinessError ? 'BUSINESS_ERROR' : 'SYSTEM_ERROR'
+      }
     }
   })
 
@@ -111,15 +121,21 @@ export function registerPosHandlers(): void {
       const r = req as RefundInput
       if (!r?.transactionId) return { success: false, error: 'transactionId is required' }
       if (!r?.reason?.trim()) return { success: false, error: 'Refund reason is required' }
-      if (r.reason.trim().length > 500) return { success: false, error: 'Reason must be 500 characters or fewer' }
-      if (!r?.refundedItems?.length) return { success: false, error: 'Select at least one item to refund' }
+      if (r.reason.trim().length > 500)
+        return { success: false, error: 'Reason must be 500 characters or fewer' }
+      if (!r?.refundedItems?.length)
+        return { success: false, error: 'Select at least one item to refund' }
 
       const terminalId = store.get('terminalId') ?? 'unknown'
       const data = await refundTransaction(r, auth.user._id, auth.user.branchId, terminalId)
       return { success: true, data }
     } catch (err: any) {
       console.error('[IPC] POS_REFUND_TRANSACTION:', err)
-      return { success: false, error: err.message ?? 'Failed to refund transaction' }
+      return {
+        success: false,
+        error: err.message ?? 'Failed to refund transaction',
+        errorCode: err instanceof BusinessError ? 'BUSINESS_ERROR' : 'SYSTEM_ERROR'
+      }
     }
   })
 
@@ -142,7 +158,11 @@ export function registerPosHandlers(): void {
     try {
       const auth = await requireAuth(store.get('jwt') ?? null)
       const r = (req ?? {}) as {
-        status?: string; from?: string; to?: string; page?: number; limit?: number
+        status?: string
+        from?: string
+        to?: string
+        page?: number
+        limit?: number
       }
       const VALID_STATUSES = ['completed', 'voided', 'refunded', 'partially_refunded']
       if (r.status && !VALID_STATUSES.includes(r.status)) {
@@ -168,7 +188,10 @@ export function registerPosHandlers(): void {
       const r = req as { transactionId: string }
       if (!r?.transactionId) return { success: false, error: 'transactionId is required' }
       const canViewAll = auth.role.permissions.includes('can_view_all_branches')
-      const data = await getTransaction(r.transactionId, canViewAll ? undefined : auth.user.branchId)
+      const data = await getTransaction(
+        r.transactionId,
+        canViewAll ? undefined : auth.user.branchId
+      )
       return { success: true, data }
     } catch (err: any) {
       return { success: false, error: err.message ?? 'Failed to reprint receipt' }

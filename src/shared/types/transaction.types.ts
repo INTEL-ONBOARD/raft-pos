@@ -81,9 +81,7 @@ export interface RefundInput {
   refundedItems: Array<{ productId: string; quantity: number }>
 }
 
-export type SaleResult =
-  | { success: true; data: ITransaction }
-  | { success: false; error: string }
+export type SaleResult = { success: true; data: ITransaction } | { success: false; error: string }
 
 export type TransactionResult =
   | { success: true; data: ITransaction }

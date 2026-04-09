@@ -24,15 +24,30 @@ export function DrawerPrompt() {
   }
 
   return (
-    <div className="flex h-full items-center justify-center" style={{ background: 'var(--bg-base)' }}>
-      <div className="p-8 w-full max-w-sm" style={{ background: 'var(--bg-surface)', borderRadius: '1rem', border: '1px solid var(--border-subtle)', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+    <div
+      className="flex h-full items-center justify-center"
+      style={{ background: 'var(--bg-base)' }}
+    >
+      <div
+        className="p-8 w-full max-w-sm"
+        style={{
+          background: 'var(--bg-surface)',
+          borderRadius: '1rem',
+          border: '1px solid var(--border-subtle)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+        }}
+      >
         <div className="flex flex-col items-center gap-4 mb-6">
-          <div className="w-14 h-14 rounded-full flex items-center justify-center"
-            style={{ background: 'rgba(79,70,229,0.10)', border: '1px solid rgba(79,70,229,0.18)' }}>
+          <div
+            className="w-14 h-14 rounded-full flex items-center justify-center"
+            style={{ background: 'rgba(79,70,229,0.10)', border: '1px solid rgba(79,70,229,0.18)' }}
+          >
             <Inbox className="w-7 h-7" style={{ color: 'var(--accent)' }} />
           </div>
           <div className="text-center">
-            <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>Open Cash Drawer</h2>
+            <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+              Open Cash Drawer
+            </h2>
             <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
               A cash drawer must be open before you can make sales.
             </p>
@@ -41,11 +56,24 @@ export function DrawerPrompt() {
 
         <form onSubmit={handleOpen} className="space-y-4">
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>
+            <label
+              style={{
+                fontSize: '12px',
+                fontWeight: 500,
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+                color: 'var(--text-muted)'
+              }}
+            >
               Opening Cash Amount
             </label>
             <div className="relative mt-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: 'var(--text-muted)' }}>₱</span>
+              <span
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-sm"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                ₱
+              </span>
               <input
                 type="number"
                 min="0"
@@ -60,8 +88,14 @@ export function DrawerPrompt() {
           </div>
 
           {error && (
-            <div className="mb-4 px-4 py-3 rounded-lg text-sm"
-              style={{ background: 'var(--color-danger-bg)', border: '1px solid var(--color-danger-border)', color: 'var(--color-danger)' }}>
+            <div
+              className="mb-4 px-4 py-3 rounded-lg text-sm"
+              style={{
+                background: 'var(--color-danger-bg)',
+                border: '1px solid var(--color-danger-border)',
+                color: 'var(--color-danger)'
+              }}
+            >
               <AlertCircle className="w-4 h-4 shrink-0 inline mr-2" />
               {error}
             </div>

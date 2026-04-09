@@ -3,10 +3,17 @@ import { ipcMain } from 'electron'
 import { IPC } from '@shared/types/ipc.types'
 import { requireAuth } from '../services/auth.service'
 import store from '../store/electron-store'
-import { openDrawer, closeDrawer, getOpenDrawer, getDrawers } from '../services/cash-drawer.service'
+import {
+  openDrawer,
+  closeDrawer,
+  getOpenDrawer,
+  getDrawers,
+  addPayOut,
+  reviewPayOut,
+  getPayOuts
+} from '../services/cash-drawer.service'
 
 export function registerCashDrawerHandlers(): void {
-
   ipcMain.handle(IPC.DRAWER_OPEN, async (_e, req: unknown) => {
     try {
       const auth = await requireAuth(store.get('jwt') ?? null)
@@ -18,7 +25,12 @@ export function registerCashDrawerHandlers(): void {
         return { success: false, error: 'Opening cash must be a non-negative number' }
       }
       const terminalId = store.get('terminalId') ?? 'unknown'
-      const data = await openDrawer({ openingCash: r.openingCash }, auth.user._id, auth.user.branchId, terminalId)
+      const data = await openDrawer(
+        { openingCash: r.openingCash },
+        auth.user._id,
+        auth.user.branchId,
+        terminalId
+      )
       return { success: true, data }
     } catch (err: any) {
       // Mongo duplicate key on partial unique index → drawer already open
@@ -40,7 +52,12 @@ export function registerCashDrawerHandlers(): void {
         return { success: false, error: 'Closing cash must be a non-negative number' }
       }
       const terminalId = store.get('terminalId') ?? 'unknown'
-      const data = await closeDrawer({ closingCash: r.closingCash }, auth.user._id, auth.user.branchId, terminalId)
+      const data = await closeDrawer(
+        { closingCash: r.closingCash },
+        auth.user._id,
+        auth.user.branchId,
+        terminalId
+      )
       return { success: true, data }
     } catch (err: any) {
       return { success: false, error: err.message ?? 'Failed to close drawer' }
@@ -68,6 +85,73 @@ export function registerCashDrawerHandlers(): void {
       return { success: true, ...result }
     } catch (err: any) {
       return { success: false, error: err.message ?? 'Failed to get drawers' }
+    }
+  })
+
+  ipcMain.handle(IPC.DRAWER_PAY_OUT, async (_e, req: unknown) => {
+    try {
+      const auth = await requireAuth(store.get('jwt') ?? null)
+      if (!auth.role.permissions.includes('can_open_close_drawer')) {
+        return { success: false, error: 'Permission denied' }
+      }
+      const r = req as {
+        drawerId: string
+        amount: number
+        reason: string
+        category: string
+        recipient: string
+      }
+      if (!r?.drawerId || typeof r.amount !== 'number' || r.amount <= 0) {
+        return { success: false, error: 'Invalid pay-out input' }
+      }
+      const data = await addPayOut(
+        r.drawerId,
+        { amount: r.amount, reason: r.reason, category: r.category, recipient: r.recipient },
+        auth.user._id
+      )
+      return { success: true, data }
+    } catch (err: any) {
+      return { success: false, error: err.message ?? 'Failed to record pay-out' }
+    }
+  })
+
+  ipcMain.handle(IPC.DRAWER_REVIEW_PAY_OUT, async (_e, req: unknown) => {
+    try {
+      const auth = await requireAuth(store.get('jwt') ?? null)
+      if (!auth.role.permissions.includes('can_approve_payouts')) {
+        return { success: false, error: 'Permission denied' }
+      }
+      const r = req as {
+        drawerId: string
+        payOutId: string
+        decision: 'approved' | 'rejected'
+        reviewNote?: string
+      }
+      if (!r?.drawerId || !r.payOutId || !['approved', 'rejected'].includes(r.decision)) {
+        return { success: false, error: 'Invalid review input' }
+      }
+      const data = await reviewPayOut(
+        r.drawerId,
+        r.payOutId,
+        r.decision,
+        r.reviewNote ?? null,
+        auth.user._id
+      )
+      return { success: true, data }
+    } catch (err: any) {
+      return { success: false, error: err.message ?? 'Failed to review pay-out' }
+    }
+  })
+
+  ipcMain.handle(IPC.DRAWER_GET_PAY_OUTS, async (_e, req: unknown) => {
+    try {
+      await requireAuth(store.get('jwt') ?? null)
+      const r = req as { drawerId: string }
+      if (!r?.drawerId) return { success: false, error: 'drawerId is required' }
+      const data = await getPayOuts(r.drawerId)
+      return { success: true, data }
+    } catch (err: any) {
+      return { success: false, error: err.message ?? 'Failed to get pay-outs' }
     }
   })
 

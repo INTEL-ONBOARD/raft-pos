@@ -3,6 +3,7 @@ import { PencilSquareIcon, MinusCircleIcon, BuildingOffice2Icon } from '@heroico
 import { useBranches } from '../../hooks/useBranches'
 import type { IBranch } from '../../hooks/useBranches'
 import { BranchFormModal } from './BranchFormModal'
+import { StatusModal } from '../../components/ui/StatusModal'
 
 export function BranchesTab() {
   const { branchesQuery, createMutation, updateMutation, deactivateMutation } = useBranches()
@@ -70,34 +71,13 @@ export function BranchesTab() {
         </button>
       </div>
 
-      {/* Error banner */}
-      {error && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            padding: '14px',
-            fontSize: '13px',
-            borderRadius: '12px',
-            background: 'rgba(220,38,38,0.06)',
-            border: '1px solid rgba(220,38,38,0.15)',
-            color: '#dc2626',
-            marginBottom: '16px'
-          }}
-        >
-          <div
-            style={{
-              width: '6px',
-              height: '6px',
-              borderRadius: '50%',
-              background: '#dc2626',
-              flexShrink: 0
-            }}
-          />
-          {error}
-        </div>
-      )}
+      <StatusModal
+        isOpen={!!error}
+        type="error"
+        message={error || ''}
+        isGlobal
+        onClose={() => setError('')}
+      />
 
       {/* Table */}
       <div

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { BuildingOffice2Icon } from '@heroicons/react/24/outline'
+import { StatusModal } from '../../components/ui/StatusModal'
 import type { IBranch, CreateBranchInput, UpdateBranchInput } from '../../hooks/useBranches'
 
 function deriveCode(name: string): string {
@@ -147,18 +148,12 @@ export function BranchFormModal({ branch, onConfirm, onClose, isLoading }: Props
                 />
               </div>
             </div>
-            {error && (
-              <div
-                className="px-4 py-3 rounded-lg text-sm"
-                style={{
-                  background: 'var(--color-danger-bg)',
-                  border: '1px solid var(--color-danger-border)',
-                  color: 'var(--color-danger)'
-                }}
-              >
-                {error}
-              </div>
-            )}
+            <StatusModal
+              isOpen={!!error}
+              type="error"
+              message={error || ''}
+              onClose={() => setError('')}
+            />
           </div>
 
           {/* Footer */}

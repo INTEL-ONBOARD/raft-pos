@@ -1,7 +1,7 @@
-// src/renderer/src/pages/suppliers/SupplierFormModal.tsx
 import { useState, useEffect } from 'react'
 import { X, Truck } from 'lucide-react'
 import { useSuppliers } from '../../hooks/useSuppliers'
+import { StatusModal } from '../../components/ui/StatusModal'
 import type {
   ISupplier,
   CreateSupplierInput,
@@ -101,18 +101,12 @@ export function SupplierFormModal({ supplier, onClose }: Props) {
         {/* Body */}
         <form onSubmit={handleSubmit}>
           <div className="px-6 py-5 space-y-3">
-            {error && (
-              <div
-                className="mb-4 px-4 py-3 rounded-lg text-sm"
-                style={{
-                  background: 'var(--color-danger-bg)',
-                  border: '1px solid var(--color-danger-border)',
-                  color: 'var(--color-danger)'
-                }}
-              >
-                {error}
-              </div>
-            )}
+            <StatusModal
+              isOpen={!!error}
+              type="error"
+              message={error || ''}
+              onClose={() => setError(null)}
+            />
 
             <div>
               <label

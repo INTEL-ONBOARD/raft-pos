@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { X, ArrowUpDown } from 'lucide-react'
+import { StatusModal } from '../../components/ui/StatusModal'
 import type { StockLevelRow, AdjustmentType } from '@shared/types/inventory.types'
 
 interface Props {
@@ -8,9 +9,10 @@ interface Props {
   onClose: () => void
   loading: boolean
   error: string | null
+  clearError?: () => void
 }
 
-export function AdjustmentModal({ row, onSave, onClose, loading, error }: Props) {
+export function AdjustmentModal({ row, onSave, onClose, loading, error, clearError }: Props) {
   const [type, setType] = useState<AdjustmentType>('in')
   const [qty, setQty] = useState('')
   const [reason, setReason] = useState('')
@@ -171,30 +173,15 @@ export function AdjustmentModal({ row, onSave, onClose, loading, error }: Props)
             />
           </div>
 
-          {validationError && (
-            <div
-              className="mb-4 px-4 py-3 rounded-lg text-sm"
-              style={{
-                background: 'var(--color-danger-bg)',
-                border: '1px solid var(--color-danger-border)',
-                color: 'var(--color-danger)'
-              }}
-            >
-              {validationError}
-            </div>
-          )}
-          {error && (
-            <div
-              className="mb-4 px-4 py-3 rounded-lg text-sm"
-              style={{
-                background: 'var(--color-danger-bg)',
-                border: '1px solid var(--color-danger-border)',
-                color: 'var(--color-danger)'
-              }}
-            >
-              {error}
-            </div>
-          )}
+          <StatusModal
+            isOpen={!!(validationError || error)}
+            type="error"
+            message={(validationError || error) || ''}
+            onClose={() => {
+              setValidationError(null)
+              if (clearError) clearError()
+            }}
+          />
         </div>
 
         {/* Footer */}

@@ -1,7 +1,7 @@
 // src/renderer/src/pages/pos/DrawerPrompt.tsx
 import { useState } from 'react'
-import { AlertCircle, Inbox } from 'lucide-react'
 import { useCashDrawer } from '../../hooks/useCashDrawer'
+import { StatusModal } from '../../components/ui/StatusModal'
 
 export function DrawerPrompt() {
   const [openingCash, setOpeningCash] = useState('')
@@ -42,7 +42,7 @@ export function DrawerPrompt() {
             className="w-14 h-14 rounded-full flex items-center justify-center"
             style={{ background: 'rgba(79,70,229,0.10)', border: '1px solid rgba(79,70,229,0.18)' }}
           >
-            <Inbox className="w-7 h-7" style={{ color: 'var(--accent)' }} />
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--accent)' }}><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
           </div>
           <div className="text-center">
             <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
@@ -87,19 +87,12 @@ export function DrawerPrompt() {
             </div>
           </div>
 
-          {error && (
-            <div
-              className="mb-4 px-4 py-3 rounded-lg text-sm"
-              style={{
-                background: 'var(--color-danger-bg)',
-                border: '1px solid var(--color-danger-border)',
-                color: 'var(--color-danger)'
-              }}
-            >
-              <AlertCircle className="w-4 h-4 shrink-0 inline mr-2" />
-              {error}
-            </div>
-          )}
+          <StatusModal
+            isOpen={!!error}
+            type="error"
+            message={error || ''}
+            onClose={() => setError(null)}
+          />
 
           <button
             type="submit"

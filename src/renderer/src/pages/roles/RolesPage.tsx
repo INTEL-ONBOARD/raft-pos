@@ -10,6 +10,7 @@ import {
   CheckIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline'
+import { StatusModal } from '../../components/ui/StatusModal'
 import { useRoles } from '../../hooks/useRoles'
 import { useUsers } from '../../hooks/useUsers'
 import { RoleFormModal } from './RoleFormModal'
@@ -609,6 +610,7 @@ export default function RolesPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [cloneBase, setCloneBase] = useState<IPublicRole | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [successMsg, setSuccessMsg] = useState('')
   const [error, setError] = useState('')
 
   const roles = rolesQuery.data ?? []
@@ -619,6 +621,7 @@ export default function RolesPage() {
       await createMutation.mutateAsync(data)
       setShowCreate(false)
       setCloneBase(null)
+      setSuccessMsg('The new role has been securely assigned and activated inside the matrix.')
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to create role')
     }
@@ -628,6 +631,7 @@ export default function RolesPage() {
     try {
       await updateMutation.mutateAsync({ id: editRole._id, input: data })
       setEditRole(null)
+      setSuccessMsg('Role security upgrades have been safely deployed.')
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to update role')
     }
@@ -768,37 +772,7 @@ export default function RolesPage() {
           </button>
         </div>
 
-        {error && (
-          <div
-            style={{
-              margin: '0 36px 16px',
-              padding: '12px 16px',
-              borderRadius: '10px',
-              background: 'rgba(220,38,38,0.06)',
-              border: '1px solid rgba(220,38,38,0.14)',
-              color: '#f87171',
-              fontSize: '13px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <XMarkIcon style={{ width: '14px', height: '14px', flexShrink: 0 }} />
-            {error}
-            <button
-              onClick={() => setError('')}
-              style={{
-                marginLeft: 'auto',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: '#f87171'
-              }}
-            >
-              ✕
-            </button>
-          </div>
-        )}
+
 
         <div
           style={{
@@ -941,8 +915,18 @@ export default function RolesPage() {
             setCloneBase(null)
           }}
           isLoading={createMutation.isPending || updateMutation.isPending}
+          backendError={error}
+          clearBackendError={() => setError('')}
         />
       )}
+
+      <StatusModal
+        isOpen={!!successMsg}
+        type="success"
+        message={successMsg}
+        isGlobal
+        onClose={() => setSuccessMsg('')}
+      />
     </div>
   )
 }

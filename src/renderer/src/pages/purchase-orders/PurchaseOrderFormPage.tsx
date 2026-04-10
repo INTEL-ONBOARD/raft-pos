@@ -8,6 +8,7 @@ import { useSuppliers } from '../../hooks/useSuppliers'
 import { useProducts } from '../../hooks/useProducts'
 import { ipc } from '../../lib/ipc'
 import { IPC } from '@shared/types/ipc.types'
+import { StatusModal } from '../../components/ui/StatusModal'
 import type { CreatePOInput, POResult } from '@shared/types/purchase-order.types'
 
 interface LineItem {
@@ -229,31 +230,12 @@ export default function PurchaseOrderFormPage() {
           }}
         >
           {/* Error banner */}
-          {error && (
-            <div
-              className="flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm"
-              style={{
-                background: 'rgba(220,38,38,0.06)',
-                border: '1px solid rgba(220,38,38,0.15)',
-                color: '#dc2626'
-              }}
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-              {error}
-            </div>
-          )}
+          <StatusModal
+            isOpen={!!error}
+            type="error"
+            message={error || ''}
+            onClose={() => setError(null)}
+          />
 
           {/* Section: Order Details */}
           <div

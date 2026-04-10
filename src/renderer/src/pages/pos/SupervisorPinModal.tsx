@@ -1,6 +1,7 @@
 // src/renderer/src/pages/pos/SupervisorPinModal.tsx
 import { useState } from 'react'
 import { X, Shield } from 'lucide-react'
+import { StatusModal } from '../../components/ui/StatusModal'
 
 interface SupervisorPinModalProps {
   onApproved: () => void
@@ -112,18 +113,12 @@ export function SupervisorPinModal({ onApproved, onClose, validatePin }: Supervi
             />
           </div>
 
-          {error && (
-            <div
-              className="mb-4 px-4 py-3 rounded-lg text-sm"
-              style={{
-                background: 'var(--color-danger-bg)',
-                border: '1px solid var(--color-danger-border)',
-                color: 'var(--color-danger)'
-              }}
-            >
-              {error}
-            </div>
-          )}
+          <StatusModal
+            isOpen={!!error}
+            type="error"
+            message={error || ''}
+            onClose={() => setError(null)}
+          />
         </div>
 
         {/* Footer */}

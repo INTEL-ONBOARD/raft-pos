@@ -649,7 +649,14 @@ export default function InventoryPage() {
 
       {/* Adjustment modal */}
       {adjustRow && (
-        <AdjustmentModal row={adjustRow} onSave={handleAdjust} onClose={() => setAdjustRow(null)} loading={adjust.isPending} error={adjError} />
+        <AdjustmentModal
+          row={adjustRow}
+          onSave={handleAdjust}
+          onClose={() => setAdjustRow(null)}
+          loading={adjust.isPending}
+          error={adjError}
+          clearError={() => setAdjError(null)}
+        />
       )}
     </div>
   )

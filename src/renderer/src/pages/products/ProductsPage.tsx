@@ -435,7 +435,19 @@ export default function ProductsPage() {
       </div>
 
        {/* Modals */}
-       {showForm && <ProductFormModal product={editProduct} onSave={handleSave} onClose={() => { setShowForm(false); setEditProduct(null) }} loading={create.isPending || update.isPending} error={formError} />}
+       {showForm && (
+          <ProductFormModal
+             product={editProduct}
+             onSave={handleSave}
+             onClose={() => {
+                setShowForm(false)
+                setEditProduct(null)
+             }}
+             loading={create.isPending || update.isPending}
+             error={formError}
+             clearError={() => setFormError(null)}
+          />
+       )}
        {barcodeProduct && <BarcodeModal product={barcodeProduct} onClose={() => setBarcodeProduct(null)} />}
        {importResult && (
           <div className="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4">

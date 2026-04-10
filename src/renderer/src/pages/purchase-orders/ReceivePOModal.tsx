@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { X, PackageCheck } from 'lucide-react'
 import { usePurchaseOrders } from '../../hooks/usePurchaseOrders'
+import { StatusModal } from '../../components/ui/StatusModal'
 import type { IPurchaseOrder } from '@shared/types/purchase-order.types'
 
 interface Props {
@@ -95,18 +96,12 @@ export function ReceivePOModal({ po, onClose }: Props) {
 
         {/* Body */}
         <div className="px-6 py-5">
-          {error && (
-            <div
-              className="mb-4 px-4 py-3 rounded-lg text-sm"
-              style={{
-                background: 'var(--color-danger-bg)',
-                border: '1px solid var(--color-danger-border)',
-                color: 'var(--color-danger)'
-              }}
-            >
-              {error}
-            </div>
-          )}
+          <StatusModal
+            isOpen={!!error}
+            type="error"
+            message={error || ''}
+            onClose={() => setError(null)}
+          />
 
           <div
             className="rounded-xl overflow-hidden mb-4"

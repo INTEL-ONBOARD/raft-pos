@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { X, Package } from 'lucide-react'
 import { useCategoryStore } from '../../stores/category.store'
 import type { IProduct, CreateProductInput, ProductUnit } from '@shared/types/product.types'
+import { StatusModal } from '../../components/ui/StatusModal'
 
 const UNITS: ProductUnit[] = ['pcs', 'kg', 'm', 'box', 'roll', 'set', 'pair']
 
@@ -11,6 +12,7 @@ interface Props {
   onClose: () => void
   loading: boolean
   error: string | null
+  clearError?: () => void
 }
 
 const empty: CreateProductInput = {
@@ -25,7 +27,7 @@ const empty: CreateProductInput = {
   taxRate: null
 }
 
-export function ProductFormModal({ product, onSave, onClose, loading, error }: Props) {
+export function ProductFormModal({ product, onSave, onClose, loading, error, clearError }: Props) {
   const allCategories = useCategoryStore((s) => s.categories)
   const categories = useMemo(() => allCategories.filter((c) => c.isActive), [allCategories])
   const [form, setForm] = useState<CreateProductInput>(empty)
@@ -306,18 +308,14 @@ export function ProductFormModal({ product, onSave, onClose, loading, error }: P
             </div>
           </div>
 
-          {error && (
-            <div
-              className="mb-4 px-4 py-3 rounded-lg text-sm"
-              style={{
-                background: 'var(--color-danger-bg)',
-                border: '1px solid var(--color-danger-border)',
-                color: 'var(--color-danger)'
-              }}
-            >
-              {error}
-            </div>
-          )}
+          <StatusModal
+            isOpen={!!error}
+            type="error"
+            message={error || ''}
+            onClose={() => {
+              if (clearError) clearError()
+            }}
+          />
         </div>
 
         {/* Footer */}

@@ -10,8 +10,10 @@ import {
   XCircleIcon,
   ShieldCheckIcon,
   MagnifyingGlassIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline'
+import { StatusModal } from '../../components/ui/StatusModal'
 import { useUsers, useUserActivity } from '../../hooks/useUsers'
 import { useRoles } from '../../hooks/useRoles'
 import { useBranches } from '../../hooks/useBranches'
@@ -234,13 +236,6 @@ export default function UsersPage() {
           </div>
         </div>
 
-        {error && (
-           <div style={{ margin: '16px 28px 0', padding: '12px 16px', background: 'rgba(220,38,38,0.06)', border: '1px solid rgba(220,38,38,0.15)', borderRadius: '10px', color: '#f87171', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-               <XCircleIcon style={{ width: 16, height: 16 }} />
-               {error}
-           </div>
-        )}
-
         <div style={{ padding: '20px 28px 0', display: 'flex', gap: '10px', alignItems: 'center', flexShrink: 0 }}>
           <div style={{ position: 'relative', flex: '1', maxWidth: '360px' }}>
             <MagnifyingGlassIcon style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '15px', height: '15px', color: 'rgba(255,255,255,0.32)' }} />
@@ -330,6 +325,8 @@ export default function UsersPage() {
           onConfirm={editUser ? handleUpdate : handleCreate}
           onClose={() => { setShowCreate(false); setEditUser(null) }}
           isLoading={createMutation.isPending || updateMutation.isPending}
+          backendError={error}
+          clearBackendError={() => setError('')}
         />
       )}
 

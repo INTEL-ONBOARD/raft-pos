@@ -1,6 +1,7 @@
 // src/renderer/src/pages/transactions/RefundModal.tsx
 import { useState } from 'react'
 import { X, Undo2 } from 'lucide-react'
+import { StatusModal } from '../../components/ui/StatusModal'
 import type { ITransaction } from '@shared/types/transaction.types'
 
 interface RefundItem {
@@ -168,18 +169,12 @@ export function RefundModal({ transaction, onConfirm, onClose, isLoading }: Prop
                 placeholder="Enter refund reason…"
                 className="dark-input resize-none mt-1"
               />
-              {error && (
-                <div
-                  className="mb-4 px-4 py-3 rounded-lg text-sm mt-2"
-                  style={{
-                    background: 'var(--color-danger-bg)',
-                    border: '1px solid var(--color-danger-border)',
-                    color: 'var(--color-danger)'
-                  }}
-                >
-                  {error}
-                </div>
-              )}
+              <StatusModal
+                isOpen={!!error}
+                type="error"
+                message={error || ''}
+                onClose={() => setError('')}
+              />
             </div>
           </div>
 

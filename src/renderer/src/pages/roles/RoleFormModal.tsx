@@ -1,6 +1,7 @@
 // src/renderer/src/pages/roles/RoleFormModal.tsx
 import { useState, useEffect } from 'react'
-import { X, Shield } from 'lucide-react'
+import { X, Shield, Check, Loader2 } from 'lucide-react'
+import { StatusModal } from '../../components/ui/StatusModal'
 import type { IPublicRole, CreateRoleInput } from '@shared/types/role.types'
 import type { Permission } from '@shared/types/permissions'
 
@@ -9,6 +10,8 @@ interface Props {
   onConfirm: (data: CreateRoleInput) => void
   onClose: () => void
   isLoading: boolean
+  backendError?: string
+  clearBackendError?: () => void
 }
 
 // Grouped permissions structure for better UI organization
@@ -65,14 +68,17 @@ const GROUPS: PermissionMatrixGroup[] = [
   }
 ]
 
-export function RoleFormModal({ role, onConfirm, onClose, isLoading }: Props) {
+export function RoleFormModal({ role, onConfirm, onClose, isLoading, backendError, clearBackendError }: Props) {
   const [name, setName] = useState(role?.name ?? '')
   const [permissions, setPermissions] = useState<Permission[]>(role?.permissions ?? [])
   const [maxDiscountPercent, setMaxDiscountPercent] = useState(role?.maxDiscountPercent ?? 0)
   const [requiresSupervisorOverride, setRequiresSupervisorOverride] = useState(
     role?.requiresSupervisorOverride ?? false
   )
-  const [error, setError] = useState('')
+  const [localError, setLocalError] = useState('')
+  const [currentStep, setCurrentStep] = useState(0)
+  
+  const displayError = localError || backendError
 
   useEffect(() => {
     if (role) {
@@ -82,6 +88,12 @@ export function RoleFormModal({ role, onConfirm, onClose, isLoading }: Props) {
       setRequiresSupervisorOverride(role.requiresSupervisorOverride)
     }
   }, [role])
+
+  const shortTitles = ['Quick Setup', 'Sales', 'Inventory', 'Transfers', 'Reports', 'Admin']
+  const stepsData = [
+    { id: 0, title: shortTitles[0] },
+    ...GROUPS.map((_g, i) => ({ id: i + 1, title: shortTitles[i + 1] }))
+  ]
 
   function togglePermission(p: Permission) {
     setPermissions((prev) => (prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]))
@@ -104,14 +116,14 @@ export function RoleFormModal({ role, onConfirm, onClose, isLoading }: Props) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setError('')
-    if (!name.trim()) return setError('Role name is required')
+    setLocalError('')
+    if (!name.trim()) return setLocalError('Role name is required')
     onConfirm({ name, permissions, maxDiscountPercent, requiresSupervisorOverride })
   }
 
   return (
     <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="modal-panel w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="modal-panel w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-white/5">
         {/* Header */}
         <div
           className="flex items-center justify-between px-6 py-5 shrink-0"
@@ -126,97 +138,129 @@ export function RoleFormModal({ role, onConfirm, onClose, isLoading }: Props) {
             </div>
             <div>
               <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#fff', margin: 0 }}>
-                {role ? 'Edit Role Details' : 'Register New Role'}
+                {role ? 'Edit Role Configuration' : 'Create New Role'}
               </h2>
               <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0, marginTop: '2px' }}>
-                Configure access levels and POS limits
+                Follow the 6 steps below to configure permissions
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
             style={{ color: 'var(--text-muted)' }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+            onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
             onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
+        {/* Stepper Navigation */}
+        <div 
+          className="flex overflow-x-auto bg-[#00000040] border-b border-white/5 px-2"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {stepsData.map(step => {
+            const isActive = step.id === currentStep
+            const isPast = step.id < currentStep
+            return (
+              <button
+                key={step.id}
+                type="button"
+                onClick={() => setCurrentStep(step.id)}
+                className="flex items-center gap-2 px-4 py-3 transition-colors relative focus:outline-none shrink-0"
+                style={{
+                  color: isActive ? '#fff' : isPast ? '#818cf8' : 'rgba(255,255,255,0.3)',
+                  borderBottom: isActive ? '2px solid #818cf8' : '2px solid transparent',
+                  marginBottom: '-1px'
+                }}
+              >
+                <div style={{
+                  width: '18px', height: '18px', borderRadius: '50%',
+                  background: isActive ? '#818cf8' : isPast ? 'rgba(129,140,248,0.2)' : 'rgba(255,255,255,0.05)',
+                  border: isActive || isPast ? 'none' : '1px solid rgba(255,255,255,0.2)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '9px', fontWeight: 700, color: isActive ? '#fff' : isPast ? '#818cf8' : 'inherit'
+                }}>
+                  {isPast ? <Check className="w-2.5 h-2.5" /> : step.id + 1}
+                </div>
+                <span style={{ fontSize: '11px', fontWeight: isActive ? 600 : 500, letterSpacing: '0.02em', textTransform: 'uppercase' }}>
+                  {step.title}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+
         {/* Body */}
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 bg-[#00000020]">
-          
           <div className="flex flex-col flex-1 overflow-y-auto">
             <div className="px-6 py-6 space-y-5">
-              {error && (
-                <div style={{ padding: '12px 16px', background: 'rgba(220,38,38,0.06)', border: '1px solid rgba(220,38,38,0.15)', borderRadius: '10px', color: '#f87171', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <X className="w-4 h-4" /> {error}
+              {/* Step 0: Quick Setup */}
+              {currentStep === 0 && (
+                <div className="grid grid-cols-2 gap-5 p-5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div className="col-span-2">
+                    <label htmlFor="role-name" style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: '8px' }}>
+                      Role Name *
+                    </label>
+                    <input
+                      id="role-name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="dark-input w-full"
+                      placeholder="e.g. Senior Cashier"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="role-max-discount" style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: '8px' }}>
+                      Max Allowed Discount %
+                    </label>
+                    <input
+                      id="role-max-discount"
+                      type="number"
+                      min="0"
+                      max="100"
+                      inputMode="decimal"
+                      value={maxDiscountPercent}
+                      onChange={(e) => setMaxDiscountPercent(Number(e.target.value))}
+                      className="dark-input w-full"
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-colors hover:bg-white/5 border border-transparent hover:border-white/10 w-full h-full mt-4">
+                      <input
+                        type="checkbox"
+                        checked={requiresSupervisorOverride}
+                        onChange={(e) => setRequiresSupervisorOverride(e.target.checked)}
+                        className="w-4 h-4 rounded text-indigo-500 bg-white/5 border-white/20"
+                      />
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>Supervisor Override</div>
+                        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Require PIN lock on terminal</div>
+                      </div>
+                    </label>
+                  </div>
                 </div>
               )}
 
-              {/* Core Details */}
-              <div className="grid grid-cols-2 gap-5 p-5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div className="col-span-2">
-                  <label htmlFor="role-name" style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: '8px' }}>
-                    Role Name *
-                  </label>
-                  <input
-                    id="role-name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="dark-input w-full"
-                    placeholder="e.g. Senior Cashier"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="role-max-discount" style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: '8px' }}>
-                    Max Allowed Discount %
-                  </label>
-                  <input
-                    id="role-max-discount"
-                    type="number"
-                    min="0"
-                    max="100"
-                    inputMode="decimal"
-                    value={maxDiscountPercent}
-                    onChange={(e) => setMaxDiscountPercent(Number(e.target.value))}
-                    className="dark-input w-full"
-                  />
-                </div>
-                <div className="flex items-center">
-                  <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-colors hover:bg-white/5 border border-transparent hover:border-white/10 w-full h-full mt-4">
-                    <input
-                      type="checkbox"
-                      checked={requiresSupervisorOverride}
-                      onChange={(e) => setRequiresSupervisorOverride(e.target.checked)}
-                      className="w-4 h-4 rounded text-indigo-500 bg-white/5 border-white/20"
-                    />
-                    <div>
-                      <div style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>Supervisor Override</div>
-                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Require PIN lock on terminal</div>
-                    </div>
-                  </label>
-                </div>
-              </div>
-
-              {/* Matrix Layout */}
-              <div>
-                <p style={{ fontSize: '14px', fontWeight: 600, color: '#fff', marginBottom: '16px' }}>Access Control Matrix</p>
-                <div className="space-y-4">
-                  {GROUPS.map((group) => {
+              {/* Steps 1-5: Permission Matrices */}
+              {currentStep > 0 && (
+                <div style={{ background: 'rgba(255,255,255,0.015)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '14px', overflow: 'hidden' }}>
+                  {(() => {
+                    const group = GROUPS[currentStep - 1]
                     const groupKeys = group.rows.map(r => r.key)
                     const selectedCount = groupKeys.filter(k => permissions.includes(k)).length
                     const isAll = selectedCount === groupKeys.length
                     
                     return (
-                      <div key={group.group} style={{ background: 'rgba(255,255,255,0.015)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '14px', overflow: 'hidden' }}>
+                      <>
                         {/* Group Header */}
                         <div className="flex items-center justify-between px-5 py-3" style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
                           <div className="flex items-center gap-3">
                             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: group.color }} />
                             <span style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>{group.group}</span>
                             <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '99px', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)' }}>
-                              {selectedCount} / {groupKeys.length}
+                              {selectedCount} / {groupKeys.length} selected
                             </span>
                           </div>
                           <button type="button" onClick={() => handleGroupToggle(group.rows)} style={{ fontSize: '11px', fontWeight: 600, color: group.color, background: `${group.color}15`, padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', border: `1px solid ${group.color}30` }}>
@@ -243,32 +287,49 @@ export function RoleFormModal({ role, onConfirm, onClose, isLoading }: Props) {
                             )
                           })}
                         </div>
-                      </div>
+                      </>
                     )
-                  })}
+                  })()}
                 </div>
-              </div>
-
+              )}
             </div>
           </div>
 
-          {/* Footer */}
-          <div
-            className="flex justify-end gap-3 px-6 py-4 shrink-0 bg-black/20"
-            style={{ borderTop: '1px solid var(--border-subtle)' }}
-          >
-            <button type="button" onClick={onClose} className="btn-secondary px-6 py-2">
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="btn-primary px-6 py-2 disabled:opacity-50 min-w-[140px]"
-            >
-              {isLoading ? 'Processing...' : role ? 'Save Changes' : 'Create Role'}
-            </button>
+          {/* Footer Nav */}
+          <div className="flex justify-between items-center px-6 py-4 shrink-0 bg-black/20" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+            <div>
+              {currentStep > 0 && (
+                <button type="button" onClick={() => setCurrentStep(c => c - 1)} className="btn-secondary px-5 py-2">
+                  ← Back
+                </button>
+              )}
+            </div>
+            <div className="flex gap-3">
+              <button type="button" onClick={onClose} className="btn-secondary px-5 py-2" style={{ border: 'none', background: 'transparent' }}>
+                Cancel
+              </button>
+              
+              {currentStep < stepsData.length - 1 ? (
+                <button type="button" onClick={() => setCurrentStep(c => c + 1)} className="btn-primary px-6 py-2 min-w-[140px]">
+                  Next Step →
+                </button>
+              ) : (
+                <button type="submit" disabled={isLoading} className="btn-primary px-6 py-2 min-w-[140px] flex items-center justify-center gap-2" style={{ background: isLoading ? '#4f46e5' : '#22c55e', borderColor: isLoading ? 'transparent' : '#16a34a' }}>
+                  {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  <span>{isLoading ? 'Saving...' : role ? 'Save Changes' : 'Create Role'}</span>
+                </button>
+              )}
+            </div>
           </div>
-        </form>
+        <StatusModal
+          isOpen={!!displayError}
+          type="error"
+          message={displayError}
+          onClose={() => {
+            setLocalError('')
+            if (clearBackendError) clearBackendError()
+          }}
+        />
       </div>
     </div>
   )

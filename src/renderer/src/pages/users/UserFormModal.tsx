@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { X, UserPlus, UserCog } from 'lucide-react'
 import type { IPublicUser, CreateUserInput, UpdateUserInput } from '@shared/types/user.types'
 import type { IPublicRole } from '@shared/types/role.types'
+import { StatusModal } from '../../components/ui/StatusModal'
 
 interface IBranch {
   _id: string
@@ -17,16 +18,20 @@ interface Props {
   onConfirm: (data: CreateUserInput | UpdateUserInput) => void
   onClose: () => void
   isLoading: boolean
+  backendError?: string
+  clearBackendError?: () => void
 }
 
-export function UserFormModal({ user, roles, branches, onConfirm, onClose, isLoading }: Props) {
+export function UserFormModal({ user, roles, branches, onConfirm, onClose, isLoading, backendError, clearBackendError }: Props) {
   const [name, setName] = useState(user?.name ?? '')
   const [email, setEmail] = useState(user?.email ?? '')
   const [password, setPassword] = useState('')
   const [roleId, setRoleId] = useState(user?.roleId ?? '')
   const [branchId, setBranchId] = useState(user?.branchId ?? '')
   const [supervisorPin, setSupervisorPin] = useState('')
-  const [error, setError] = useState('')
+  const [localError, setLocalError] = useState('')
+
+  const displayError = localError || backendError
 
   useEffect(() => {
     setName(user?.name ?? '')
@@ -39,15 +44,17 @@ export function UserFormModal({ user, roles, branches, onConfirm, onClose, isLoa
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setError('')
-    if (!name.trim()) return setError('Name is required')
-    if (!email.trim()) return setError('Email is required')
+    setLocalError('')
+    if (clearBackendError) clearBackendError()
+    
+    if (!name.trim()) return setLocalError('Name is required')
+    if (!email.trim()) return setLocalError('Email is required')
     if (!user && (!password || password.length < 8))
-      return setError('Password must be at least 8 characters')
-    if (!roleId) return setError('Role is required')
-    if (!branchId) return setError('Branch is required')
+      return setLocalError('Password must be at least 8 characters')
+    if (!roleId) return setLocalError('Role is required')
+    if (!branchId) return setLocalError('Branch is required')
     if (supervisorPin && !/^\d{4}$/.test(supervisorPin))
-      return setError('Supervisor PIN must be exactly 4 digits')
+      return setLocalError('Supervisor PIN must be exactly 4 digits')
 
     const data: any = { name, email, roleId, branchId }
     if (password) data.password = password
@@ -222,18 +229,15 @@ export function UserFormModal({ user, roles, branches, onConfirm, onClose, isLoa
                 className="dark-input mt-1"
               />
             </div>
-            {error && (
-              <div
-                className="mb-4 px-4 py-3 rounded-lg text-sm"
-                style={{
-                  background: 'var(--color-danger-bg)',
-                  border: '1px solid var(--color-danger-border)',
-                  color: 'var(--color-danger)'
-                }}
-              >
-                {error}
-              </div>
-            )}
+            <StatusModal
+              isOpen={!!displayError}
+              type="error"
+              message={displayError}
+              onClose={() => {
+                setLocalError('')
+                if (clearBackendError) clearBackendError()
+              }}
+            />
           </div>
 
           {/* Footer */}

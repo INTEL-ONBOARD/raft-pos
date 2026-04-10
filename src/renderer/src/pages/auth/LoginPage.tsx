@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { StatusModal } from '../../components/ui/StatusModal'
 import { ipc } from '../../lib/ipc'
 import { IPC } from '@shared/types/ipc.types'
 import { useAuthStore } from '../../stores/auth.store'
@@ -203,22 +204,13 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Error */}
-          {error && (
-            <div
-              role="alert"
-              style={{
-                background: 'rgba(239,68,68,0.08)',
-                border: '1px solid rgba(239,68,68,0.2)',
-                borderRadius: '8px',
-                color: '#f87171',
-                fontSize: '0.8125rem',
-                padding: '0.75rem 1rem'
-              }}
-            >
-              {error}
-            </div>
-          )}
+          <StatusModal
+            isOpen={!!error}
+            type="error"
+            message={error}
+            isGlobal
+            onClose={() => setError('')}
+          />
 
           {/* Submit */}
           <button

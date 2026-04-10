@@ -22,6 +22,7 @@ import { useAuthStore } from '../../stores/auth.store'
 import { useSettings } from '../../hooks/useSettings'
 import { PaymentModal } from './PaymentModal'
 import { SupervisorPinModal } from './SupervisorPinModal'
+import { StatusModal } from '../../components/ui/StatusModal'
 import type { ITransaction, DiscountType } from '@shared/types/transaction.types'
 
 // Suppress unused import warnings — these selectors are exported from pos.store
@@ -505,19 +506,12 @@ export function CartPanel({ onSaleComplete }: CartPanelProps) {
           </p>
         )}
 
-        {/* Error */}
-        {error && (
-          <p
-            className="text-xs px-3 py-2 rounded-lg"
-            style={{
-              background: 'var(--color-danger-bg)',
-              border: '1px solid var(--color-danger-border)',
-              color: 'var(--color-danger)'
-            }}
-          >
-            {error}
-          </p>
-        )}
+        <StatusModal
+          isOpen={!!error}
+          type="error"
+          message={error || ''}
+          onClose={() => setError(null)}
+        />
 
         {/* Pay button */}
         <button

@@ -9,13 +9,20 @@ import type {
   UpdateRoleInput
 } from '@shared/types/role.types'
 
+async function withTimeout<T>(promise: Promise<T>, ms = 8000): Promise<T> {
+  const timeout = new Promise<never>((_, reject) => {
+    setTimeout(() => reject(new Error(`System timeout (${ms/1000}s). The action took too long. If you restarted your backend, please press Cmd+R to refresh the app window.`)), ms)
+  })
+  return Promise.race([promise, timeout])
+}
+
 export function useRoles() {
   const queryClient = useQueryClient()
 
   const rolesQuery = useQuery({
     queryKey: ['roles'],
     queryFn: async () => {
-      const result = await ipc.invoke<RolesResult>(IPC.ROLES_GET_ALL)
+      const result = await withTimeout(ipc.invoke<RolesResult>(IPC.ROLES_GET_ALL))
       if (!result.success) throw new Error(result.error)
       return result.data ?? []
     },
@@ -24,31 +31,31 @@ export function useRoles() {
 
   const createMutation = useMutation({
     mutationFn: async (input: CreateRoleInput) => {
-      const result = await ipc.invoke<RoleResult>(IPC.ROLES_CREATE, input)
+      const result = await withTimeout(ipc.invoke<RoleResult>(IPC.ROLES_CREATE, input))
       if (!result.success) throw new Error(result.error)
       return result
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['roles'] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['roles'] })
+    }
   })
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, input }: { id: string; input: UpdateRoleInput }) => {
-      const result = await ipc.invoke<RoleResult>(IPC.ROLES_UPDATE, { id, input })
+      const result = await withTimeout(ipc.invoke<RoleResult>(IPC.ROLES_UPDATE, { id, input }))
       if (!result.success) throw new Error(result.error)
       return result
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['roles'] })
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['roles'] }) }
   })
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const result = await ipc.invoke<{ success: boolean; error?: string }>(IPC.ROLES_DELETE, {
-        id
-      })
+      const result = await withTimeout(ipc.invoke<{ success: boolean; error?: string }>(IPC.ROLES_DELETE, { id }))
       if (!result.success) throw new Error(result.error)
       return result
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['roles'] })
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['roles'] }) }
   })
 
   return { rolesQuery, createMutation, updateMutation, deleteMutation }

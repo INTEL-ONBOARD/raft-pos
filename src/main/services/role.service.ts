@@ -7,10 +7,11 @@ function toShared(doc: any): IPublicRole {
   return {
     _id: doc._id.toString(),
     name: doc.name,
-    permissions: doc.permissions,
+    // Convert MongooseArray to plain JS array to prevent IPC structured clone hangs
+    permissions: Array.from(doc.permissions),
     maxDiscountPercent: doc.maxDiscountPercent,
     requiresSupervisorOverride: doc.requiresSupervisorOverride,
-    createdAt: doc.createdAt.toISOString()
+    createdAt: doc.createdAt ? doc.createdAt.toISOString() : new Date().toISOString()
   }
 }
 

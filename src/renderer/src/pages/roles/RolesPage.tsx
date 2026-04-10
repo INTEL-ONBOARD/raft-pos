@@ -646,25 +646,103 @@ export default function RolesPage() {
     ? ({ ...cloneBase, _id: '', name: `${cloneBase.name} (Copy)` } as IPublicRole)
     : editRole
 
+  function RightPanel() {
+    if (!selectedId) {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ padding: '20px 20px 0' }}>
+            <p style={{ fontSize: '13px', fontWeight: 700, color: 'rgba(255,255,255,0.85)', margin: 0 }}>System Roles</p>
+            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', margin: '3px 0 0' }}>Select a role to view details and manage assignments</p>
+          </div>
+          <div style={{ margin: '0 16px', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '18px' }}>
+            <p style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 16px' }}>Quick Actions</p>
+            <button onClick={() => setShowCreate(true)} style={{ padding: '12px', background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', borderRadius: '10px', color: '#818cf8', fontWeight: 600, fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', transition: 'background 150ms', width: '100%' }}>
+              <PlusIcon style={{ width: '16px' }} /> Create New Role
+            </button>
+          </div>
+        </div>
+      )
+    }
+
+    const role = roles.find((r) => r._id === selectedId)
+    if (!role) return null
+
+    const idx = roles.findIndex((r) => r._id === selectedId)
+    const accent = ROLE_ACCENTS[idx % ROLE_ACCENTS.length]
+    const assignedUsers = users.filter((u) => u.roleId === role._id)
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+          <button onClick={() => setSelectedId(null)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: '7px', color: 'rgba(255,255,255,0.50)', cursor: 'pointer', padding: '4px 10px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            ← Directory
+          </button>
+        </div>
+
+        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '14px', padding: '16px' }}>
+          <div style={{ background: `linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)`, border: `1px solid rgba(255,255,255,0.08)`, borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+            <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: `${accent}18`, border: `2px solid ${accent}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+              <ShieldCheckIcon style={{ width: '32px', height: '32px', color: accent }} />
+            </div>
+            <p style={{ fontSize: '18px', fontWeight: 700, color: '#fff', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {role.name}
+              {role.requiresSupervisorOverride && (
+                <LockClosedIcon style={{ width: '14px', height: '14px', color: '#fbbf24' }} />
+              )}
+            </p>
+            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)', margin: '4px 0 16px' }}>{role.permissions.length} of {TOTAL_PERMS} permissions</p>
+            
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <span style={{ padding: '4px 12px', background: `${accent}15`, color: accent, borderRadius: '99px', fontSize: '11px', fontWeight: 600, border: `1px solid ${accent}30` }}>
+                {role.permissions.length === TOTAL_PERMS ? 'Full Access' : 'Custom'}
+              </span>
+            </div>
+          </div>
+
+          <div style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '16px' }}>
+            <p style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 12px' }}>Role Details</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '8px' }}>
+                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Role ID</span>
+                <span style={{ fontSize: '12px', color: '#fff', fontFamily: 'monospace' }}>{role._id.slice(-8).toUpperCase()}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '8px' }}>
+                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Assigned Staff</span>
+                <span style={{ fontSize: '12px', color: '#fff' }}>{assignedUsers.length}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '8px' }}>
+                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Max Discount</span>
+                <span style={{ fontSize: '12px', color: '#fff' }}>{role.maxDiscountPercent}%</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0' }}>
+                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Supervisor Init</span>
+                <span style={{ fontSize: '12px', color: role.requiresSupervisorOverride ? '#fbbf24' : 'rgba(255,255,255,0.4)' }}>{role.requiresSupervisorOverride ? 'Required' : 'None'}</span>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '16px' }}>
+            <p style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 12px' }}>Security & Operations</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <button onClick={() => setEditRole(role)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', borderRadius: '10px', background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', color: '#818cf8', cursor: 'pointer', fontSize: '13px', fontWeight: 500 }}>
+                <PencilSquareIcon style={{ width: '16px' }} /> Edit Role Settings
+              </button>
+              <button onClick={() => setCloneBase(role)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)', cursor: 'pointer', fontSize: '13px', fontWeight: 500 }}>
+                <DocumentDuplicateIcon style={{ width: '16px' }} /> Duplicate Role
+              </button>
+              <button onClick={() => handleDelete(role)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', borderRadius: '10px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171', cursor: 'pointer', fontSize: '13px', fontWeight: 500, marginTop: '4px' }}>
+                <TrashIcon style={{ width: '16px' }} /> Delete Role
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: '100%',
-        position: 'relative',
-        overflow: 'hidden'
-      }}
-    >
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          flex: 1
-        }}
-      >
+    <div style={{ display: 'flex', height: '100%', overflow: 'hidden', position: 'relative' }}>
+      <div style={{ flex: 3, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative', zIndex: 1, borderRight: '1px solid rgba(255,255,255,0.04)' }}>
         {/* Action bar */}
         <div
           style={{
@@ -728,7 +806,8 @@ export default function RolesPage() {
             flex: 1,
             display: 'flex',
             flexDirection: 'column',
-            gap: '20px'
+            gap: '20px',
+            overflowY: 'auto'
           }}
         >
           {/* Role cards */}
@@ -844,6 +923,12 @@ export default function RolesPage() {
             </>
           )}
         </div>
+      </div>
+      
+      <div style={{ width: '1px', background: 'rgba(255,255,255,0.07)', flexShrink: 0, position: 'relative', zIndex: 1 }} />
+
+      <div style={{ flex: 1, minWidth: '260px', maxWidth: '320px', overflowY: 'auto', position: 'relative', zIndex: 1, background: 'rgba(0,0,0,0.15)' }}>
+        <RightPanel />
       </div>
 
       {(showCreate || editRole || cloneBase) && (

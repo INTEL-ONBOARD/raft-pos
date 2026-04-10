@@ -88,7 +88,7 @@ export default function StaffPage() {
           </div>
 
           {/* Context Panel right side */}
-          <div style={{ flex: 1, borderTopLeftRadius: '16px', overflow: 'hidden' }}>
+          <div style={{ flex: 1, borderTopLeftRadius: '16px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
              {activeTab === 'users' && <UsersTab />}
              {activeTab === 'roles' && <RolesTab />}
           </div>

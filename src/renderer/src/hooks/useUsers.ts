@@ -30,7 +30,7 @@ export function useUsers() {
       if (!result.success) throw new Error(result.error)
       return result
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] })
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['users'] }) }
   })
 
   const updateMutation = useMutation({
@@ -39,7 +39,7 @@ export function useUsers() {
       if (!result.success) throw new Error(result.error)
       return result
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] })
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['users'] }) }
   })
 
   const deactivateMutation = useMutation({
@@ -48,7 +48,7 @@ export function useUsers() {
       if (!result.success) throw new Error(result.error)
       return result
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] })
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['users'] }) }
   })
 
   const forceLogoutMutation = useMutation({
